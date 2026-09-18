@@ -5,48 +5,381 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#111111">
 <title>Community For All</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;text-align:center}
-.app{max-width:600px;margin:auto;min-height:100vh;padding:30px 20px}
-.brand{margin:30px 0 35px}
-.brand h1{margin:0;font-size:38px;color:#ff8c00}
-.brand h2{margin:5px 0;font-size:30px}
-.for{color:#19d9e6}.all{color:#ff2525}
-.charity{margin-top:12px;font-size:13px;color:#ff9d00;font-weight:bold}
-.language{display:flex;justify-content:center;gap:12px;margin-bottom:35px}
-.language button{border:2px solid #ff8c00;background:#222;color:#fff;padding:12px 20px;border-radius:12px;font-size:16px}
-.language button.active{background:#ff8c00;color:#111;font-weight:bold}
-.welcome{margin-bottom:25px}
-.menu-button{display:block;width:100%;margin:14px 0;padding:18px;border:0;border-radius:14px;font-size:18px;font-weight:bold}
-.events{background:#ff8c00}.bookings{background:#19d9e6}.about{background:#ff3030;color:#fff}.contact{background:#fff}
-footer{margin-top:45px;font-size:12px;color:#aaa}
+
+body{
+margin:0;
+font-family:Arial,sans-serif;
+background:#111;
+color:#fff;
+text-align:center;
+}
+
+.app{
+max-width:600px;
+margin:auto;
+min-height:100vh;
+padding:30px 20px;
+}
+
+.brand{
+margin:30px 0 35px;
+}
+
+.brand h1{
+margin:0;
+font-size:38px;
+color:#ff8c00;
+}
+
+.brand h2{
+margin:5px 0;
+font-size:30px;
+}
+
+.for{
+color:#19d9e6;
+}
+
+.all{
+color:#ff2525;
+}
+
+.charity{
+margin-top:12px;
+font-size:13px;
+color:#ff9d00;
+font-weight:bold;
+}
+
+.language{
+display:flex;
+justify-content:center;
+gap:12px;
+margin-bottom:35px;
+}
+
+.language button{
+border:2px solid #ff8c00;
+background:#222;
+color:#fff;
+padding:12px 20px;
+border-radius:12px;
+font-size:16px;
+}
+
+.language button.active{
+background:#ff8c00;
+color:#111;
+font-weight:bold;
+}
+
+.welcome{
+margin-bottom:25px;
+}
+
+.menu-button{
+display:block;
+width:100%;
+margin:14px 0;
+padding:18px;
+border:0;
+border-radius:14px;
+font-size:18px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.events{
+background:#ff8c00;
+}
+
+.bookings{
+background:#19d9e6;
+}
+
+.about{
+background:#ff3030;
+color:#fff;
+}
+
+.contact{
+background:#fff;
+color:#111;
+}
+
+#aboutPage{
+display:none;
+text-align:left;
+line-height:1.6;
+}
+
+#aboutPage h2{
+text-align:center;
+color:#ff3030;
+font-size:28px;
+}
+
+.about-content{
+background:#1b1b1b;
+padding:22px;
+border-radius:16px;
+}
+
+.about-content p{
+margin:0 0 18px;
+}
+
+.about-slogan{
+text-align:center;
+font-weight:bold;
+font-size:18px;
+color:#ff9d00;
+}
+
+.charity-number{
+text-align:center;
+margin-top:25px;
+}
+
+.back-button{
+display:block;
+width:100%;
+margin:25px 0 10px;
+padding:15px;
+border:2px solid #ff8c00;
+border-radius:14px;
+background:#222;
+color:#fff;
+font-size:17px;
+font-weight:bold;
+cursor:pointer;
+}
+
+footer{
+margin-top:45px;
+font-size:12px;
+color:#aaa;
+}
 </style>
 </head>
+
 <body>
+
 <div class="app">
-<div class="brand"><h1>Community</h1><h2><span class="for">For</span> <span class="all">All</span></h2><div class="charity">TATRY CUP COMMUNITY ORGANISATION CIO</div></div>
-<div class="language"><button id="skButton" class="active" onclick="setLanguage('sk')">🇸🇰 SK</button><button id="enButton" onclick="setLanguage('en')">🇬🇧 EN</button></div>
-<div class="welcome"><h2 id="welcomeTitle">Vitajte</h2><p id="welcomeText">Vyberte si podujatie a vytvorte rezerváciu.</p></div>
-<button class="menu-button events" id="events">📅 Podujatia</button>
-<button class="menu-button bookings" id="bookings">🎟️ Moje rezervácie</button>
-<button class="menu-button about" id="about">❤️ O nás</button>
-<button class="menu-button contact" id="contact">✉️ Kontakt</button>
-<footer>Community For All<br>Tatry Cup Community Organisation CIO</footer>
+
+<div class="brand">
+<h1>Community</h1>
+<h2>
+<span class="for">For</span>
+<span class="all">All</span>
+</h2>
+<div class="charity">
+TATRY CUP COMMUNITY ORGANISATION CIO
 </div>
+</div>
+
+<div class="language">
+<button id="skButton" class="active" onclick="setLanguage('sk')">
+🇸🇰 SK
+</button>
+
+<button id="enButton" onclick="setLanguage('en')">
+🇬🇧 EN
+</button>
+</div>
+
+<div id="homePage">
+
+<div class="welcome">
+<h2 id="welcomeTitle">Vitajte</h2>
+<p id="welcomeText">
+Vyberte si podujatie a vytvorte rezerváciu.
+</p>
+</div>
+
+<button class="menu-button events" id="events">
+📅 Podujatia
+</button>
+
+<button class="menu-button bookings" id="bookings">
+🎟️ Moje rezervácie
+</button>
+
+<button class="menu-button about" id="about" onclick="showAbout()">
+❤️ O nás
+</button>
+
+<button class="menu-button contact" id="contact">
+✉️ Kontakt
+</button>
+
+</div>
+
+<div id="aboutPage">
+
+<h2 id="aboutTitle">O nás ❤️</h2>
+
+<div class="about-content">
+
+<p id="aboutText1">
+<strong>Community For All</strong> je komunitná iniciatíva organizácie
+<strong>Tatry Cup Community Organisation CIO</strong>, registrovanej
+charitatívnej organizácie vo Veľkej Británii.
+</p>
+
+<p id="aboutText2">
+Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové
+priateľstvá a budovať komunitu, v ktorej sa každý môže cítiť vítaný.
+</p>
+
+<p id="aboutText3">
+Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky,
+aktivity pre deti aj dospelých a ďalšie spoločné stretnutia.
+Naše aktivity sú otvorené ľuďom rôznych národností a vekových kategórií.
+</p>
+
+<p id="aboutText4">
+Za celým projektom stojí tím ľudí, ktorí už niekoľko rokov organizujú
+komunitné a charitatívne podujatia vo Veľkej Británii.
+</p>
+
+<p class="about-slogan" id="aboutSlogan">
+Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️
+</p>
+
+<div class="charity-number">
+<strong>Tatry Cup Community Organisation CIO</strong>
+<br>
+<span id="registeredCharity">
+Registered Charity No. 1216952
+</span>
+</div>
+
+</div>
+
+<button class="back-button" id="backButton" onclick="showHome()">
+← Späť
+</button>
+
+</div>
+
+<footer>
+Community For All
+<br>
+Tatry Cup Community Organisation CIO
+</footer>
+
+</div>
+
 <script>
+
+let currentLanguage="sk";
+
 function setLanguage(language){
-const sk=document.getElementById("skButton"),en=document.getElementById("enButton");
+
+currentLanguage=language;
+
+const sk=document.getElementById("skButton");
+const en=document.getElementById("enButton");
 const english=language==="en";
+
 document.documentElement.lang=english?"en":"sk";
-document.getElementById("welcomeTitle").innerText=english?"Welcome":"Vitajte";
-document.getElementById("welcomeText").innerText=english?"Choose an event and make your booking.":"Vyberte si podujatie a vytvorte rezerváciu.";
-document.getElementById("events").innerText=english?"📅 Events":"📅 Podujatia";
-document.getElementById("bookings").innerText=english?"🎟️ My Bookings":"🎟️ Moje rezervácie";
-document.getElementById("about").innerText=english?"❤️ About Us":"❤️ O nás";
-document.getElementById("contact").innerText=english?"✉️ Contact":"✉️ Kontakt";
-en.classList.toggle("active",english);sk.classList.toggle("active",!english);
+
+document.getElementById("welcomeTitle").innerText=
+english?"Welcome":"Vitajte";
+
+document.getElementById("welcomeText").innerText=
+english
+?"Choose an event and make your booking."
+:"Vyberte si podujatie a vytvorte rezerváciu.";
+
+document.getElementById("events").innerText=
+english
+?"📅 Events"
+:"📅 Podujatia";
+
+document.getElementById("bookings").innerText=
+english
+?"🎟️ My Bookings"
+:"🎟️ Moje rezervácie";
+
+document.getElementById("about").innerText=
+english
+?"❤️ About Us"
+:"❤️ O nás";
+
+document.getElementById("contact").innerText=
+english
+?"✉️ Contact"
+:"✉️ Kontakt";
+
+document.getElementById("aboutTitle").innerText=
+english
+?"About Us ❤️"
+:"O nás ❤️";
+
+document.getElementById("aboutText1").innerHTML=
+english
+?'<strong>Community For All</strong> is a community initiative of <strong>Tatry Cup Community Organisation CIO</strong>, a registered charity in the United Kingdom.'
+:'<strong>Community For All</strong> je komunitná iniciatíva organizácie <strong>Tatry Cup Community Organisation CIO</strong>, registrovanej charitatívnej organizácie vo Veľkej Británii.';
+
+document.getElementById("aboutText2").innerText=
+english
+?"Our aim is to bring people, families and generations together, create new friendships and build a community where everyone can feel welcome."
+:"Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať komunitu, v ktorej sa každý môže cítiť vítaný.";
+
+document.getElementById("aboutText3").innerText=
+english
+?"We organise community events, family weekends, stays, barbecues, activities for children and adults, and other social gatherings. Our activities are open to people of different nationalities and age groups."
+:"Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a ďalšie spoločné stretnutia. Naše aktivity sú otvorené ľuďom rôznych národností a vekových kategórií.";
+
+document.getElementById("aboutText4").innerText=
+english
+?"The project is supported by a team of people who have been organising community and charitable events in the United Kingdom for several years."
+:"Za celým projektom stojí tím ľudí, ktorí už niekoľko rokov organizujú komunitné a charitatívne podujatia vo Veľkej Británii.";
+
+document.getElementById("aboutSlogan").innerText=
+english
+?"Bringing people together. Creating experiences. Building community. ❤️"
+:"Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️";
+
+document.getElementById("registeredCharity").innerText=
+english
+?"Registered Charity No. 1216952"
+:"Registrovaná charitatívna organizácia č. 1216952";
+
+document.getElementById("backButton").innerText=
+english
+?"← Back"
+:"← Späť";
+
+en.classList.toggle("active",english);
+sk.classList.toggle("active",!english);
+
 }
+
+function showAbout(){
+
+document.getElementById("homePage").style.display="none";
+document.getElementById("aboutPage").style.display="block";
+
+window.scrollTo(0,0);
+
+}
+
+function showHome(){
+
+document.getElementById("aboutPage").style.display="none";
+document.getElementById("homePage").style.display="block";
+
+window.scrollTo(0,0);
+
+}
+
 </script>
+
 </body>
 </html>
