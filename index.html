@@ -39,13 +39,8 @@ margin:5px 0;
 font-size:30px;
 }
 
-.for{
-color:#19d9e6;
-}
-
-.all{
-color:#ff2525;
-}
+.for{color:#19d9e6}
+.all{color:#ff2525}
 
 .charity{
 margin-top:12px;
@@ -68,6 +63,7 @@ color:#fff;
 padding:12px 20px;
 border-radius:12px;
 font-size:16px;
+cursor:pointer;
 }
 
 .language button.active{
@@ -92,13 +88,8 @@ font-weight:bold;
 cursor:pointer;
 }
 
-.events{
-background:#ff8c00;
-}
-
-.bookings{
-background:#19d9e6;
-}
+.events{background:#ff8c00}
+.bookings{background:#19d9e6}
 
 .about{
 background:#ff3030;
@@ -110,7 +101,8 @@ background:#fff;
 color:#111;
 }
 
-#aboutPage{
+#aboutPage,
+#contactPage{
 display:none;
 text-align:left;
 line-height:1.6;
@@ -122,7 +114,14 @@ color:#ff3030;
 font-size:28px;
 }
 
-.about-content{
+#contactPage h2{
+text-align:center;
+color:#fff;
+font-size:28px;
+}
+
+.about-content,
+.contact-content{
 background:#1b1b1b;
 padding:22px;
 border-radius:16px;
@@ -142,6 +141,81 @@ color:#ff9d00;
 .charity-number{
 text-align:center;
 margin-top:25px;
+}
+
+.contact-intro{
+text-align:center;
+margin:0 0 22px;
+color:#ddd;
+}
+
+.contact-form label{
+display:block;
+font-weight:bold;
+margin:16px 0 7px;
+}
+
+.contact-form input,
+.contact-form textarea{
+width:100%;
+border:1px solid #555;
+border-radius:10px;
+background:#2a2a2a;
+color:#fff;
+padding:14px;
+font-family:Arial,sans-serif;
+font-size:16px;
+}
+
+.contact-form textarea{
+min-height:150px;
+resize:vertical;
+}
+
+.contact-form input:focus,
+.contact-form textarea:focus{
+outline:2px solid #ff8c00;
+border-color:#ff8c00;
+}
+
+.send-button{
+display:block;
+width:100%;
+margin-top:22px;
+padding:16px;
+border:0;
+border-radius:14px;
+background:#ff8c00;
+color:#111;
+font-size:17px;
+font-weight:bold;
+cursor:pointer;
+}
+
+.send-button:disabled{
+opacity:.6;
+cursor:not-allowed;
+}
+
+.form-message{
+display:none;
+margin-top:20px;
+padding:15px;
+border-radius:12px;
+text-align:center;
+font-weight:bold;
+}
+
+.form-message.success{
+display:block;
+background:#173d26;
+color:#b8ffd0;
+}
+
+.form-message.error{
+display:block;
+background:#4a1e1e;
+color:#ffd0d0;
 }
 
 .back-button{
@@ -176,6 +250,7 @@ color:#aaa;
 <span class="for">For</span>
 <span class="all">All</span>
 </h2>
+
 <div class="charity">
 TATRY CUP COMMUNITY ORGANISATION CIO
 </div>
@@ -212,11 +287,12 @@ Vyberte si podujatie a vytvorte rezerváciu.
 ❤️ O nás
 </button>
 
-<button class="menu-button contact" id="contact">
+<button class="menu-button contact" id="contact" onclick="showContact()">
 ✉️ Kontakt
 </button>
 
 </div>
+
 
 <div id="aboutPage">
 
@@ -254,17 +330,96 @@ Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️
 <strong>Tatry Cup Community Organisation CIO</strong>
 <br>
 <span id="registeredCharity">
-Registered Charity No. 1216952
+Registrovaná charitatívna organizácia č. 1216952
 </span>
 </div>
 
 </div>
 
-<button class="back-button" id="backButton" onclick="showHome()">
+<button class="back-button" id="aboutBackButton" onclick="showHome()">
 ← Späť
 </button>
 
 </div>
+
+
+<div id="contactPage">
+
+<h2 id="contactTitle">Kontakt ✉️</h2>
+
+<div class="contact-content">
+
+<p class="contact-intro" id="contactIntro">
+Máte otázku alebo potrebujete pomoc? Napíšte nám.
+</p>
+
+<form
+id="contactForm"
+class="contact-form"
+action="https://formspree.io/f/mrpbbyng"
+method="POST"
+>
+
+<label id="nameLabel" for="contactName">
+Meno a priezvisko
+</label>
+
+<input
+type="text"
+id="contactName"
+name="name"
+autocomplete="name"
+required
+>
+
+<label id="emailLabel" for="contactEmail">
+E-mail
+</label>
+
+<input
+type="email"
+id="contactEmail"
+name="email"
+autocomplete="email"
+required
+>
+
+<label id="messageLabel" for="contactMessage">
+Vaša správa
+</label>
+
+<textarea
+id="contactMessage"
+name="message"
+required
+></textarea>
+
+<input
+type="hidden"
+name="_subject"
+value="Community For All - nová kontaktná správa"
+>
+
+<button
+type="submit"
+class="send-button"
+id="sendButton"
+>
+Odoslať správu
+</button>
+
+<div id="formMessage" class="form-message"></div>
+
+</form>
+
+</div>
+
+<button class="back-button" id="contactBackButton" onclick="showHome()">
+← Späť
+</button>
+
+</div>
+
 
 <footer>
 Community For All
@@ -273,6 +428,7 @@ Tatry Cup Community Organisation CIO
 </footer>
 
 </div>
+
 
 <script>
 
@@ -351,33 +507,141 @@ english
 ?"Registered Charity No. 1216952"
 :"Registrovaná charitatívna organizácia č. 1216952";
 
-document.getElementById("backButton").innerText=
+document.getElementById("aboutBackButton").innerText=
+english?"← Back":"← Späť";
+
+
+document.getElementById("contactTitle").innerText=
+english?"Contact ✉️":"Kontakt ✉️";
+
+document.getElementById("contactIntro").innerText=
 english
-?"← Back"
-:"← Späť";
+?"Do you have a question or need help? Send us a message."
+:"Máte otázku alebo potrebujete pomoc? Napíšte nám.";
+
+document.getElementById("nameLabel").innerText=
+english?"Full name":"Meno a priezvisko";
+
+document.getElementById("emailLabel").innerText=
+english?"Email":"E-mail";
+
+document.getElementById("messageLabel").innerText=
+english?"Your message":"Vaša správa";
+
+document.getElementById("sendButton").innerText=
+english?"Send Message":"Odoslať správu";
+
+document.getElementById("contactBackButton").innerText=
+english?"← Back":"← Späť";
+
+document.getElementById("formMessage").style.display="none";
 
 en.classList.toggle("active",english);
 sk.classList.toggle("active",!english);
 
 }
 
+
 function showAbout(){
 
 document.getElementById("homePage").style.display="none";
+document.getElementById("contactPage").style.display="none";
 document.getElementById("aboutPage").style.display="block";
 
 window.scrollTo(0,0);
 
 }
 
+
+function showContact(){
+
+document.getElementById("homePage").style.display="none";
+document.getElementById("aboutPage").style.display="none";
+document.getElementById("contactPage").style.display="block";
+
+window.scrollTo(0,0);
+
+}
+
+
 function showHome(){
 
 document.getElementById("aboutPage").style.display="none";
+document.getElementById("contactPage").style.display="none";
 document.getElementById("homePage").style.display="block";
 
 window.scrollTo(0,0);
 
 }
+
+
+document.getElementById("contactForm").addEventListener("submit",async function(event){
+
+event.preventDefault();
+
+const form=event.target;
+const button=document.getElementById("sendButton");
+const messageBox=document.getElementById("formMessage");
+
+button.disabled=true;
+
+button.innerText=
+currentLanguage==="en"
+?"Sending..."
+:"Odosielam...";
+
+messageBox.style.display="none";
+
+try{
+
+const response=await fetch(form.action,{
+method:"POST",
+body:new FormData(form),
+headers:{
+"Accept":"application/json"
+}
+});
+
+if(response.ok){
+
+form.reset();
+
+messageBox.className="form-message success";
+
+messageBox.innerText=
+currentLanguage==="en"
+?"Thank you ❤️ Your message has been sent successfully."
+:"Ďakujeme ❤️ Vaša správa bola úspešne odoslaná.";
+
+messageBox.style.display="block";
+
+}else{
+
+throw new Error("Form submission failed");
+
+}
+
+}catch(error){
+
+messageBox.className="form-message error";
+
+messageBox.innerText=
+currentLanguage==="en"
+?"Something went wrong. Please try again."
+:"Správu sa nepodarilo odoslať. Skúste to, prosím, znova.";
+
+messageBox.style.display="block";
+
+}
+
+button.disabled=false;
+
+button.innerText=
+currentLanguage==="en"
+?"Send Message"
+:"Odoslať správu";
+
+});
 
 </script>
 
