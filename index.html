@@ -8,9 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -23,12 +21,35 @@
     .container {
       max-width: 600px;
       margin: auto;
-      padding: 24px 18px 40px;
+      padding: 20px 18px 40px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      min-height: 42px;
+      margin-bottom: 4px;
+    }
+
+    .user-btn {
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: white;
+      border-radius: 20px;
+      padding: 8px 12px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      max-width: 190px;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
     }
 
     .logo {
       text-align: center;
-      margin-top: 15px;
+      margin-top: 4px;
       margin-bottom: 5px;
       font-size: 32px;
       font-weight: 800;
@@ -43,7 +64,7 @@
       color: #cbd5e1;
       font-size: 12px;
       letter-spacing: 1px;
-      margin-bottom: 20px;
+      margin-bottom: 17px;
     }
 
     .language {
@@ -53,9 +74,7 @@
       margin-bottom: 25px;
     }
 
-    button {
-      font-family: inherit;
-    }
+    button { font-family: inherit; }
 
     .lang-btn {
       border: 1px solid #475569;
@@ -86,58 +105,7 @@
     .about { background: #dc2626; }
     .contact { background: #2563eb; }
 
-    .auth-box {
-      background: #1e293b;
-      border: 1px solid #334155;
-      border-radius: 14px;
-      padding: 18px;
-      margin-bottom: 22px;
-    }
-
-    .auth-title {
-      font-size: 19px;
-      font-weight: 700;
-      margin-bottom: 12px;
-      text-align: center;
-    }
-
-    .logged-user {
-      text-align: center;
-      overflow-wrap: anywhere;
-      margin-bottom: 12px;
-      color: #dbeafe;
-    }
-
-    .auth-main-btn {
-      width: 100%;
-      padding: 13px;
-      border: none;
-      border-radius: 9px;
-      background: #0ea5e9;
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      margin-top: 5px;
-    }
-
-    .auth-link-btn {
-      background: none;
-      border: none;
-      color: #7dd3fc;
-      text-decoration: underline;
-      cursor: pointer;
-      font-size: 14px;
-      margin-top: 12px;
-    }
-
-    .auth-links {
-      text-align: center;
-    }
-
-    .page {
-      display: none;
-    }
+    .page { display: none; }
 
     .page h2 {
       text-align: center;
@@ -150,6 +118,20 @@
       border-radius: 14px;
       padding: 20px;
       line-height: 1.6;
+    }
+
+    .account-name {
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .account-email {
+      text-align: center;
+      color: #cbd5e1;
+      overflow-wrap: anywhere;
+      margin-bottom: 20px;
     }
 
     label {
@@ -187,9 +169,8 @@
       cursor: pointer;
     }
 
-    .green-btn {
-      background: #16a34a;
-    }
+    .logout-btn { background: #dc2626; }
+    .green-btn { background: #16a34a; }
 
     .purple-btn {
       background: #d98cff;
@@ -205,6 +186,18 @@
       margin-bottom: 15px;
       cursor: pointer;
     }
+
+    .auth-link-btn {
+      background: none;
+      border: none;
+      color: #7dd3fc;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .auth-links { text-align: center; }
 
     .message {
       display: none;
@@ -233,6 +226,11 @@
       border: 1px solid #22d3ee;
     }
 
+    .small {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+
     .footer {
       text-align: center;
       color: #94a3b8;
@@ -240,16 +238,18 @@
       margin-top: 35px;
       line-height: 1.6;
     }
-
-    .small {
-      font-size: 13px;
-      color: #cbd5e1;
-    }
   </style>
 </head>
 
 <body>
+
 <div class="container">
+
+  <div class="topbar">
+    <button class="user-btn" id="userTopBtn" onclick="openUserArea()">
+      👤 Prihlásiť sa
+    </button>
+  </div>
 
   <div class="logo">
     <span class="community">Community</span>
@@ -267,28 +267,13 @@
   <!-- HOME -->
   <div id="homePage">
 
-    <div class="auth-box" id="loggedOutBox">
-      <div class="auth-title" id="accountTitle">👤 Môj účet</div>
-      <button class="auth-main-btn" id="loginOpenBtn" onclick="showLogin()">
-        Prihlásiť sa
-      </button>
-      <div class="auth-links">
-        <button class="auth-link-btn" id="registerOpenBtn" onclick="showRegister()">
-          Vytvoriť účet
-        </button>
-      </div>
-    </div>
+    <button class="menu-btn events" id="eventsBtn">
+      📅 Podujatia
+    </button>
 
-    <div class="auth-box" id="loggedInBox" style="display:none;">
-      <div class="auth-title" id="welcomeTitle">👤 Prihlásený používateľ</div>
-      <div class="logged-user" id="loggedUserEmail"></div>
-      <button class="auth-main-btn" id="logoutBtn" onclick="logoutUser()">
-        Odhlásiť sa
-      </button>
-    </div>
-
-    <button class="menu-btn events" id="eventsBtn">📅 Podujatia</button>
-    <button class="menu-btn bookings" id="bookingsBtn">🎟️ Moje rezervácie</button>
+    <button class="menu-btn bookings" id="bookingsBtn">
+      🎟️ Moje rezervácie
+    </button>
 
     <button class="menu-btn fatra" id="fatraBtn" onclick="showFatra()">
       🛒 Fatra Potraviny Rugby – Objednávka
@@ -305,15 +290,18 @@
     <button class="menu-btn contact" id="contactBtn" onclick="showContact()">
       ✉️ Kontakt
     </button>
+
   </div>
 
   <!-- LOGIN -->
   <div class="page" id="loginPage">
     <button class="back-btn backText" onclick="showHome()">← Späť</button>
-    <h2 id="loginTitle">Prihlásiť sa</h2>
+
+    <h2 id="loginTitle">👤 Prihlásiť sa</h2>
 
     <div class="card">
       <form id="loginForm">
+
         <label id="loginEmailLabel">E-mail</label>
         <input type="email" id="loginEmail" required>
 
@@ -323,14 +311,17 @@
         <button class="submit-btn" id="loginSubmitBtn" type="submit">
           Prihlásiť sa
         </button>
+
       </form>
 
       <div class="auth-links">
-        <button class="auth-link-btn" id="forgotBtn" onclick="showForgotPassword()">
+        <button class="auth-link-btn" id="forgotBtn" type="button" onclick="showForgotPassword()">
           Zabudnuté heslo
         </button>
+
         <br>
-        <button class="auth-link-btn" id="goRegisterBtn" onclick="showRegister()">
+
+        <button class="auth-link-btn" id="goRegisterBtn" type="button" onclick="showRegister()">
           Nemáte účet? Vytvoriť účet
         </button>
       </div>
@@ -342,26 +333,54 @@
   <!-- REGISTER -->
   <div class="page" id="registerPage">
     <button class="back-btn backText" onclick="showHome()">← Späť</button>
-    <h2 id="registerTitle">Vytvoriť účet</h2>
+
+    <h2 id="registerTitle">👤 Vytvoriť účet</h2>
 
     <div class="card">
       <form id="registerForm">
+
+        <label id="usernameLabel">Používateľské meno</label>
+        <input
+          type="text"
+          id="registerUsername"
+          maxlength="30"
+          autocomplete="nickname"
+          required
+        >
+
+        <div class="small" id="usernameHelp">
+          Vyberte si meno, ktoré sa bude zobrazovať vo vašom účte.
+        </div>
+
         <label id="registerEmailLabel">E-mail</label>
-        <input type="email" id="registerEmail" required>
+        <input type="email" id="registerEmail" autocomplete="email" required>
 
         <label id="registerPasswordLabel">Heslo</label>
-        <input type="password" id="registerPassword" minlength="6" required>
+        <input
+          type="password"
+          id="registerPassword"
+          minlength="6"
+          autocomplete="new-password"
+          required
+        >
 
         <label id="registerPassword2Label">Zopakujte heslo</label>
-        <input type="password" id="registerPassword2" minlength="6" required>
+        <input
+          type="password"
+          id="registerPassword2"
+          minlength="6"
+          autocomplete="new-password"
+          required
+        >
 
         <button class="submit-btn" id="registerSubmitBtn" type="submit">
           Vytvoriť účet
         </button>
+
       </form>
 
       <div class="auth-links">
-        <button class="auth-link-btn" id="goLoginBtn" onclick="showLogin()">
+        <button class="auth-link-btn" id="goLoginBtn" type="button" onclick="showLogin()">
           Už máte účet? Prihlásiť sa
         </button>
       </div>
@@ -370,23 +389,70 @@
     </div>
   </div>
 
+  <!-- ACCOUNT -->
+  <div class="page" id="accountPage">
+    <button class="back-btn backText" onclick="showHome()">← Späť</button>
+
+    <h2 id="accountTitle">👤 Môj účet</h2>
+
+    <div class="card">
+
+      <div class="account-name" id="accountUsername">Používateľ</div>
+      <div class="account-email" id="accountEmail"></div>
+
+      <label id="changeUsernameLabel">Používateľské meno</label>
+
+      <input
+        type="text"
+        id="accountUsernameInput"
+        maxlength="30"
+        autocomplete="nickname"
+      >
+
+      <button
+        class="submit-btn"
+        id="saveUsernameBtn"
+        type="button"
+        onclick="saveUsername()"
+      >
+        Uložiť používateľské meno
+      </button>
+
+      <div id="usernameMessage" class="message"></div>
+
+      <button
+        class="submit-btn logout-btn"
+        id="logoutBtn"
+        type="button"
+        onclick="logoutUser()"
+      >
+        Odhlásiť sa
+      </button>
+
+    </div>
+  </div>
+
   <!-- FORGOT PASSWORD -->
   <div class="page" id="forgotPage">
     <button class="back-btn backText" onclick="showLogin()">← Späť</button>
+
     <h2 id="forgotTitle">Zabudnuté heslo</h2>
 
     <div class="card">
+
       <p id="forgotIntro">
         Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.
       </p>
 
       <form id="forgotForm">
+
         <label id="forgotEmailLabel">E-mail</label>
         <input type="email" id="forgotEmail" required>
 
         <button class="submit-btn" id="forgotSubmitBtn" type="submit">
           Poslať odkaz
         </button>
+
       </form>
 
       <div id="forgotMessage" class="message"></div>
@@ -395,10 +461,13 @@
 
   <!-- RESET PASSWORD -->
   <div class="page" id="resetPage">
+
     <h2 id="resetTitle">Nastaviť nové heslo</h2>
 
     <div class="card">
+
       <form id="resetForm">
+
         <label id="newPasswordLabel">Nové heslo</label>
         <input type="password" id="newPassword" minlength="6" required>
 
@@ -408,6 +477,7 @@
         <button class="submit-btn" id="resetSubmitBtn" type="submit">
           Uložiť nové heslo
         </button>
+
       </form>
 
       <div id="resetMessage" class="message"></div>
@@ -417,24 +487,44 @@
   <!-- ABOUT -->
   <div class="page" id="aboutPage">
     <button class="back-btn backText" onclick="showHome()">← Späť</button>
+
     <h2 id="aboutTitle">❤️ O nás</h2>
 
     <div class="card">
       <div id="aboutContent">
-        <p><strong>Community For All</strong> je komunitná iniciatíva organizácie Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.</p>
 
-        <p>Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať otvorenú a príjemnú komunitu.</p>
+        <p>
+          <strong>Community For All</strong> je komunitná iniciatíva organizácie
+          Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.
+        </p>
 
-        <p>Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a spoločné stretnutia. Naše aktivity sú otvorené ľuďom rôznych národností a vekových skupín.</p>
+        <p>
+          Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové
+          priateľstvá a budovať otvorenú a príjemnú komunitu.
+        </p>
 
-        <p>Náš tím už niekoľko rokov organizuje komunitné a charitatívne podujatia vo Veľkej Británii.</p>
+        <p>
+          Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky,
+          aktivity pre deti aj dospelých a spoločné stretnutia. Naše aktivity
+          sú otvorené ľuďom rôznych národností a vekových skupín.
+        </p>
 
-        <p><strong>Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</strong></p>
+        <p>
+          Náš tím už niekoľko rokov organizuje komunitné a charitatívne
+          podujatia vo Veľkej Británii.
+        </p>
+
+        <p>
+          <strong>
+            Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️
+          </strong>
+        </p>
 
         <p class="small">
           Tatry Cup Community Organisation CIO<br>
           Registered Charity No. 1216952
         </p>
+
       </div>
     </div>
   </div>
@@ -442,10 +532,13 @@
   <!-- CONTACT -->
   <div class="page" id="contactPage">
     <button class="back-btn backText" onclick="showHome()">← Späť</button>
+
     <h2 id="contactTitle">✉️ Kontakt</h2>
 
     <div class="card">
+
       <form id="contactForm">
+
         <label id="contactNameLabel">Meno a priezvisko</label>
         <input type="text" name="name" required>
 
@@ -458,6 +551,7 @@
         <button class="submit-btn" id="contactSubmitBtn" type="submit">
           Odoslať správu
         </button>
+
       </form>
 
       <div id="contactMessage" class="message"></div>
@@ -467,14 +561,17 @@
   <!-- FATRA -->
   <div class="page" id="fatraPage">
     <button class="back-btn backText" onclick="showHome()">← Späť</button>
+
     <h2 id="fatraTitle">🛒 Fatra Potraviny Rugby – Objednávka</h2>
 
     <div class="card">
+
       <p id="fatraIntro">
         Napíšte svoju objednávku a odošlite ju cez formulár.
       </p>
 
       <form id="fatraForm">
+
         <label id="fatraNameLabel">Meno a priezvisko</label>
         <input type="text" name="name" required>
 
@@ -485,6 +582,7 @@
         <input type="tel" name="phone" required>
 
         <label id="fatraOrderLabel">Vaša objednávka</label>
+
         <textarea
           name="order"
           id="fatraOrder"
@@ -495,6 +593,7 @@
         <button class="submit-btn green-btn" id="fatraSubmitBtn" type="submit">
           Odoslať objednávku
         </button>
+
       </form>
 
       <div id="fatraMessage" class="message"></div>
@@ -504,12 +603,15 @@
   <!-- FACE PAINTING -->
   <div class="page" id="facePage">
     <button class="back-btn backText" onclick="showHome()">← Späť</button>
+
     <h2 id="faceTitle">🎨 Tinuška – Maľovanie na tvár</h2>
 
     <div class="card">
+
       <p id="faceIntro">Rezervujte si maľovanie na tvár.</p>
 
       <form id="faceForm">
+
         <label id="faceNameLabel">Meno a priezvisko</label>
         <input type="text" name="name" required>
 
@@ -531,6 +633,7 @@
         <button class="submit-btn purple-btn" id="faceSubmitBtn" type="submit">
           🎨 Odoslať rezerváciu
         </button>
+
       </form>
 
       <div id="faceMessage" class="message"></div>
@@ -545,8 +648,14 @@
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://btkblcngijheanyhyiow.supabase.co';
-  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_0f7Y2P49SneR1E_ZZgjsrw_679teyVH';
+  const SUPABASE_URL =
+    'https://btkblcngijheanyhyiow.supabase.co';
+
+  const SUPABASE_PUBLISHABLE_KEY =
+    'sb_publishable_0f7Y2P49SneR1E_ZZgjsrw_679teyVH';
+
+  const APP_URL =
+    'https://tatrycupcio.github.io/community-for-all/';
 
   const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
@@ -560,23 +669,24 @@
     }
   );
 
-  const APP_URL = 'https://tatrycupcio.github.io/community-for-all/';
-
   let currentLanguage = 'sk';
+  let currentUser = null;
 
   const pageIds = [
+    'loginPage',
+    'registerPage',
+    'accountPage',
+    'forgotPage',
+    'resetPage',
     'aboutPage',
     'contactPage',
     'fatraPage',
-    'facePage',
-    'loginPage',
-    'registerPage',
-    'forgotPage',
-    'resetPage'
+    'facePage'
   ];
 
   function hidePages() {
     document.getElementById('homePage').style.display = 'none';
+
     pageIds.forEach(id => {
       document.getElementById(id).style.display = 'none';
     });
@@ -585,6 +695,42 @@
   function showHome() {
     hidePages();
     document.getElementById('homePage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showLogin() {
+    hidePages();
+    clearMessage('loginMessage');
+    document.getElementById('loginPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showRegister() {
+    hidePages();
+    clearMessage('registerMessage');
+    document.getElementById('registerPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showAccount() {
+    hidePages();
+    clearMessage('usernameMessage');
+    fillAccount();
+    document.getElementById('accountPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showForgotPassword() {
+    hidePages();
+    clearMessage('forgotMessage');
+    document.getElementById('forgotPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showResetPassword() {
+    hidePages();
+    clearMessage('resetMessage');
+    document.getElementById('resetPage').style.display = 'block';
     window.scrollTo(0, 0);
   }
 
@@ -612,34 +758,6 @@
     window.scrollTo(0, 0);
   }
 
-  function showLogin() {
-    hidePages();
-    clearMessage('loginMessage');
-    document.getElementById('loginPage').style.display = 'block';
-    window.scrollTo(0, 0);
-  }
-
-  function showRegister() {
-    hidePages();
-    clearMessage('registerMessage');
-    document.getElementById('registerPage').style.display = 'block';
-    window.scrollTo(0, 0);
-  }
-
-  function showForgotPassword() {
-    hidePages();
-    clearMessage('forgotMessage');
-    document.getElementById('forgotPage').style.display = 'block';
-    window.scrollTo(0, 0);
-  }
-
-  function showResetPassword() {
-    hidePages();
-    clearMessage('resetMessage');
-    document.getElementById('resetPage').style.display = 'block';
-    window.scrollTo(0, 0);
-  }
-
   function clearMessage(id) {
     const box = document.getElementById(id);
     box.className = 'message';
@@ -652,416 +770,822 @@
     box.textContent = text;
   }
 
-  async function updateAuthUI() {
-    const { data } = await supabaseClient.auth.getSession();
-    const session = data.session;
+  function getUsername(user) {
+    if (!user) return '';
 
-    if (session && session.user) {
-      document.getElementById('loggedOutBox').style.display = 'none';
-      document.getElementById('loggedInBox').style.display = 'block';
-      document.getElementById('loggedUserEmail').textContent = session.user.email || '';
+    const username = user.user_metadata?.username;
+
+    if (username && username.trim()) {
+      return username.trim();
+    }
+
+    return '';
+  }
+
+  function updateUserButton() {
+    const button = document.getElementById('userTopBtn');
+
+    if (!currentUser) {
+      button.textContent =
+        currentLanguage === 'sk'
+          ? '👤 Prihlásiť sa'
+          : '👤 Sign In';
+
+      return;
+    }
+
+    const username = getUsername(currentUser);
+
+    button.textContent =
+      username
+        ? '👤 ' + username
+        : currentLanguage === 'sk'
+          ? '👤 Môj účet'
+          : '👤 My Account';
+  }
+
+  function openUserArea() {
+    if (currentUser) {
+      showAccount();
     } else {
-      document.getElementById('loggedOutBox').style.display = 'block';
-      document.getElementById('loggedInBox').style.display = 'none';
-      document.getElementById('loggedUserEmail').textContent = '';
+      showLogin();
     }
   }
 
-  document.getElementById('registerForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    clearMessage('registerMessage');
+  function fillAccount() {
+    if (!currentUser) return;
 
-    const email = document.getElementById('registerEmail').value.trim();
-    const password = document.getElementById('registerPassword').value;
-    const password2 = document.getElementById('registerPassword2').value;
+    const username = getUsername(currentUser);
 
-    if (password !== password2) {
-      showMessage(
-        'registerMessage',
-        currentLanguage === 'sk'
-          ? 'Heslá sa nezhodujú.'
-          : 'Passwords do not match.',
-        'error'
-      );
-      return;
-    }
+    document.getElementById('accountUsername').textContent =
+      username ||
+      (currentLanguage === 'sk'
+        ? 'Nastavte si používateľské meno'
+        : 'Choose a username');
 
-    const button = document.getElementById('registerSubmitBtn');
-    button.disabled = true;
+    document.getElementById('accountEmail').textContent =
+      currentUser.email || '';
 
-    const { error } = await supabaseClient.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: APP_URL
-      }
-    });
-
-    button.disabled = false;
-
-    if (error) {
-      showMessage('registerMessage', error.message, 'error');
-      return;
-    }
-
-    document.getElementById('registerForm').reset();
-
-    showMessage(
-      'registerMessage',
-      currentLanguage === 'sk'
-        ? 'Účet bol vytvorený. ❤️ Skontrolujte svoj e-mail a potvrďte registráciu kliknutím na odkaz.'
-        : 'Your account has been created. ❤️ Check your email and confirm your registration by clicking the link.',
-      'success'
-    );
-  });
-
-  document.getElementById('loginForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    clearMessage('loginMessage');
-
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-
-    const button = document.getElementById('loginSubmitBtn');
-    button.disabled = true;
-
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    button.disabled = false;
-
-    if (error) {
-      let message = error.message;
-
-      if (currentLanguage === 'sk') {
-        if (error.message.toLowerCase().includes('email not confirmed')) {
-          message = 'Najprv potvrďte svoju e-mailovú adresu cez odkaz, ktorý vám prišiel e-mailom.';
-        } else if (error.message.toLowerCase().includes('invalid login credentials')) {
-          message = 'Nesprávny e-mail alebo heslo.';
-        }
-      }
-
-      showMessage('loginMessage', message, 'error');
-      return;
-    }
-
-    document.getElementById('loginForm').reset();
-    await updateAuthUI();
-    showHome();
-  });
-
-  async function logoutUser() {
-    await supabaseClient.auth.signOut();
-    await updateAuthUI();
-    showHome();
+    document.getElementById('accountUsernameInput').value =
+      username || '';
   }
 
-  document.getElementById('forgotForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    clearMessage('forgotMessage');
+  async function refreshCurrentUser() {
+    const { data } = await supabaseClient.auth.getUser();
 
-    const email = document.getElementById('forgotEmail').value.trim();
+    currentUser = data?.user || null;
 
-    const button = document.getElementById('forgotSubmitBtn');
-    button.disabled = true;
+    updateUserButton();
 
-    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-      redirectTo: APP_URL
-    });
-
-    button.disabled = false;
-
-    if (error) {
-      showMessage('forgotMessage', error.message, 'error');
-      return;
+    if (currentUser) {
+      fillAccount();
     }
+  }
 
-    document.getElementById('forgotForm').reset();
+  document
+    .getElementById('registerForm')
+    .addEventListener('submit', async function(event) {
 
-    showMessage(
-      'forgotMessage',
-      currentLanguage === 'sk'
-        ? 'Odkaz na obnovenie hesla bol odoslaný. Skontrolujte svoj e-mail.'
-        : 'The password reset link has been sent. Check your email.',
-      'success'
-    );
-  });
-
-  document.getElementById('resetForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
-    clearMessage('resetMessage');
-
-    const password = document.getElementById('newPassword').value;
-    const password2 = document.getElementById('newPassword2').value;
-
-    if (password !== password2) {
-      showMessage(
-        'resetMessage',
-        currentLanguage === 'sk'
-          ? 'Heslá sa nezhodujú.'
-          : 'Passwords do not match.',
-        'error'
-      );
-      return;
-    }
-
-    const button = document.getElementById('resetSubmitBtn');
-    button.disabled = true;
-
-    const { error } = await supabaseClient.auth.updateUser({
-      password: password
-    });
-
-    button.disabled = false;
-
-    if (error) {
-      showMessage('resetMessage', error.message, 'error');
-      return;
-    }
-
-    document.getElementById('resetForm').reset();
-
-    showMessage(
-      'resetMessage',
-      currentLanguage === 'sk'
-        ? 'Heslo bolo úspešne zmenené. ❤️'
-        : 'Your password has been changed successfully. ❤️',
-      'success'
-    );
-
-    setTimeout(showHome, 1500);
-  });
-
-  supabaseClient.auth.onAuthStateChange(async (event, session) => {
-    await updateAuthUI();
-
-    if (event === 'PASSWORD_RECOVERY') {
-      showResetPassword();
-    }
-  });
-
-  function setupForm(formId, buttonId, messageId, type) {
-    const form = document.getElementById(formId);
-
-    form.addEventListener('submit', async function(event) {
       event.preventDefault();
+      clearMessage('registerMessage');
 
-      const button = document.getElementById(buttonId);
-      const messageBox = document.getElementById(messageId);
+      const username =
+        document.getElementById('registerUsername').value.trim();
+
+      const email =
+        document.getElementById('registerEmail').value.trim();
+
+      const password =
+        document.getElementById('registerPassword').value;
+
+      const password2 =
+        document.getElementById('registerPassword2').value;
+
+      if (!username) {
+        showMessage(
+          'registerMessage',
+          currentLanguage === 'sk'
+            ? 'Zadajte používateľské meno.'
+            : 'Please enter a username.',
+          'error'
+        );
+        return;
+      }
+
+      if (password !== password2) {
+        showMessage(
+          'registerMessage',
+          currentLanguage === 'sk'
+            ? 'Heslá sa nezhodujú.'
+            : 'Passwords do not match.',
+          'error'
+        );
+        return;
+      }
+
+      const button =
+        document.getElementById('registerSubmitBtn');
 
       button.disabled = true;
-      messageBox.className = 'message';
-      messageBox.textContent = '';
 
-      let endpoint = '';
-      let subject = '';
-
-      if (type === 'contact') {
-        endpoint = 'https://formspree.io/f/mrpbbyng';
-        subject = 'Community For All - nová kontaktná správa';
-      }
-
-      if (type === 'fatra') {
-        endpoint = 'https://formspree.io/f/xaennlee';
-        subject = 'Fatra Potraviny Rugby - nová objednávka';
-      }
-
-      if (type === 'face') {
-        endpoint = 'https://formspree.io/f/xqpaagye';
-        subject = 'Tinuška - nová rezervácia maľovania na tvár';
-      }
-
-      const formData = new FormData(form);
-      formData.append('_subject', subject);
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Accept': 'application/json'
+      const { error } =
+        await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: APP_URL,
+            data: {
+              username: username
+            }
           }
         });
 
-        if (response.ok) {
-          form.reset();
+      button.disabled = false;
 
-          let successText = '';
+      if (error) {
+        showMessage(
+          'registerMessage',
+          error.message,
+          'error'
+        );
+        return;
+      }
 
-          if (type === 'contact') {
-            successText = currentLanguage === 'sk'
-              ? 'Ďakujeme ❤️ Vaša správa bola úspešne odoslaná.'
-              : 'Thank you ❤️ Your message has been sent successfully.';
+      document.getElementById('registerForm').reset();
+
+      showMessage(
+        'registerMessage',
+        currentLanguage === 'sk'
+          ? 'Účet bol vytvorený. ❤️ Skontrolujte svoj e-mail a potvrďte registráciu kliknutím na odkaz.'
+          : 'Your account has been created. ❤️ Check your email and confirm your registration by clicking the link.',
+        'success'
+      );
+    });
+
+  document
+    .getElementById('loginForm')
+    .addEventListener('submit', async function(event) {
+
+      event.preventDefault();
+      clearMessage('loginMessage');
+
+      const email =
+        document.getElementById('loginEmail').value.trim();
+
+      const password =
+        document.getElementById('loginPassword').value;
+
+      const button =
+        document.getElementById('loginSubmitBtn');
+
+      button.disabled = true;
+
+      const { data, error } =
+        await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
+
+      button.disabled = false;
+
+      if (error) {
+        let message = error.message;
+
+        if (currentLanguage === 'sk') {
+          const lower = error.message.toLowerCase();
+
+          if (lower.includes('email not confirmed')) {
+            message =
+              'Najprv potvrďte svoju e-mailovú adresu cez odkaz, ktorý vám prišiel e-mailom.';
           }
 
-          if (type === 'fatra') {
-            successText = currentLanguage === 'sk'
-              ? 'Ďakujeme ❤️ Vaša objednávka bola úspešne odoslaná.'
-              : 'Thank you ❤️ Your order has been sent successfully.';
+          if (lower.includes('invalid login credentials')) {
+            message =
+              'Nesprávny e-mail alebo heslo.';
+          }
+        }
+
+        showMessage(
+          'loginMessage',
+          message,
+          'error'
+        );
+
+        return;
+      }
+
+      currentUser = data.user;
+
+      document.getElementById('loginForm').reset();
+
+      updateUserButton();
+      showHome();
+    });
+
+  async function logoutUser() {
+    await supabaseClient.auth.signOut();
+
+    currentUser = null;
+
+    updateUserButton();
+    showHome();
+  }
+
+  async function saveUsername() {
+    if (!currentUser) return;
+
+    clearMessage('usernameMessage');
+
+    const username =
+      document.getElementById('accountUsernameInput').value.trim();
+
+    if (!username) {
+      showMessage(
+        'usernameMessage',
+        currentLanguage === 'sk'
+          ? 'Používateľské meno nemôže byť prázdne.'
+          : 'Username cannot be empty.',
+        'error'
+      );
+      return;
+    }
+
+    const button =
+      document.getElementById('saveUsernameBtn');
+
+    button.disabled = true;
+
+    const { data, error } =
+      await supabaseClient.auth.updateUser({
+        data: {
+          username: username
+        }
+      });
+
+    button.disabled = false;
+
+    if (error) {
+      showMessage(
+        'usernameMessage',
+        error.message,
+        'error'
+      );
+      return;
+    }
+
+    currentUser = data.user;
+
+    updateUserButton();
+    fillAccount();
+
+    showMessage(
+      'usernameMessage',
+      currentLanguage === 'sk'
+        ? 'Používateľské meno bolo uložené. ❤️'
+        : 'Username has been saved. ❤️',
+      'success'
+    );
+  }
+
+  document
+    .getElementById('forgotForm')
+    .addEventListener('submit', async function(event) {
+
+      event.preventDefault();
+      clearMessage('forgotMessage');
+
+      const email =
+        document.getElementById('forgotEmail').value.trim();
+
+      const button =
+        document.getElementById('forgotSubmitBtn');
+
+      button.disabled = true;
+
+      const { error } =
+        await supabaseClient.auth.resetPasswordForEmail(
+          email,
+          {
+            redirectTo: APP_URL
+          }
+        );
+
+      button.disabled = false;
+
+      if (error) {
+        showMessage(
+          'forgotMessage',
+          error.message,
+          'error'
+        );
+        return;
+      }
+
+      document.getElementById('forgotForm').reset();
+
+      showMessage(
+        'forgotMessage',
+        currentLanguage === 'sk'
+          ? 'Odkaz na obnovenie hesla bol odoslaný. Skontrolujte svoj e-mail.'
+          : 'The password reset link has been sent. Check your email.',
+        'success'
+      );
+    });
+
+  document
+    .getElementById('resetForm')
+    .addEventListener('submit', async function(event) {
+
+      event.preventDefault();
+      clearMessage('resetMessage');
+
+      const password =
+        document.getElementById('newPassword').value;
+
+      const password2 =
+        document.getElementById('newPassword2').value;
+
+      if (password !== password2) {
+        showMessage(
+          'resetMessage',
+          currentLanguage === 'sk'
+            ? 'Heslá sa nezhodujú.'
+            : 'Passwords do not match.',
+          'error'
+        );
+        return;
+      }
+
+      const button =
+        document.getElementById('resetSubmitBtn');
+
+      button.disabled = true;
+
+      const { error } =
+        await supabaseClient.auth.updateUser({
+          password: password
+        });
+
+      button.disabled = false;
+
+      if (error) {
+        showMessage(
+          'resetMessage',
+          error.message,
+          'error'
+        );
+        return;
+      }
+
+      document.getElementById('resetForm').reset();
+
+      showMessage(
+        'resetMessage',
+        currentLanguage === 'sk'
+          ? 'Heslo bolo úspešne zmenené. ❤️'
+          : 'Your password has been changed successfully. ❤️',
+        'success'
+      );
+
+      setTimeout(showHome, 1500);
+    });
+
+  supabaseClient.auth.onAuthStateChange(
+    async (event, session) => {
+
+      currentUser = session?.user || null;
+
+      updateUserButton();
+
+      if (event === 'PASSWORD_RECOVERY') {
+        showResetPassword();
+      }
+    }
+  );
+
+  function setupForm(formId, buttonId, messageId, type) {
+
+    const form =
+      document.getElementById(formId);
+
+    form.addEventListener(
+      'submit',
+      async function(event) {
+
+        event.preventDefault();
+
+        const button =
+          document.getElementById(buttonId);
+
+        const messageBox =
+          document.getElementById(messageId);
+
+        button.disabled = true;
+
+        messageBox.className = 'message';
+        messageBox.textContent = '';
+
+        let endpoint = '';
+        let subject = '';
+
+        if (type === 'contact') {
+          endpoint =
+            'https://formspree.io/f/mrpbbyng';
+
+          subject =
+            'Community For All - nová kontaktná správa';
+        }
+
+        if (type === 'fatra') {
+          endpoint =
+            'https://formspree.io/f/xaennlee';
+
+          subject =
+            'Fatra Potraviny Rugby - nová objednávka';
+        }
+
+        if (type === 'face') {
+          endpoint =
+            'https://formspree.io/f/xqpaagye';
+
+          subject =
+            'Tinuška - nová rezervácia maľovania na tvár';
+        }
+
+        const formData =
+          new FormData(form);
+
+        formData.append(
+          '_subject',
+          subject
+        );
+
+        try {
+
+          const response =
+            await fetch(endpoint, {
+              method: 'POST',
+              body: formData,
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+
+          if (response.ok) {
+
+            form.reset();
+
+            let successText = '';
+
+            if (type === 'contact') {
+              successText =
+                currentLanguage === 'sk'
+                  ? 'Ďakujeme ❤️ Vaša správa bola úspešne odoslaná.'
+                  : 'Thank you ❤️ Your message has been sent successfully.';
+            }
+
+            if (type === 'fatra') {
+              successText =
+                currentLanguage === 'sk'
+                  ? 'Ďakujeme ❤️ Vaša objednávka bola úspešne odoslaná.'
+                  : 'Thank you ❤️ Your order has been sent successfully.';
+            }
+
+            if (type === 'face') {
+              successText =
+                currentLanguage === 'sk'
+                  ? 'Ďakujeme ❤️ Vaša rezervácia bola úspešne odoslaná.'
+                  : 'Thank you ❤️ Your booking has been sent successfully.';
+            }
+
+            showMessage(
+              messageId,
+              successText,
+              'success'
+            );
+
+          } else {
+
+            showMessage(
+              messageId,
+              currentLanguage === 'sk'
+                ? 'Správu sa nepodarilo odoslať. Skúste to prosím znova.'
+                : 'The message could not be sent. Please try again.',
+              'error'
+            );
           }
 
-          if (type === 'face') {
-            successText = currentLanguage === 'sk'
-              ? 'Ďakujeme ❤️ Vaša rezervácia bola úspešne odoslaná.'
-              : 'Thank you ❤️ Your booking has been sent successfully.';
-          }
+        } catch (error) {
 
-          showMessage(messageId, successText, 'success');
-        } else {
           showMessage(
             messageId,
             currentLanguage === 'sk'
-              ? 'Správu sa nepodarilo odoslať. Skúste to prosím znova.'
-              : 'The message could not be sent. Please try again.',
+              ? 'Správu sa nepodarilo odoslať. Skontrolujte internetové pripojenie a skúste to znova.'
+              : 'The message could not be sent. Check your internet connection and try again.',
             'error'
           );
         }
-      } catch (error) {
-        showMessage(
-          messageId,
-          currentLanguage === 'sk'
-            ? 'Správu sa nepodarilo odoslať. Skontrolujte internetové pripojenie a skúste to znova.'
-            : 'The message could not be sent. Check your internet connection and try again.',
-          'error'
-        );
-      }
 
-      button.disabled = false;
-    });
+        button.disabled = false;
+      }
+    );
   }
 
-  setupForm('contactForm', 'contactSubmitBtn', 'contactMessage', 'contact');
-  setupForm('fatraForm', 'fatraSubmitBtn', 'fatraMessage', 'fatra');
-  setupForm('faceForm', 'faceSubmitBtn', 'faceMessage', 'face');
+  setupForm(
+    'contactForm',
+    'contactSubmitBtn',
+    'contactMessage',
+    'contact'
+  );
+
+  setupForm(
+    'fatraForm',
+    'fatraSubmitBtn',
+    'fatraMessage',
+    'fatra'
+  );
+
+  setupForm(
+    'faceForm',
+    'faceSubmitBtn',
+    'faceMessage',
+    'face'
+  );
 
   function setLanguage(language) {
+
     currentLanguage = language;
 
-    const sk = language === 'sk';
+    const sk =
+      language === 'sk';
 
-    document.documentElement.lang = sk ? 'sk' : 'en';
+    document.documentElement.lang =
+      sk ? 'sk' : 'en';
 
-    document.getElementById('accountTitle').textContent = sk ? '👤 Môj účet' : '👤 My Account';
-    document.getElementById('loginOpenBtn').textContent = sk ? 'Prihlásiť sa' : 'Sign In';
-    document.getElementById('registerOpenBtn').textContent = sk ? 'Vytvoriť účet' : 'Create Account';
-    document.getElementById('welcomeTitle').textContent = sk ? '👤 Prihlásený používateľ' : '👤 Signed In';
-    document.getElementById('logoutBtn').textContent = sk ? 'Odhlásiť sa' : 'Sign Out';
+    updateUserButton();
 
-    document.getElementById('eventsBtn').textContent = sk ? '📅 Podujatia' : '📅 Events';
-    document.getElementById('bookingsBtn').textContent = sk ? '🎟️ Moje rezervácie' : '🎟️ My Bookings';
-    document.getElementById('fatraBtn').textContent = sk
-      ? '🛒 Fatra Potraviny Rugby – Objednávka'
-      : '🛒 Fatra Potraviny Rugby – Grocery Order';
-    document.getElementById('faceBtn').textContent = sk
-      ? '🎨 Tinuška – Maľovanie na tvár'
-      : '🎨 Tinuška – Face Painting';
-    document.getElementById('aboutBtn').textContent = sk ? '❤️ O nás' : '❤️ About Us';
-    document.getElementById('contactBtn').textContent = sk ? '✉️ Kontakt' : '✉️ Contact';
+    document
+      .querySelectorAll('.backText')
+      .forEach(button => {
+        button.textContent =
+          sk ? '← Späť' : '← Back';
+      });
 
-    document.querySelectorAll('.backText').forEach(button => {
-      button.textContent = sk ? '← Späť' : '← Back';
-    });
+    document.getElementById('eventsBtn').textContent =
+      sk ? '📅 Podujatia' : '📅 Events';
 
-    document.getElementById('loginTitle').textContent = sk ? 'Prihlásiť sa' : 'Sign In';
-    document.getElementById('loginEmailLabel').textContent = sk ? 'E-mail' : 'Email';
-    document.getElementById('loginPasswordLabel').textContent = sk ? 'Heslo' : 'Password';
-    document.getElementById('loginSubmitBtn').textContent = sk ? 'Prihlásiť sa' : 'Sign In';
-    document.getElementById('forgotBtn').textContent = sk ? 'Zabudnuté heslo' : 'Forgot Password';
-    document.getElementById('goRegisterBtn').textContent = sk
-      ? 'Nemáte účet? Vytvoriť účet'
-      : "Don't have an account? Create Account";
+    document.getElementById('bookingsBtn').textContent =
+      sk ? '🎟️ Moje rezervácie' : '🎟️ My Bookings';
 
-    document.getElementById('registerTitle').textContent = sk ? 'Vytvoriť účet' : 'Create Account';
-    document.getElementById('registerEmailLabel').textContent = sk ? 'E-mail' : 'Email';
-    document.getElementById('registerPasswordLabel').textContent = sk ? 'Heslo' : 'Password';
-    document.getElementById('registerPassword2Label').textContent = sk ? 'Zopakujte heslo' : 'Repeat Password';
-    document.getElementById('registerSubmitBtn').textContent = sk ? 'Vytvoriť účet' : 'Create Account';
-    document.getElementById('goLoginBtn').textContent = sk
-      ? 'Už máte účet? Prihlásiť sa'
-      : 'Already have an account? Sign In';
+    document.getElementById('fatraBtn').textContent =
+      sk
+        ? '🛒 Fatra Potraviny Rugby – Objednávka'
+        : '🛒 Fatra Potraviny Rugby – Grocery Order';
 
-    document.getElementById('forgotTitle').textContent = sk ? 'Zabudnuté heslo' : 'Forgot Password';
-    document.getElementById('forgotIntro').textContent = sk
-      ? 'Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.'
-      : 'Enter your email and we will send you a password reset link.';
-    document.getElementById('forgotEmailLabel').textContent = sk ? 'E-mail' : 'Email';
-    document.getElementById('forgotSubmitBtn').textContent = sk ? 'Poslať odkaz' : 'Send Reset Link';
+    document.getElementById('faceBtn').textContent =
+      sk
+        ? '🎨 Tinuška – Maľovanie na tvár'
+        : '🎨 Tinuška – Face Painting';
 
-    document.getElementById('resetTitle').textContent = sk ? 'Nastaviť nové heslo' : 'Set New Password';
-    document.getElementById('newPasswordLabel').textContent = sk ? 'Nové heslo' : 'New Password';
-    document.getElementById('newPassword2Label').textContent = sk ? 'Zopakujte nové heslo' : 'Repeat New Password';
-    document.getElementById('resetSubmitBtn').textContent = sk ? 'Uložiť nové heslo' : 'Save New Password';
+    document.getElementById('aboutBtn').textContent =
+      sk ? '❤️ O nás' : '❤️ About Us';
 
-    document.getElementById('aboutTitle').textContent = sk ? '❤️ O nás' : '❤️ About Us';
+    document.getElementById('contactBtn').textContent =
+      sk ? '✉️ Kontakt' : '✉️ Contact';
 
-    document.getElementById('aboutContent').innerHTML = sk
-      ? `
-        <p><strong>Community For All</strong> je komunitná iniciatíva organizácie Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.</p>
-        <p>Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať otvorenú a príjemnú komunitu.</p>
-        <p>Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a spoločné stretnutia. Naše aktivity sú otvorené ľuďom rôznych národností a vekových skupín.</p>
-        <p>Náš tím už niekoľko rokov organizuje komunitné a charitatívne podujatia vo Veľkej Británii.</p>
-        <p><strong>Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</strong></p>
-        <p class="small">Tatry Cup Community Organisation CIO<br>Registered Charity No. 1216952</p>
-      `
-      : `
-        <p><strong>Community For All</strong> is a community initiative of Tatry Cup Community Organisation CIO, a registered charity in the United Kingdom.</p>
-        <p>Our aim is to bring people, families and generations together, create new friendships and build an open and welcoming community.</p>
-        <p>We organise community events, family weekends, stays, barbecues, activities for children and adults, and social gatherings. Our activities are open to people of different nationalities and age groups.</p>
-        <p>Our team has been organising community and charitable events in the United Kingdom for several years.</p>
-        <p><strong>Connecting people. Creating memories. Building community. ❤️</strong></p>
-        <p class="small">Tatry Cup Community Organisation CIO<br>Registered Charity No. 1216952</p>
-      `;
+    document.getElementById('loginTitle').textContent =
+      sk ? '👤 Prihlásiť sa' : '👤 Sign In';
 
-    document.getElementById('contactTitle').textContent = sk ? '✉️ Kontakt' : '✉️ Contact';
-    document.getElementById('contactNameLabel').textContent = sk ? 'Meno a priezvisko' : 'Full name';
-    document.getElementById('contactEmailLabel').textContent = sk ? 'E-mail' : 'Email';
-    document.getElementById('contactMessageLabel').textContent = sk ? 'Vaša správa' : 'Your message';
-    document.getElementById('contactSubmitBtn').textContent = sk ? 'Odoslať správu' : 'Send Message';
+    document.getElementById('loginEmailLabel').textContent =
+      sk ? 'E-mail' : 'Email';
 
-    document.getElementById('fatraTitle').textContent = sk
-      ? '🛒 Fatra Potraviny Rugby – Objednávka'
-      : '🛒 Fatra Potraviny Rugby – Grocery Order';
-    document.getElementById('fatraIntro').textContent = sk
-      ? 'Napíšte svoju objednávku a odošlite ju cez formulár.'
-      : 'Write your order and send it using the form.';
-    document.getElementById('fatraNameLabel').textContent = sk ? 'Meno a priezvisko' : 'Full name';
-    document.getElementById('fatraEmailLabel').textContent = sk ? 'E-mail' : 'Email';
-    document.getElementById('fatraPhoneLabel').textContent = sk ? 'Telefón' : 'Phone';
-    document.getElementById('fatraOrderLabel').textContent = sk ? 'Vaša objednávka' : 'Your order';
-    document.getElementById('fatraOrder').placeholder = sk
-      ? 'Napr. 2× Horalky, 3× Kofola, klobásy…'
-      : 'E.g. 2× Horalky, 3× Kofola, sausages…';
-    document.getElementById('fatraSubmitBtn').textContent = sk ? 'Odoslať objednávku' : 'Send Order';
+    document.getElementById('loginPasswordLabel').textContent =
+      sk ? 'Heslo' : 'Password';
 
-    document.getElementById('faceTitle').textContent = sk
-      ? '🎨 Tinuška – Maľovanie na tvár'
-      : '🎨 Tinuška – Face Painting';
-    document.getElementById('faceIntro').textContent = sk
-      ? 'Rezervujte si maľovanie na tvár.'
-      : 'Book a face painting.';
-    document.getElementById('faceNameLabel').textContent = sk ? 'Meno a priezvisko' : 'Full name';
-    document.getElementById('faceEmailLabel').textContent = sk ? 'E-mail' : 'Email';
-    document.getElementById('facePhoneLabel').textContent = sk ? 'Telefón' : 'Phone';
-    document.getElementById('childNameLabel').textContent = sk ? 'Meno dieťaťa' : "Child's name";
-    document.getElementById('childAgeLabel').textContent = sk ? 'Vek dieťaťa' : "Child's age";
-    document.getElementById('paintingLabel').textContent = sk
-      ? 'Čo si želáte namaľovať?'
-      : 'What would you like painted?';
-    document.getElementById('faceSubmitBtn').textContent = sk
-      ? '🎨 Odoslať rezerváciu'
-      : '🎨 Send Booking';
+    document.getElementById('loginSubmitBtn').textContent =
+      sk ? 'Prihlásiť sa' : 'Sign In';
+
+    document.getElementById('forgotBtn').textContent =
+      sk ? 'Zabudnuté heslo' : 'Forgot Password';
+
+    document.getElementById('goRegisterBtn').textContent =
+      sk
+        ? 'Nemáte účet? Vytvoriť účet'
+        : "Don't have an account? Create Account";
+
+    document.getElementById('registerTitle').textContent =
+      sk ? '👤 Vytvoriť účet' : '👤 Create Account';
+
+    document.getElementById('usernameLabel').textContent =
+      sk ? 'Používateľské meno' : 'Username';
+
+    document.getElementById('usernameHelp').textContent =
+      sk
+        ? 'Vyberte si meno, ktoré sa bude zobrazovať vo vašom účte.'
+        : 'Choose the name that will be displayed in your account.';
+
+    document.getElementById('registerEmailLabel').textContent =
+      sk ? 'E-mail' : 'Email';
+
+    document.getElementById('registerPasswordLabel').textContent =
+      sk ? 'Heslo' : 'Password';
+
+    document.getElementById('registerPassword2Label').textContent =
+      sk ? 'Zopakujte heslo' : 'Repeat Password';
+
+    document.getElementById('registerSubmitBtn').textContent =
+      sk ? 'Vytvoriť účet' : 'Create Account';
+
+    document.getElementById('goLoginBtn').textContent =
+      sk
+        ? 'Už máte účet? Prihlásiť sa'
+        : 'Already have an account? Sign In';
+
+    document.getElementById('accountTitle').textContent =
+      sk ? '👤 Môj účet' : '👤 My Account';
+
+    document.getElementById('changeUsernameLabel').textContent =
+      sk ? 'Používateľské meno' : 'Username';
+
+    document.getElementById('saveUsernameBtn').textContent =
+      sk
+        ? 'Uložiť používateľské meno'
+        : 'Save Username';
+
+    document.getElementById('logoutBtn').textContent =
+      sk ? 'Odhlásiť sa' : 'Sign Out';
+
+    document.getElementById('forgotTitle').textContent =
+      sk ? 'Zabudnuté heslo' : 'Forgot Password';
+
+    document.getElementById('forgotIntro').textContent =
+      sk
+        ? 'Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.'
+        : 'Enter your email and we will send you a password reset link.';
+
+    document.getElementById('forgotEmailLabel').textContent =
+      sk ? 'E-mail' : 'Email';
+
+    document.getElementById('forgotSubmitBtn').textContent =
+      sk ? 'Poslať odkaz' : 'Send Reset Link';
+
+    document.getElementById('resetTitle').textContent =
+      sk ? 'Nastaviť nové heslo' : 'Set New Password';
+
+    document.getElementById('newPasswordLabel').textContent =
+      sk ? 'Nové heslo' : 'New Password';
+
+    document.getElementById('newPassword2Label').textContent =
+      sk ? 'Zopakujte nové heslo' : 'Repeat New Password';
+
+    document.getElementById('resetSubmitBtn').textContent =
+      sk ? 'Uložiť nové heslo' : 'Save New Password';
+
+    document.getElementById('aboutTitle').textContent =
+      sk ? '❤️ O nás' : '❤️ About Us';
+
+    document.getElementById('aboutContent').innerHTML =
+      sk
+        ? `
+          <p><strong>Community For All</strong> je komunitná iniciatíva organizácie Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.</p>
+
+          <p>Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať otvorenú a príjemnú komunitu.</p>
+
+          <p>Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a spoločné stretnutia. Naše aktivity sú otvorené ľuďom rôznych národností a vekových skupín.</p>
+
+          <p>Náš tím už niekoľko rokov organizuje komunitné a charitatívne podujatia vo Veľkej Británii.</p>
+
+          <p><strong>Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</strong></p>
+
+          <p class="small">
+            Tatry Cup Community Organisation CIO<br>
+            Registered Charity No. 1216952
+          </p>
+        `
+        : `
+          <p><strong>Community For All</strong> is a community initiative of Tatry Cup Community Organisation CIO, a registered charity in the United Kingdom.</p>
+
+          <p>Our aim is to bring people, families and generations together, create new friendships and build an open and welcoming community.</p>
+
+          <p>We organise community events, family weekends, stays, barbecues, activities for children and adults, and social gatherings. Our activities are open to people of different nationalities and age groups.</p>
+
+          <p>Our team has been organising community and charitable events in the United Kingdom for several years.</p>
+
+          <p><strong>Connecting people. Creating memories. Building community. ❤️</strong></p>
+
+          <p class="small">
+            Tatry Cup Community Organisation CIO<br>
+            Registered Charity No. 1216952
+          </p>
+        `;
+
+    document.getElementById('contactTitle').textContent =
+      sk ? '✉️ Kontakt' : '✉️ Contact';
+
+    document.getElementById('contactNameLabel').textContent =
+      sk ? 'Meno a priezvisko' : 'Full name';
+
+    document.getElementById('contactEmailLabel').textContent =
+      sk ? 'E-mail' : 'Email';
+
+    document.getElementById('contactMessageLabel').textContent =
+      sk ? 'Vaša správa' : 'Your message';
+
+    document.getElementById('contactSubmitBtn').textContent =
+      sk ? 'Odoslať správu' : 'Send Message';
+
+    document.getElementById('fatraTitle').textContent =
+      sk
+        ? '🛒 Fatra Potraviny Rugby – Objednávka'
+        : '🛒 Fatra Potraviny Rugby – Grocery Order';
+
+    document.getElementById('fatraIntro').textContent =
+      sk
+        ? 'Napíšte svoju objednávku a odošlite ju cez formulár.'
+        : 'Write your order and send it using the form.';
+
+    document.getElementById('fatraNameLabel').textContent =
+      sk ? 'Meno a priezvisko' : 'Full name';
+
+    document.getElementById('fatraEmailLabel').textContent =
+      sk ? 'E-mail' : 'Email';
+
+    document.getElementById('fatraPhoneLabel').textContent =
+      sk ? 'Telefón' : 'Phone';
+
+    document.getElementById('fatraOrderLabel').textContent =
+      sk ? 'Vaša objednávka' : 'Your order';
+
+    document.getElementById('fatraOrder').placeholder =
+      sk
+        ? 'Napr. 2× Horalky, 3× Kofola, klobásy…'
+        : 'E.g. 2× Horalky, 3× Kofola, sausages…';
+
+    document.getElementById('fatraSubmitBtn').textContent =
+      sk ? 'Odoslať objednávku' : 'Send Order';
+
+    document.getElementById('faceTitle').textContent =
+      sk
+        ? '🎨 Tinuška – Maľovanie na tvár'
+        : '🎨 Tinuška – Face Painting';
+
+    document.getElementById('faceIntro').textContent =
+      sk
+        ? 'Rezervujte si maľovanie na tvár.'
+        : 'Book a face painting.';
+
+    document.getElementById('faceNameLabel').textContent =
+      sk ? 'Meno a priezvisko' : 'Full name';
+
+    document.getElementById('faceEmailLabel').textContent =
+      sk ? 'E-mail' : 'Email';
+
+    document.getElementById('facePhoneLabel').textContent =
+      sk ? 'Telefón' : 'Phone';
+
+    document.getElementById('childNameLabel').textContent =
+      sk ? 'Meno dieťaťa' : "Child's name";
+
+    document.getElementById('childAgeLabel').textContent =
+      sk ? 'Vek dieťaťa' : "Child's age";
+
+    document.getElementById('paintingLabel').textContent =
+      sk
+        ? 'Čo si želáte namaľovať?'
+        : 'What would you like painted?';
+
+    document.getElementById('faceSubmitBtn').textContent =
+      sk
+        ? '🎨 Odoslať rezerváciu'
+        : '🎨 Send Booking';
+
+    if (currentUser) {
+      fillAccount();
+    }
   }
 
   async function initialiseApp() {
+
     setLanguage('sk');
-    await updateAuthUI();
 
-    const hash = window.location.hash || '';
-    const query = window.location.search || '';
+    const { data } =
+      await supabaseClient.auth.getSession();
 
-    if (hash.includes('type=recovery') || query.includes('type=recovery')) {
+    currentUser =
+      data?.session?.user || null;
+
+    updateUserButton();
+
+    const hash =
+      window.location.hash || '';
+
+    const query =
+      window.location.search || '';
+
+    if (
+      hash.includes('type=recovery') ||
+      query.includes('type=recovery')
+    ) {
       showResetPassword();
     } else {
       showHome();
@@ -1069,6 +1593,7 @@
   }
 
   initialiseApp();
+
 </script>
 
 </body>
