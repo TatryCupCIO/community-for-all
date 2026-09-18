@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#111111">
+<title>Community For All</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#111;color:#fff;text-align:center}
+.app{max-width:600px;margin:auto;min-height:100vh;padding:30px 20px}
+.brand{margin:30px 0 35px}
+.brand h1{margin:0;font-size:38px;color:#ff8c00}
+.brand h2{margin:5px 0;font-size:30px}
+.for{color:#19d9e6}.all{color:#ff2525}
+.charity{margin-top:12px;font-size:13px;color:#ff9d00;font-weight:bold}
+.language{display:flex;justify-content:center;gap:12px;margin-bottom:35px}
+.language button{border:2px solid #ff8c00;background:#222;color:#fff;padding:12px 20px;border-radius:12px;font-size:16px}
+.language button.active{background:#ff8c00;color:#111;font-weight:bold}
+.welcome{margin-bottom:25px}
+.menu-button{display:block;width:100%;margin:14px 0;padding:18px;border:0;border-radius:14px;font-size:18px;font-weight:bold}
+.events{background:#ff8c00}.bookings{background:#19d9e6}.about{background:#ff3030;color:#fff}.contact{background:#fff}
+footer{margin-top:45px;font-size:12px;color:#aaa}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="brand"><h1>Community</h1><h2><span class="for">For</span> <span class="all">All</span></h2><div class="charity">TATRY CUP COMMUNITY ORGANISATION CIO</div></div>
+<div class="language"><button id="skButton" class="active" onclick="setLanguage('sk')">🇸🇰 SK</button><button id="enButton" onclick="setLanguage('en')">🇬🇧 EN</button></div>
+<div class="welcome"><h2 id="welcomeTitle">Vitajte</h2><p id="welcomeText">Vyberte si podujatie a vytvorte rezerváciu.</p></div>
+<button class="menu-button events" id="events">📅 Podujatia</button>
+<button class="menu-button bookings" id="bookings">🎟️ Moje rezervácie</button>
+<button class="menu-button about" id="about">❤️ O nás</button>
+<button class="menu-button contact" id="contact">✉️ Kontakt</button>
+<footer>Community For All<br>Tatry Cup Community Organisation CIO</footer>
+</div>
+<script>
+function setLanguage(language){
+const sk=document.getElementById("skButton"),en=document.getElementById("enButton");
+const english=language==="en";
+document.documentElement.lang=english?"en":"sk";
+document.getElementById("welcomeTitle").innerText=english?"Welcome":"Vitajte";
+document.getElementById("welcomeText").innerText=english?"Choose an event and make your booking.":"Vyberte si podujatie a vytvorte rezerváciu.";
+document.getElementById("events").innerText=english?"📅 Events":"📅 Podujatia";
+document.getElementById("bookings").innerText=english?"🎟️ My Bookings":"🎟️ Moje rezervácie";
+document.getElementById("about").innerText=english?"❤️ About Us":"❤️ O nás";
+document.getElementById("contact").innerText=english?"✉️ Contact":"✉️ Kontakt";
+en.classList.toggle("active",english);sk.classList.toggle("active",!english);
+}
+</script>
+</body>
+</html>
