@@ -8,7 +8,6 @@
 
 <style>
 *{box-sizing:border-box}
-
 body{
 margin:0;
 font-family:Arial,sans-serif;
@@ -16,44 +15,29 @@ background:#111;
 color:#fff;
 text-align:center;
 }
-
 .app{
 max-width:600px;
 margin:auto;
 min-height:100vh;
 padding:30px 20px;
 }
-
 .brand{margin:30px 0 35px}
-
-.brand h1{
-margin:0;
-font-size:38px;
-color:#ff8c00;
-}
-
-.brand h2{
-margin:5px 0;
-font-size:30px;
-}
-
+.brand h1{margin:0;font-size:38px;color:#ff8c00}
+.brand h2{margin:5px 0;font-size:30px}
 .for{color:#19d9e6}
 .all{color:#ff2525}
-
 .charity{
 margin-top:12px;
 font-size:13px;
 color:#ff9d00;
 font-weight:bold;
 }
-
 .language{
 display:flex;
 justify-content:center;
 gap:12px;
 margin-bottom:35px;
 }
-
 .language button{
 border:2px solid #ff8c00;
 background:#222;
@@ -63,15 +47,12 @@ border-radius:12px;
 font-size:16px;
 cursor:pointer;
 }
-
 .language button.active{
 background:#ff8c00;
 color:#111;
 font-weight:bold;
 }
-
 .welcome{margin-bottom:25px}
-
 .menu-button{
 display:block;
 width:100%;
@@ -83,28 +64,17 @@ font-size:18px;
 font-weight:bold;
 cursor:pointer;
 }
-
 .events{background:#ff8c00}
 .bookings{background:#19d9e6}
-
-.fatra{
-background:#7ac943;
-color:#111;
-}
-
-.about{
-background:#ff3030;
-color:#fff;
-}
-
-.contact{
-background:#fff;
-color:#111;
-}
+.fatra{background:#7ac943;color:#111}
+.face{background:#d98cff;color:#111}
+.about{background:#ff3030;color:#fff}
+.contact{background:#fff;color:#111}
 
 #aboutPage,
 #contactPage,
-#fatraPage{
+#fatraPage,
+#facePage{
 display:none;
 text-align:left;
 line-height:1.6;
@@ -112,7 +82,8 @@ line-height:1.6;
 
 #aboutPage h2,
 #contactPage h2,
-#fatraPage h2{
+#fatraPage h2,
+#facePage h2{
 text-align:center;
 font-size:28px;
 }
@@ -120,6 +91,7 @@ font-size:28px;
 #aboutPage h2{color:#ff3030}
 #contactPage h2{color:#fff}
 #fatraPage h2{color:#7ac943}
+#facePage h2{color:#d98cff}
 
 .about-content,
 .form-content{
@@ -127,33 +99,27 @@ background:#1b1b1b;
 padding:22px;
 border-radius:16px;
 }
-
 .about-content p{margin:0 0 18px}
-
 .about-slogan{
 text-align:center;
 font-weight:bold;
 font-size:18px;
 color:#ff9d00;
 }
-
 .charity-number{
 text-align:center;
 margin-top:25px;
 }
-
 .form-intro{
 text-align:center;
 margin:0 0 22px;
 color:#ddd;
 }
-
 .form-box label{
 display:block;
 font-weight:bold;
 margin:16px 0 7px;
 }
-
 .form-box input,
 .form-box textarea{
 width:100%;
@@ -165,18 +131,15 @@ padding:14px;
 font-family:Arial,sans-serif;
 font-size:16px;
 }
-
 .form-box textarea{
 min-height:150px;
 resize:vertical;
 }
-
 .form-box input:focus,
 .form-box textarea:focus{
 outline:2px solid #ff8c00;
 border-color:#ff8c00;
 }
-
 .send-button{
 display:block;
 width:100%;
@@ -190,16 +153,12 @@ font-size:17px;
 font-weight:bold;
 cursor:pointer;
 }
-
-.fatra-send{
-background:#7ac943;
-}
-
+.fatra-send{background:#7ac943}
+.face-send{background:#d98cff}
 .send-button:disabled{
 opacity:.6;
 cursor:not-allowed;
 }
-
 .form-message{
 display:none;
 margin-top:20px;
@@ -208,19 +167,16 @@ border-radius:12px;
 text-align:center;
 font-weight:bold;
 }
-
 .form-message.success{
 display:block;
 background:#173d26;
 color:#b8ffd0;
 }
-
 .form-message.error{
 display:block;
 background:#4a1e1e;
 color:#ffd0d0;
 }
-
 .back-button{
 display:block;
 width:100%;
@@ -234,11 +190,8 @@ font-size:17px;
 font-weight:bold;
 cursor:pointer;
 }
-
-.fatra-back{
-border-color:#7ac943;
-}
-
+.fatra-back{border-color:#7ac943}
+.face-back{border-color:#d98cff}
 footer{
 margin-top:45px;
 font-size:12px;
@@ -248,7 +201,6 @@ color:#aaa;
 </head>
 
 <body>
-
 <div class="app">
 
 <div class="brand">
@@ -281,6 +233,10 @@ color:#aaa;
 🛒 Fatra Potraviny Rugby – Objednávka
 </button>
 
+<button class="menu-button face" id="face" onclick="showFace()">
+🎨 Tinuška – Maľovanie na tvár
+</button>
+
 <button class="menu-button about" id="about" onclick="showAbout()">
 ❤️ O nás
 </button>
@@ -292,7 +248,7 @@ color:#aaa;
 </div>
 
 
-<!-- O NÁS -->
+<!-- O NAS -->
 
 <div id="aboutPage">
 
@@ -354,8 +310,7 @@ Registrovaná charitatívna organizácia č. 1216952
 Máte otázku alebo potrebujete pomoc? Napíšte nám.
 </p>
 
-<form
-id="contactForm"
+<form id="contactForm"
 class="form-box"
 action="https://formspree.io/f/mrpbbyng"
 method="POST">
@@ -388,7 +343,7 @@ Odoslať správu
 </div>
 
 
-<!-- FATRA POTRAVINY RUGBY -->
+<!-- FATRA -->
 
 <div id="fatraPage">
 
@@ -400,8 +355,7 @@ Odoslať správu
 Napíšte svoju objednávku a odošlite ju priamo Fatra Potraviny Rugby.
 </p>
 
-<form
-id="fatraForm"
+<form id="fatraForm"
 class="form-box"
 action="https://formspree.io/f/xaennlee"
 method="POST">
@@ -437,13 +391,66 @@ value="Fatra Potraviny Rugby - nová objednávka">
 </div>
 
 
+<!-- TINUSKA FACE PAINTING -->
+
+<div id="facePage">
+
+<h2 id="faceTitle">🎨 Tinuška – Maľovanie na tvár</h2>
+
+<div class="form-content">
+
+<p class="form-intro" id="faceIntro">
+Rezervujte si maľovanie na tvár.
+</p>
+
+<form id="faceForm"
+class="form-box"
+action="https://formspree.io/f/xqpaagye"
+method="POST">
+
+<label id="faceNameLabel" for="faceName">Meno a priezvisko</label>
+<input type="text" id="faceName" name="name" autocomplete="name" required>
+
+<label id="faceEmailLabel" for="faceEmail">E-mail</label>
+<input type="email" id="faceEmail" name="email" autocomplete="email" required>
+
+<label id="facePhoneLabel" for="facePhone">Telefón</label>
+<input type="tel" id="facePhone" name="phone" autocomplete="tel" required>
+
+<label id="childNameLabel" for="childName">Meno dieťaťa</label>
+<input type="text" id="childName" name="child_name" required>
+
+<label id="childAgeLabel" for="childAge">Vek dieťaťa</label>
+<input type="number" id="childAge" name="child_age" min="1" max="17" required>
+
+<label id="paintingLabel" for="paintingRequest">Čo si želáte namaľovať?</label>
+<textarea id="paintingRequest" name="painting_request" required></textarea>
+
+<input type="hidden" name="_subject"
+value="Tinuška - nová rezervácia maľovania na tvár">
+
+<button type="submit" class="send-button face-send" id="faceSendButton">
+🎨 Odoslať rezerváciu
+</button>
+
+<div id="faceFormMessage" class="form-message"></div>
+
+</form>
+</div>
+
+<button class="back-button face-back" id="faceBackButton" onclick="showHome()">
+← Späť
+</button>
+
+</div>
+
+
 <footer>
 Community For All<br>
 Tatry Cup Community Organisation CIO
 </footer>
 
 </div>
-
 
 <script>
 
@@ -474,6 +481,11 @@ document.getElementById("fatra").innerText=
 english
 ?"🛒 Fatra Potraviny Rugby – Grocery Order"
 :"🛒 Fatra Potraviny Rugby – Objednávka";
+
+document.getElementById("face").innerText=
+english
+?"🎨 Tinuška – Face Painting"
+:"🎨 Tinuška – Maľovanie na tvár";
 
 document.getElementById("about").innerText=
 english?"❤️ About Us":"❤️ O nás";
@@ -576,8 +588,50 @@ document.getElementById("fatraBackButton").innerText=
 english?"← Back":"← Späť";
 
 
+/* FACE PAINTING */
+
+document.getElementById("faceTitle").innerText=
+english
+?"🎨 Tinuška – Face Painting"
+:"🎨 Tinuška – Maľovanie na tvár";
+
+document.getElementById("faceIntro").innerText=
+english
+?"Book a face painting."
+:"Rezervujte si maľovanie na tvár.";
+
+document.getElementById("faceNameLabel").innerText=
+english?"Full name":"Meno a priezvisko";
+
+document.getElementById("faceEmailLabel").innerText=
+english?"Email":"E-mail";
+
+document.getElementById("facePhoneLabel").innerText=
+english?"Phone":"Telefón";
+
+document.getElementById("childNameLabel").innerText=
+english?"Child's name":"Meno dieťaťa";
+
+document.getElementById("childAgeLabel").innerText=
+english?"Child's age":"Vek dieťaťa";
+
+document.getElementById("paintingLabel").innerText=
+english
+?"What would you like painted?"
+:"Čo si želáte namaľovať?";
+
+document.getElementById("faceSendButton").innerText=
+english
+?"🎨 Send Booking"
+:"🎨 Odoslať rezerváciu";
+
+document.getElementById("faceBackButton").innerText=
+english?"← Back":"← Späť";
+
+
 document.getElementById("contactFormMessage").style.display="none";
 document.getElementById("fatraFormMessage").style.display="none";
+document.getElementById("faceFormMessage").style.display="none";
 
 document.getElementById("enButton").classList.toggle("active",english);
 document.getElementById("skButton").classList.toggle("active",!english);
@@ -590,6 +644,7 @@ document.getElementById("homePage").style.display="none";
 document.getElementById("aboutPage").style.display="none";
 document.getElementById("contactPage").style.display="none";
 document.getElementById("fatraPage").style.display="none";
+document.getElementById("facePage").style.display="none";
 }
 
 
@@ -599,13 +654,11 @@ document.getElementById("aboutPage").style.display="block";
 window.scrollTo(0,0);
 }
 
-
 function showContact(){
 hidePages();
 document.getElementById("contactPage").style.display="block";
 window.scrollTo(0,0);
 }
-
 
 function showFatra(){
 hidePages();
@@ -613,6 +666,11 @@ document.getElementById("fatraPage").style.display="block";
 window.scrollTo(0,0);
 }
 
+function showFace(){
+hidePages();
+document.getElementById("facePage").style.display="block";
+window.scrollTo(0,0);
+}
 
 function showHome(){
 hidePages();
@@ -621,15 +679,17 @@ window.scrollTo(0,0);
 }
 
 
-/* CONTACT SUBMISSION */
+/* GENERIC FORM SENDER */
 
-document.getElementById("contactForm").addEventListener("submit",async function(event){
+function setupForm(formId,buttonId,messageId,type){
+
+document.getElementById(formId).addEventListener("submit",async function(event){
 
 event.preventDefault();
 
 const form=event.target;
-const button=document.getElementById("contactSendButton");
-const box=document.getElementById("contactFormMessage");
+const button=document.getElementById(buttonId);
+const box=document.getElementById(messageId);
 
 button.disabled=true;
 button.innerText=currentLanguage==="en"?"Sending...":"Odosielam...";
@@ -648,87 +708,79 @@ if(!response.ok) throw new Error();
 form.reset();
 
 box.className="form-message success";
+
+if(type==="contact"){
 box.innerText=
 currentLanguage==="en"
 ?"Thank you ❤️ Your message has been sent successfully."
 :"Ďakujeme ❤️ Vaša správa bola úspešne odoslaná.";
-
-box.style.display="block";
-
-}catch(error){
-
-box.className="form-message error";
-box.innerText=
-currentLanguage==="en"
-?"Something went wrong. Please try again."
-:"Správu sa nepodarilo odoslať. Skúste to, prosím, znova.";
-
-box.style.display="block";
-
 }
 
-button.disabled=false;
-button.innerText=
-currentLanguage==="en"?"Send Message":"Odoslať správu";
-
-});
-
-
-/* FATRA ORDER SUBMISSION */
-
-document.getElementById("fatraForm").addEventListener("submit",async function(event){
-
-event.preventDefault();
-
-const form=event.target;
-const button=document.getElementById("fatraSendButton");
-const box=document.getElementById("fatraFormMessage");
-
-button.disabled=true;
-button.innerText=
-currentLanguage==="en"?"Sending...":"Odosielam...";
-
-box.style.display="none";
-
-try{
-
-const response=await fetch(form.action,{
-method:"POST",
-body:new FormData(form),
-headers:{"Accept":"application/json"}
-});
-
-if(!response.ok) throw new Error();
-
-form.reset();
-
-box.className="form-message success";
+if(type==="fatra"){
 box.innerText=
 currentLanguage==="en"
 ?"Thank you ❤️ Your order has been sent successfully."
 :"Ďakujeme ❤️ Vaša objednávka bola úspešne odoslaná.";
+}
+
+if(type==="face"){
+box.innerText=
+currentLanguage==="en"
+?"Thank you ❤️ Your booking has been sent successfully."
+:"Ďakujeme ❤️ Vaša rezervácia bola úspešne odoslaná.";
+}
 
 box.style.display="block";
 
 }catch(error){
 
 box.className="form-message error";
+
+if(type==="contact"){
+box.innerText=
+currentLanguage==="en"
+?"Something went wrong. Please try again."
+:"Správu sa nepodarilo odoslať. Skúste to, prosím, znova.";
+}else if(type==="fatra"){
 box.innerText=
 currentLanguage==="en"
 ?"Your order could not be sent. Please try again."
 :"Objednávku sa nepodarilo odoslať. Skúste to, prosím, znova.";
+}else{
+box.innerText=
+currentLanguage==="en"
+?"Your booking could not be sent. Please try again."
+:"Rezerváciu sa nepodarilo odoslať. Skúste to, prosím, znova.";
+}
 
 box.style.display="block";
 
 }
 
 button.disabled=false;
+
+if(type==="contact"){
 button.innerText=
-currentLanguage==="en"
-?"🛒 Send Order"
-:"🛒 Odoslať objednávku";
+currentLanguage==="en"?"Send Message":"Odoslať správu";
+}
+
+if(type==="fatra"){
+button.innerText=
+currentLanguage==="en"?"🛒 Send Order":"🛒 Odoslať objednávku";
+}
+
+if(type==="face"){
+button.innerText=
+currentLanguage==="en"?"🎨 Send Booking":"🎨 Odoslať rezerváciu";
+}
 
 });
+
+}
+
+setupForm("contactForm","contactSendButton","contactFormMessage","contact");
+setupForm("fatraForm","fatraSendButton","fatraFormMessage","fatra");
+setupForm("faceForm","faceSendButton","faceFormMessage","face");
 
 </script>
 
