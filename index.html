@@ -1,787 +1,1074 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#111111">
-<title>Community For All</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community For All</title>
 
-<style>
-*{box-sizing:border-box}
-body{
-margin:0;
-font-family:Arial,sans-serif;
-background:#111;
-color:#fff;
-text-align:center;
-}
-.app{
-max-width:600px;
-margin:auto;
-min-height:100vh;
-padding:30px 20px;
-}
-.brand{margin:30px 0 35px}
-.brand h1{margin:0;font-size:38px;color:#ff8c00}
-.brand h2{margin:5px 0;font-size:30px}
-.for{color:#19d9e6}
-.all{color:#ff2525}
-.charity{
-margin-top:12px;
-font-size:13px;
-color:#ff9d00;
-font-weight:bold;
-}
-.language{
-display:flex;
-justify-content:center;
-gap:12px;
-margin-bottom:35px;
-}
-.language button{
-border:2px solid #ff8c00;
-background:#222;
-color:#fff;
-padding:12px 20px;
-border-radius:12px;
-font-size:16px;
-cursor:pointer;
-}
-.language button.active{
-background:#ff8c00;
-color:#111;
-font-weight:bold;
-}
-.welcome{margin-bottom:25px}
-.menu-button{
-display:block;
-width:100%;
-margin:14px 0;
-padding:18px;
-border:0;
-border-radius:14px;
-font-size:18px;
-font-weight:bold;
-cursor:pointer;
-}
-.events{background:#ff8c00}
-.bookings{background:#19d9e6}
-.fatra{background:#7ac943;color:#111}
-.face{background:#d98cff;color:#111}
-.about{background:#ff3030;color:#fff}
-.contact{background:#fff;color:#111}
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-#aboutPage,
-#contactPage,
-#fatraPage,
-#facePage{
-display:none;
-text-align:left;
-line-height:1.6;
-}
+  <style>
+    * {
+      box-sizing: border-box;
+    }
 
-#aboutPage h2,
-#contactPage h2,
-#fatraPage h2,
-#facePage h2{
-text-align:center;
-font-size:28px;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #111827;
+      color: white;
+      min-height: 100vh;
+    }
 
-#aboutPage h2{color:#ff3030}
-#contactPage h2{color:#fff}
-#fatraPage h2{color:#7ac943}
-#facePage h2{color:#d98cff}
+    .container {
+      max-width: 600px;
+      margin: auto;
+      padding: 24px 18px 40px;
+    }
 
-.about-content,
-.form-content{
-background:#1b1b1b;
-padding:22px;
-border-radius:16px;
-}
-.about-content p{margin:0 0 18px}
-.about-slogan{
-text-align:center;
-font-weight:bold;
-font-size:18px;
-color:#ff9d00;
-}
-.charity-number{
-text-align:center;
-margin-top:25px;
-}
-.form-intro{
-text-align:center;
-margin:0 0 22px;
-color:#ddd;
-}
-.form-box label{
-display:block;
-font-weight:bold;
-margin:16px 0 7px;
-}
-.form-box input,
-.form-box textarea{
-width:100%;
-border:1px solid #555;
-border-radius:10px;
-background:#2a2a2a;
-color:#fff;
-padding:14px;
-font-family:Arial,sans-serif;
-font-size:16px;
-}
-.form-box textarea{
-min-height:150px;
-resize:vertical;
-}
-.form-box input:focus,
-.form-box textarea:focus{
-outline:2px solid #ff8c00;
-border-color:#ff8c00;
-}
-.send-button{
-display:block;
-width:100%;
-margin-top:22px;
-padding:16px;
-border:0;
-border-radius:14px;
-background:#ff8c00;
-color:#111;
-font-size:17px;
-font-weight:bold;
-cursor:pointer;
-}
-.fatra-send{background:#7ac943}
-.face-send{background:#d98cff}
-.send-button:disabled{
-opacity:.6;
-cursor:not-allowed;
-}
-.form-message{
-display:none;
-margin-top:20px;
-padding:15px;
-border-radius:12px;
-text-align:center;
-font-weight:bold;
-}
-.form-message.success{
-display:block;
-background:#173d26;
-color:#b8ffd0;
-}
-.form-message.error{
-display:block;
-background:#4a1e1e;
-color:#ffd0d0;
-}
-.back-button{
-display:block;
-width:100%;
-margin:25px 0 10px;
-padding:15px;
-border:2px solid #ff8c00;
-border-radius:14px;
-background:#222;
-color:#fff;
-font-size:17px;
-font-weight:bold;
-cursor:pointer;
-}
-.fatra-back{border-color:#7ac943}
-.face-back{border-color:#d98cff}
-footer{
-margin-top:45px;
-font-size:12px;
-color:#aaa;
-}
-</style>
+    .logo {
+      text-align: center;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      font-size: 32px;
+      font-weight: 800;
+    }
+
+    .community { color: #ff9f43; }
+    .for { color: #32d7e8; }
+    .all { color: #ff5c5c; }
+
+    .charity {
+      text-align: center;
+      color: #cbd5e1;
+      font-size: 12px;
+      letter-spacing: 1px;
+      margin-bottom: 20px;
+    }
+
+    .language {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    .lang-btn {
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+
+    .menu-btn {
+      display: block;
+      width: 100%;
+      margin: 12px 0;
+      padding: 17px 15px;
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .events { background: #f59e0b; }
+    .bookings { background: #0891b2; }
+    .fatra { background: #16a34a; }
+    .face { background: #d98cff; color: #111827; }
+    .about { background: #dc2626; }
+    .contact { background: #2563eb; }
+
+    .auth-box {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 22px;
+    }
+
+    .auth-title {
+      font-size: 19px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    .logged-user {
+      text-align: center;
+      overflow-wrap: anywhere;
+      margin-bottom: 12px;
+      color: #dbeafe;
+    }
+
+    .auth-main-btn {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 9px;
+      background: #0ea5e9;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+
+    .auth-link-btn {
+      background: none;
+      border: none;
+      color: #7dd3fc;
+      text-decoration: underline;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 12px;
+    }
+
+    .auth-links {
+      text-align: center;
+    }
+
+    .page {
+      display: none;
+    }
+
+    .page h2 {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    input, textarea {
+      width: 100%;
+      border: 1px solid #475569;
+      background: #0f172a;
+      color: white;
+      border-radius: 9px;
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .submit-btn {
+      width: 100%;
+      border: none;
+      border-radius: 9px;
+      padding: 14px;
+      margin-top: 18px;
+      background: #0ea5e9;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .green-btn {
+      background: #16a34a;
+    }
+
+    .purple-btn {
+      background: #d98cff;
+      color: #111827;
+    }
+
+    .back-btn {
+      border: 1px solid #475569;
+      background: #1e293b;
+      color: white;
+      border-radius: 9px;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      cursor: pointer;
+    }
+
+    .message {
+      display: none;
+      margin-top: 15px;
+      padding: 12px;
+      border-radius: 9px;
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    .success {
+      display: block;
+      background: #14532d;
+      border: 1px solid #22c55e;
+    }
+
+    .error {
+      display: block;
+      background: #7f1d1d;
+      border: 1px solid #ef4444;
+    }
+
+    .info {
+      display: block;
+      background: #164e63;
+      border: 1px solid #22d3ee;
+    }
+
+    .footer {
+      text-align: center;
+      color: #94a3b8;
+      font-size: 12px;
+      margin-top: 35px;
+      line-height: 1.6;
+    }
+
+    .small {
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+  </style>
 </head>
 
 <body>
-<div class="app">
-
-<div class="brand">
-<h1>Community</h1>
-<h2><span class="for">For</span> <span class="all">All</span></h2>
-<div class="charity">TATRY CUP COMMUNITY ORGANISATION CIO</div>
-</div>
-
-<div class="language">
-<button id="skButton" class="active" onclick="setLanguage('sk')">🇸🇰 SK</button>
-<button id="enButton" onclick="setLanguage('en')">🇬🇧 EN</button>
-</div>
-
-<div id="homePage">
-
-<div class="welcome">
-<h2 id="welcomeTitle">Vitajte</h2>
-<p id="welcomeText">Vyberte si podujatie a vytvorte rezerváciu.</p>
-</div>
-
-<button class="menu-button events" id="events">
-📅 Podujatia
-</button>
-
-<button class="menu-button bookings" id="bookings">
-🎟️ Moje rezervácie
-</button>
-
-<button class="menu-button fatra" id="fatra" onclick="showFatra()">
-🛒 Fatra Potraviny Rugby – Objednávka
-</button>
-
-<button class="menu-button face" id="face" onclick="showFace()">
-🎨 Tinuška – Maľovanie na tvár
-</button>
-
-<button class="menu-button about" id="about" onclick="showAbout()">
-❤️ O nás
-</button>
-
-<button class="menu-button contact" id="contact" onclick="showContact()">
-✉️ Kontakt
-</button>
-
-</div>
-
-
-<!-- O NAS -->
-
-<div id="aboutPage">
-
-<h2 id="aboutTitle">O nás ❤️</h2>
-
-<div class="about-content">
-
-<p id="aboutText1">
-<strong>Community For All</strong> je komunitná iniciatíva organizácie
-<strong>Tatry Cup Community Organisation CIO</strong>, registrovanej
-charitatívnej organizácie vo Veľkej Británii.
-</p>
-
-<p id="aboutText2">
-Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové
-priateľstvá a budovať komunitu, v ktorej sa každý môže cítiť vítaný.
-</p>
-
-<p id="aboutText3">
-Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky,
-aktivity pre deti aj dospelých a ďalšie spoločné stretnutia.
-Naše aktivity sú otvorené ľuďom rôznych národností a vekových kategórií.
-</p>
-
-<p id="aboutText4">
-Za celým projektom stojí tím ľudí, ktorí už niekoľko rokov organizujú
-komunitné a charitatívne podujatia vo Veľkej Británii.
-</p>
-
-<p class="about-slogan" id="aboutSlogan">
-Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️
-</p>
-
-<div class="charity-number">
-<strong>Tatry Cup Community Organisation CIO</strong><br>
-<span id="registeredCharity">
-Registrovaná charitatívna organizácia č. 1216952
-</span>
-</div>
-
-</div>
-
-<button class="back-button" id="aboutBackButton" onclick="showHome()">
-← Späť
-</button>
-
-</div>
-
-
-<!-- KONTAKT -->
-
-<div id="contactPage">
-
-<h2 id="contactTitle">Kontakt ✉️</h2>
-
-<div class="form-content">
-
-<p class="form-intro" id="contactIntro">
-Máte otázku alebo potrebujete pomoc? Napíšte nám.
-</p>
-
-<form id="contactForm"
-class="form-box"
-action="https://formspree.io/f/mrpbbyng"
-method="POST">
-
-<label id="contactNameLabel" for="contactName">Meno a priezvisko</label>
-<input type="text" id="contactName" name="name" autocomplete="name" required>
-
-<label id="contactEmailLabel" for="contactEmail">E-mail</label>
-<input type="email" id="contactEmail" name="email" autocomplete="email" required>
-
-<label id="contactMessageLabel" for="contactMessage">Vaša správa</label>
-<textarea id="contactMessage" name="message" required></textarea>
-
-<input type="hidden" name="_subject"
-value="Community For All - nová kontaktná správa">
-
-<button type="submit" class="send-button" id="contactSendButton">
-Odoslať správu
-</button>
-
-<div id="contactFormMessage" class="form-message"></div>
-
-</form>
-</div>
-
-<button class="back-button" id="contactBackButton" onclick="showHome()">
-← Späť
-</button>
-
-</div>
-
-
-<!-- FATRA -->
-
-<div id="fatraPage">
-
-<h2 id="fatraTitle">🛒 Fatra Potraviny Rugby</h2>
-
-<div class="form-content">
-
-<p class="form-intro" id="fatraIntro">
-Napíšte svoju objednávku a odošlite ju priamo Fatra Potraviny Rugby.
-</p>
-
-<form id="fatraForm"
-class="form-box"
-action="https://formspree.io/f/xaennlee"
-method="POST">
-
-<label id="fatraNameLabel" for="fatraName">Meno a priezvisko</label>
-<input type="text" id="fatraName" name="name" autocomplete="name" required>
-
-<label id="fatraEmailLabel" for="fatraEmail">E-mail</label>
-<input type="email" id="fatraEmail" name="email" autocomplete="email" required>
-
-<label id="fatraPhoneLabel" for="fatraPhone">Telefón</label>
-<input type="tel" id="fatraPhone" name="phone" autocomplete="tel" required>
-
-<label id="fatraOrderLabel" for="fatraOrder">Vaša objednávka</label>
-<textarea id="fatraOrder" name="order" required></textarea>
-
-<input type="hidden" name="_subject"
-value="Fatra Potraviny Rugby - nová objednávka">
-
-<button type="submit" class="send-button fatra-send" id="fatraSendButton">
-🛒 Odoslať objednávku
-</button>
-
-<div id="fatraFormMessage" class="form-message"></div>
-
-</form>
-</div>
-
-<button class="back-button fatra-back" id="fatraBackButton" onclick="showHome()">
-← Späť
-</button>
-
-</div>
-
-
-<!-- TINUSKA FACE PAINTING -->
-
-<div id="facePage">
-
-<h2 id="faceTitle">🎨 Tinuška – Maľovanie na tvár</h2>
-
-<div class="form-content">
-
-<p class="form-intro" id="faceIntro">
-Rezervujte si maľovanie na tvár.
-</p>
-
-<form id="faceForm"
-class="form-box"
-action="https://formspree.io/f/xqpaagye"
-method="POST">
-
-<label id="faceNameLabel" for="faceName">Meno a priezvisko</label>
-<input type="text" id="faceName" name="name" autocomplete="name" required>
-
-<label id="faceEmailLabel" for="faceEmail">E-mail</label>
-<input type="email" id="faceEmail" name="email" autocomplete="email" required>
-
-<label id="facePhoneLabel" for="facePhone">Telefón</label>
-<input type="tel" id="facePhone" name="phone" autocomplete="tel" required>
-
-<label id="childNameLabel" for="childName">Meno dieťaťa</label>
-<input type="text" id="childName" name="child_name" required>
-
-<label id="childAgeLabel" for="childAge">Vek dieťaťa</label>
-<input type="number" id="childAge" name="child_age" min="1" max="17" required>
-
-<label id="paintingLabel" for="paintingRequest">Čo si želáte namaľovať?</label>
-<textarea id="paintingRequest" name="painting_request" required></textarea>
-
-<input type="hidden" name="_subject"
-value="Tinuška - nová rezervácia maľovania na tvár">
-
-<button type="submit" class="send-button face-send" id="faceSendButton">
-🎨 Odoslať rezerváciu
-</button>
-
-<div id="faceFormMessage" class="form-message"></div>
-
-</form>
-</div>
-
-<button class="back-button face-back" id="faceBackButton" onclick="showHome()">
-← Späť
-</button>
-
-</div>
-
-
-<footer>
-Community For All<br>
-Tatry Cup Community Organisation CIO
-</footer>
+<div class="container">
+
+  <div class="logo">
+    <span class="community">Community</span>
+    <span class="for">For</span>
+    <span class="all">All</span>
+  </div>
+
+  <div class="charity">TATRY CUP COMMUNITY ORGANISATION CIO</div>
+
+  <div class="language">
+    <button class="lang-btn" onclick="setLanguage('sk')">SK</button>
+    <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+  </div>
+
+  <!-- HOME -->
+  <div id="homePage">
+
+    <div class="auth-box" id="loggedOutBox">
+      <div class="auth-title" id="accountTitle">👤 Môj účet</div>
+      <button class="auth-main-btn" id="loginOpenBtn" onclick="showLogin()">
+        Prihlásiť sa
+      </button>
+      <div class="auth-links">
+        <button class="auth-link-btn" id="registerOpenBtn" onclick="showRegister()">
+          Vytvoriť účet
+        </button>
+      </div>
+    </div>
+
+    <div class="auth-box" id="loggedInBox" style="display:none;">
+      <div class="auth-title" id="welcomeTitle">👤 Prihlásený používateľ</div>
+      <div class="logged-user" id="loggedUserEmail"></div>
+      <button class="auth-main-btn" id="logoutBtn" onclick="logoutUser()">
+        Odhlásiť sa
+      </button>
+    </div>
+
+    <button class="menu-btn events" id="eventsBtn">📅 Podujatia</button>
+    <button class="menu-btn bookings" id="bookingsBtn">🎟️ Moje rezervácie</button>
+
+    <button class="menu-btn fatra" id="fatraBtn" onclick="showFatra()">
+      🛒 Fatra Potraviny Rugby – Objednávka
+    </button>
+
+    <button class="menu-btn face" id="faceBtn" onclick="showFace()">
+      🎨 Tinuška – Maľovanie na tvár
+    </button>
+
+    <button class="menu-btn about" id="aboutBtn" onclick="showAbout()">
+      ❤️ O nás
+    </button>
+
+    <button class="menu-btn contact" id="contactBtn" onclick="showContact()">
+      ✉️ Kontakt
+    </button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="page" id="loginPage">
+    <button class="back-btn backText" onclick="showHome()">← Späť</button>
+    <h2 id="loginTitle">Prihlásiť sa</h2>
+
+    <div class="card">
+      <form id="loginForm">
+        <label id="loginEmailLabel">E-mail</label>
+        <input type="email" id="loginEmail" required>
+
+        <label id="loginPasswordLabel">Heslo</label>
+        <input type="password" id="loginPassword" required>
+
+        <button class="submit-btn" id="loginSubmitBtn" type="submit">
+          Prihlásiť sa
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <button class="auth-link-btn" id="forgotBtn" onclick="showForgotPassword()">
+          Zabudnuté heslo
+        </button>
+        <br>
+        <button class="auth-link-btn" id="goRegisterBtn" onclick="showRegister()">
+          Nemáte účet? Vytvoriť účet
+        </button>
+      </div>
+
+      <div id="loginMessage" class="message"></div>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="page" id="registerPage">
+    <button class="back-btn backText" onclick="showHome()">← Späť</button>
+    <h2 id="registerTitle">Vytvoriť účet</h2>
+
+    <div class="card">
+      <form id="registerForm">
+        <label id="registerEmailLabel">E-mail</label>
+        <input type="email" id="registerEmail" required>
+
+        <label id="registerPasswordLabel">Heslo</label>
+        <input type="password" id="registerPassword" minlength="6" required>
+
+        <label id="registerPassword2Label">Zopakujte heslo</label>
+        <input type="password" id="registerPassword2" minlength="6" required>
+
+        <button class="submit-btn" id="registerSubmitBtn" type="submit">
+          Vytvoriť účet
+        </button>
+      </form>
+
+      <div class="auth-links">
+        <button class="auth-link-btn" id="goLoginBtn" onclick="showLogin()">
+          Už máte účet? Prihlásiť sa
+        </button>
+      </div>
+
+      <div id="registerMessage" class="message"></div>
+    </div>
+  </div>
+
+  <!-- FORGOT PASSWORD -->
+  <div class="page" id="forgotPage">
+    <button class="back-btn backText" onclick="showLogin()">← Späť</button>
+    <h2 id="forgotTitle">Zabudnuté heslo</h2>
+
+    <div class="card">
+      <p id="forgotIntro">
+        Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.
+      </p>
+
+      <form id="forgotForm">
+        <label id="forgotEmailLabel">E-mail</label>
+        <input type="email" id="forgotEmail" required>
+
+        <button class="submit-btn" id="forgotSubmitBtn" type="submit">
+          Poslať odkaz
+        </button>
+      </form>
+
+      <div id="forgotMessage" class="message"></div>
+    </div>
+  </div>
+
+  <!-- RESET PASSWORD -->
+  <div class="page" id="resetPage">
+    <h2 id="resetTitle">Nastaviť nové heslo</h2>
+
+    <div class="card">
+      <form id="resetForm">
+        <label id="newPasswordLabel">Nové heslo</label>
+        <input type="password" id="newPassword" minlength="6" required>
+
+        <label id="newPassword2Label">Zopakujte nové heslo</label>
+        <input type="password" id="newPassword2" minlength="6" required>
+
+        <button class="submit-btn" id="resetSubmitBtn" type="submit">
+          Uložiť nové heslo
+        </button>
+      </form>
+
+      <div id="resetMessage" class="message"></div>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <div class="page" id="aboutPage">
+    <button class="back-btn backText" onclick="showHome()">← Späť</button>
+    <h2 id="aboutTitle">❤️ O nás</h2>
+
+    <div class="card">
+      <div id="aboutContent">
+        <p><strong>Community For All</strong> je komunitná iniciatíva organizácie Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.</p>
+
+        <p>Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať otvorenú a príjemnú komunitu.</p>
+
+        <p>Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a spoločné stretnutia. Naše aktivity sú otvorené ľuďom rôznych národností a vekových skupín.</p>
+
+        <p>Náš tím už niekoľko rokov organizuje komunitné a charitatívne podujatia vo Veľkej Británii.</p>
+
+        <p><strong>Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</strong></p>
+
+        <p class="small">
+          Tatry Cup Community Organisation CIO<br>
+          Registered Charity No. 1216952
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="page" id="contactPage">
+    <button class="back-btn backText" onclick="showHome()">← Späť</button>
+    <h2 id="contactTitle">✉️ Kontakt</h2>
+
+    <div class="card">
+      <form id="contactForm">
+        <label id="contactNameLabel">Meno a priezvisko</label>
+        <input type="text" name="name" required>
+
+        <label id="contactEmailLabel">E-mail</label>
+        <input type="email" name="email" required>
+
+        <label id="contactMessageLabel">Vaša správa</label>
+        <textarea name="message" required></textarea>
+
+        <button class="submit-btn" id="contactSubmitBtn" type="submit">
+          Odoslať správu
+        </button>
+      </form>
+
+      <div id="contactMessage" class="message"></div>
+    </div>
+  </div>
+
+  <!-- FATRA -->
+  <div class="page" id="fatraPage">
+    <button class="back-btn backText" onclick="showHome()">← Späť</button>
+    <h2 id="fatraTitle">🛒 Fatra Potraviny Rugby – Objednávka</h2>
+
+    <div class="card">
+      <p id="fatraIntro">
+        Napíšte svoju objednávku a odošlite ju cez formulár.
+      </p>
+
+      <form id="fatraForm">
+        <label id="fatraNameLabel">Meno a priezvisko</label>
+        <input type="text" name="name" required>
+
+        <label id="fatraEmailLabel">E-mail</label>
+        <input type="email" name="email" required>
+
+        <label id="fatraPhoneLabel">Telefón</label>
+        <input type="tel" name="phone" required>
+
+        <label id="fatraOrderLabel">Vaša objednávka</label>
+        <textarea
+          name="order"
+          id="fatraOrder"
+          placeholder="Napr. 2× Horalky, 3× Kofola, klobásy…"
+          required
+        ></textarea>
+
+        <button class="submit-btn green-btn" id="fatraSubmitBtn" type="submit">
+          Odoslať objednávku
+        </button>
+      </form>
+
+      <div id="fatraMessage" class="message"></div>
+    </div>
+  </div>
+
+  <!-- FACE PAINTING -->
+  <div class="page" id="facePage">
+    <button class="back-btn backText" onclick="showHome()">← Späť</button>
+    <h2 id="faceTitle">🎨 Tinuška – Maľovanie na tvár</h2>
+
+    <div class="card">
+      <p id="faceIntro">Rezervujte si maľovanie na tvár.</p>
+
+      <form id="faceForm">
+        <label id="faceNameLabel">Meno a priezvisko</label>
+        <input type="text" name="name" required>
+
+        <label id="faceEmailLabel">E-mail</label>
+        <input type="email" name="email" required>
+
+        <label id="facePhoneLabel">Telefón</label>
+        <input type="tel" name="phone" required>
+
+        <label id="childNameLabel">Meno dieťaťa</label>
+        <input type="text" name="child_name" required>
+
+        <label id="childAgeLabel">Vek dieťaťa</label>
+        <input type="number" name="child_age" min="1" max="17" required>
+
+        <label id="paintingLabel">Čo si želáte namaľovať?</label>
+        <textarea name="painting" required></textarea>
+
+        <button class="submit-btn purple-btn" id="faceSubmitBtn" type="submit">
+          🎨 Odoslať rezerváciu
+        </button>
+      </form>
+
+      <div id="faceMessage" class="message"></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Community For All<br>
+    Tatry Cup Community Organisation CIO
+  </div>
 
 </div>
 
 <script>
-
-let currentLanguage="sk";
-
-function setLanguage(language){
-
-currentLanguage=language;
-const english=language==="en";
-
-document.documentElement.lang=english?"en":"sk";
-
-document.getElementById("welcomeTitle").innerText=
-english?"Welcome":"Vitajte";
-
-document.getElementById("welcomeText").innerText=
-english
-?"Choose an event and make your booking."
-:"Vyberte si podujatie a vytvorte rezerváciu.";
-
-document.getElementById("events").innerText=
-english?"📅 Events":"📅 Podujatia";
-
-document.getElementById("bookings").innerText=
-english?"🎟️ My Bookings":"🎟️ Moje rezervácie";
-
-document.getElementById("fatra").innerText=
-english
-?"🛒 Fatra Potraviny Rugby – Grocery Order"
-:"🛒 Fatra Potraviny Rugby – Objednávka";
-
-document.getElementById("face").innerText=
-english
-?"🎨 Tinuška – Face Painting"
-:"🎨 Tinuška – Maľovanie na tvár";
-
-document.getElementById("about").innerText=
-english?"❤️ About Us":"❤️ O nás";
-
-document.getElementById("contact").innerText=
-english?"✉️ Contact":"✉️ Kontakt";
-
-
-/* ABOUT */
-
-document.getElementById("aboutTitle").innerText=
-english?"About Us ❤️":"O nás ❤️";
-
-document.getElementById("aboutText1").innerHTML=
-english
-?'<strong>Community For All</strong> is a community initiative of <strong>Tatry Cup Community Organisation CIO</strong>, a registered charity in the United Kingdom.'
-:'<strong>Community For All</strong> je komunitná iniciatíva organizácie <strong>Tatry Cup Community Organisation CIO</strong>, registrovanej charitatívnej organizácie vo Veľkej Británii.';
-
-document.getElementById("aboutText2").innerText=
-english
-?"Our aim is to bring people, families and generations together, create new friendships and build a community where everyone can feel welcome."
-:"Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať komunitu, v ktorej sa každý môže cítiť vítaný.";
-
-document.getElementById("aboutText3").innerText=
-english
-?"We organise community events, family weekends, stays, barbecues, activities for children and adults, and other social gatherings. Our activities are open to people of different nationalities and age groups."
-:"Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a ďalšie spoločné stretnutia. Naše aktivity sú otvorené ľuďom rôznych národností a vekových kategórií.";
-
-document.getElementById("aboutText4").innerText=
-english
-?"The project is supported by a team of people who have been organising community and charitable events in the United Kingdom for several years."
-:"Za celým projektom stojí tím ľudí, ktorí už niekoľko rokov organizujú komunitné a charitatívne podujatia vo Veľkej Británii.";
-
-document.getElementById("aboutSlogan").innerText=
-english
-?"Bringing people together. Creating experiences. Building community. ❤️"
-:"Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️";
-
-document.getElementById("registeredCharity").innerText=
-english
-?"Registered Charity No. 1216952"
-:"Registrovaná charitatívna organizácia č. 1216952";
-
-document.getElementById("aboutBackButton").innerText=
-english?"← Back":"← Späť";
-
-
-/* CONTACT */
-
-document.getElementById("contactTitle").innerText=
-english?"Contact ✉️":"Kontakt ✉️";
-
-document.getElementById("contactIntro").innerText=
-english
-?"Do you have a question or need help? Send us a message."
-:"Máte otázku alebo potrebujete pomoc? Napíšte nám.";
-
-document.getElementById("contactNameLabel").innerText=
-english?"Full name":"Meno a priezvisko";
-
-document.getElementById("contactEmailLabel").innerText=
-english?"Email":"E-mail";
-
-document.getElementById("contactMessageLabel").innerText=
-english?"Your message":"Vaša správa";
-
-document.getElementById("contactSendButton").innerText=
-english?"Send Message":"Odoslať správu";
-
-document.getElementById("contactBackButton").innerText=
-english?"← Back":"← Späť";
-
-
-/* FATRA */
-
-document.getElementById("fatraTitle").innerText=
-"🛒 Fatra Potraviny Rugby";
-
-document.getElementById("fatraIntro").innerText=
-english
-?"Write your order below and send it directly to Fatra Potraviny Rugby."
-:"Napíšte svoju objednávku a odošlite ju priamo Fatra Potraviny Rugby.";
-
-document.getElementById("fatraNameLabel").innerText=
-english?"Full name":"Meno a priezvisko";
-
-document.getElementById("fatraEmailLabel").innerText=
-english?"Email":"E-mail";
-
-document.getElementById("fatraPhoneLabel").innerText=
-english?"Phone":"Telefón";
-
-document.getElementById("fatraOrderLabel").innerText=
-english?"Your order":"Vaša objednávka";
-
-document.getElementById("fatraSendButton").innerText=
-english?"🛒 Send Order":"🛒 Odoslať objednávku";
-
-document.getElementById("fatraBackButton").innerText=
-english?"← Back":"← Späť";
-
-
-/* FACE PAINTING */
-
-document.getElementById("faceTitle").innerText=
-english
-?"🎨 Tinuška – Face Painting"
-:"🎨 Tinuška – Maľovanie na tvár";
-
-document.getElementById("faceIntro").innerText=
-english
-?"Book a face painting."
-:"Rezervujte si maľovanie na tvár.";
-
-document.getElementById("faceNameLabel").innerText=
-english?"Full name":"Meno a priezvisko";
-
-document.getElementById("faceEmailLabel").innerText=
-english?"Email":"E-mail";
-
-document.getElementById("facePhoneLabel").innerText=
-english?"Phone":"Telefón";
-
-document.getElementById("childNameLabel").innerText=
-english?"Child's name":"Meno dieťaťa";
-
-document.getElementById("childAgeLabel").innerText=
-english?"Child's age":"Vek dieťaťa";
-
-document.getElementById("paintingLabel").innerText=
-english
-?"What would you like painted?"
-:"Čo si želáte namaľovať?";
-
-document.getElementById("faceSendButton").innerText=
-english
-?"🎨 Send Booking"
-:"🎨 Odoslať rezerváciu";
-
-document.getElementById("faceBackButton").innerText=
-english?"← Back":"← Späť";
-
-
-document.getElementById("contactFormMessage").style.display="none";
-document.getElementById("fatraFormMessage").style.display="none";
-document.getElementById("faceFormMessage").style.display="none";
-
-document.getElementById("enButton").classList.toggle("active",english);
-document.getElementById("skButton").classList.toggle("active",!english);
-
-}
-
-
-function hidePages(){
-document.getElementById("homePage").style.display="none";
-document.getElementById("aboutPage").style.display="none";
-document.getElementById("contactPage").style.display="none";
-document.getElementById("fatraPage").style.display="none";
-document.getElementById("facePage").style.display="none";
-}
-
-
-function showAbout(){
-hidePages();
-document.getElementById("aboutPage").style.display="block";
-window.scrollTo(0,0);
-}
-
-function showContact(){
-hidePages();
-document.getElementById("contactPage").style.display="block";
-window.scrollTo(0,0);
-}
-
-function showFatra(){
-hidePages();
-document.getElementById("fatraPage").style.display="block";
-window.scrollTo(0,0);
-}
-
-function showFace(){
-hidePages();
-document.getElementById("facePage").style.display="block";
-window.scrollTo(0,0);
-}
-
-function showHome(){
-hidePages();
-document.getElementById("homePage").style.display="block";
-window.scrollTo(0,0);
-}
-
-
-/* GENERIC FORM SENDER */
-
-function setupForm(formId,buttonId,messageId,type){
-
-document.getElementById(formId).addEventListener("submit",async function(event){
-
-event.preventDefault();
-
-const form=event.target;
-const button=document.getElementById(buttonId);
-const box=document.getElementById(messageId);
-
-button.disabled=true;
-button.innerText=currentLanguage==="en"?"Sending...":"Odosielam...";
-box.style.display="none";
-
-try{
-
-const response=await fetch(form.action,{
-method:"POST",
-body:new FormData(form),
-headers:{"Accept":"application/json"}
-});
-
-if(!response.ok) throw new Error();
-
-form.reset();
-
-box.className="form-message success";
-
-if(type==="contact"){
-box.innerText=
-currentLanguage==="en"
-?"Thank you ❤️ Your message has been sent successfully."
-:"Ďakujeme ❤️ Vaša správa bola úspešne odoslaná.";
-}
-
-if(type==="fatra"){
-box.innerText=
-currentLanguage==="en"
-?"Thank you ❤️ Your order has been sent successfully."
-:"Ďakujeme ❤️ Vaša objednávka bola úspešne odoslaná.";
-}
-
-if(type==="face"){
-box.innerText=
-currentLanguage==="en"
-?"Thank you ❤️ Your booking has been sent successfully."
-:"Ďakujeme ❤️ Vaša rezervácia bola úspešne odoslaná.";
-}
-
-box.style.display="block";
-
-}catch(error){
-
-box.className="form-message error";
-
-if(type==="contact"){
-box.innerText=
-currentLanguage==="en"
-?"Something went wrong. Please try again."
-:"Správu sa nepodarilo odoslať. Skúste to, prosím, znova.";
-}else if(type==="fatra"){
-box.innerText=
-currentLanguage==="en"
-?"Your order could not be sent. Please try again."
-:"Objednávku sa nepodarilo odoslať. Skúste to, prosím, znova.";
-}else{
-box.innerText=
-currentLanguage==="en"
-?"Your booking could not be sent. Please try again."
-:"Rezerváciu sa nepodarilo odoslať. Skúste to, prosím, znova.";
-}
-
-box.style.display="block";
-
-}
-
-button.disabled=false;
-
-if(type==="contact"){
-button.innerText=
-currentLanguage==="en"?"Send Message":"Odoslať správu";
-}
-
-if(type==="fatra"){
-button.innerText=
-currentLanguage==="en"?"🛒 Send Order":"🛒 Odoslať objednávku";
-}
-
-if(type==="face"){
-button.innerText=
-currentLanguage==="en"?"🎨 Send Booking":"🎨 Odoslať rezerváciu";
-}
-
-});
-
-}
-
-setupForm("contactForm","contactSendButton","contactFormMessage","contact");
-setupForm("fatraForm","fatraSendButton","fatraFormMessage","fatra");
-setupForm("faceForm","faceSendButton","faceFormMessage","face");
-
+  const SUPABASE_URL = 'https://btkblcngijheanyhyiow.supabase.co';
+  const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_0f7Y2P49SneR1E_ZZgjsrw_679teyVH';
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
+  );
+
+  const APP_URL = 'https://tatrycupcio.github.io/community-for-all/';
+
+  let currentLanguage = 'sk';
+
+  const pageIds = [
+    'aboutPage',
+    'contactPage',
+    'fatraPage',
+    'facePage',
+    'loginPage',
+    'registerPage',
+    'forgotPage',
+    'resetPage'
+  ];
+
+  function hidePages() {
+    document.getElementById('homePage').style.display = 'none';
+    pageIds.forEach(id => {
+      document.getElementById(id).style.display = 'none';
+    });
+  }
+
+  function showHome() {
+    hidePages();
+    document.getElementById('homePage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showAbout() {
+    hidePages();
+    document.getElementById('aboutPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showContact() {
+    hidePages();
+    document.getElementById('contactPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showFatra() {
+    hidePages();
+    document.getElementById('fatraPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showFace() {
+    hidePages();
+    document.getElementById('facePage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showLogin() {
+    hidePages();
+    clearMessage('loginMessage');
+    document.getElementById('loginPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showRegister() {
+    hidePages();
+    clearMessage('registerMessage');
+    document.getElementById('registerPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showForgotPassword() {
+    hidePages();
+    clearMessage('forgotMessage');
+    document.getElementById('forgotPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function showResetPassword() {
+    hidePages();
+    clearMessage('resetMessage');
+    document.getElementById('resetPage').style.display = 'block';
+    window.scrollTo(0, 0);
+  }
+
+  function clearMessage(id) {
+    const box = document.getElementById(id);
+    box.className = 'message';
+    box.textContent = '';
+  }
+
+  function showMessage(id, text, type) {
+    const box = document.getElementById(id);
+    box.className = 'message ' + type;
+    box.textContent = text;
+  }
+
+  async function updateAuthUI() {
+    const { data } = await supabaseClient.auth.getSession();
+    const session = data.session;
+
+    if (session && session.user) {
+      document.getElementById('loggedOutBox').style.display = 'none';
+      document.getElementById('loggedInBox').style.display = 'block';
+      document.getElementById('loggedUserEmail').textContent = session.user.email || '';
+    } else {
+      document.getElementById('loggedOutBox').style.display = 'block';
+      document.getElementById('loggedInBox').style.display = 'none';
+      document.getElementById('loggedUserEmail').textContent = '';
+    }
+  }
+
+  document.getElementById('registerForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    clearMessage('registerMessage');
+
+    const email = document.getElementById('registerEmail').value.trim();
+    const password = document.getElementById('registerPassword').value;
+    const password2 = document.getElementById('registerPassword2').value;
+
+    if (password !== password2) {
+      showMessage(
+        'registerMessage',
+        currentLanguage === 'sk'
+          ? 'Heslá sa nezhodujú.'
+          : 'Passwords do not match.',
+        'error'
+      );
+      return;
+    }
+
+    const button = document.getElementById('registerSubmitBtn');
+    button.disabled = true;
+
+    const { error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: APP_URL
+      }
+    });
+
+    button.disabled = false;
+
+    if (error) {
+      showMessage('registerMessage', error.message, 'error');
+      return;
+    }
+
+    document.getElementById('registerForm').reset();
+
+    showMessage(
+      'registerMessage',
+      currentLanguage === 'sk'
+        ? 'Účet bol vytvorený. ❤️ Skontrolujte svoj e-mail a potvrďte registráciu kliknutím na odkaz.'
+        : 'Your account has been created. ❤️ Check your email and confirm your registration by clicking the link.',
+      'success'
+    );
+  });
+
+  document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    clearMessage('loginMessage');
+
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+
+    const button = document.getElementById('loginSubmitBtn');
+    button.disabled = true;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    button.disabled = false;
+
+    if (error) {
+      let message = error.message;
+
+      if (currentLanguage === 'sk') {
+        if (error.message.toLowerCase().includes('email not confirmed')) {
+          message = 'Najprv potvrďte svoju e-mailovú adresu cez odkaz, ktorý vám prišiel e-mailom.';
+        } else if (error.message.toLowerCase().includes('invalid login credentials')) {
+          message = 'Nesprávny e-mail alebo heslo.';
+        }
+      }
+
+      showMessage('loginMessage', message, 'error');
+      return;
+    }
+
+    document.getElementById('loginForm').reset();
+    await updateAuthUI();
+    showHome();
+  });
+
+  async function logoutUser() {
+    await supabaseClient.auth.signOut();
+    await updateAuthUI();
+    showHome();
+  }
+
+  document.getElementById('forgotForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    clearMessage('forgotMessage');
+
+    const email = document.getElementById('forgotEmail').value.trim();
+
+    const button = document.getElementById('forgotSubmitBtn');
+    button.disabled = true;
+
+    const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+      redirectTo: APP_URL
+    });
+
+    button.disabled = false;
+
+    if (error) {
+      showMessage('forgotMessage', error.message, 'error');
+      return;
+    }
+
+    document.getElementById('forgotForm').reset();
+
+    showMessage(
+      'forgotMessage',
+      currentLanguage === 'sk'
+        ? 'Odkaz na obnovenie hesla bol odoslaný. Skontrolujte svoj e-mail.'
+        : 'The password reset link has been sent. Check your email.',
+      'success'
+    );
+  });
+
+  document.getElementById('resetForm').addEventListener('submit', async function(event) {
+    event.preventDefault();
+    clearMessage('resetMessage');
+
+    const password = document.getElementById('newPassword').value;
+    const password2 = document.getElementById('newPassword2').value;
+
+    if (password !== password2) {
+      showMessage(
+        'resetMessage',
+        currentLanguage === 'sk'
+          ? 'Heslá sa nezhodujú.'
+          : 'Passwords do not match.',
+        'error'
+      );
+      return;
+    }
+
+    const button = document.getElementById('resetSubmitBtn');
+    button.disabled = true;
+
+    const { error } = await supabaseClient.auth.updateUser({
+      password: password
+    });
+
+    button.disabled = false;
+
+    if (error) {
+      showMessage('resetMessage', error.message, 'error');
+      return;
+    }
+
+    document.getElementById('resetForm').reset();
+
+    showMessage(
+      'resetMessage',
+      currentLanguage === 'sk'
+        ? 'Heslo bolo úspešne zmenené. ❤️'
+        : 'Your password has been changed successfully. ❤️',
+      'success'
+    );
+
+    setTimeout(showHome, 1500);
+  });
+
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+    await updateAuthUI();
+
+    if (event === 'PASSWORD_RECOVERY') {
+      showResetPassword();
+    }
+  });
+
+  function setupForm(formId, buttonId, messageId, type) {
+    const form = document.getElementById(formId);
+
+    form.addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const button = document.getElementById(buttonId);
+      const messageBox = document.getElementById(messageId);
+
+      button.disabled = true;
+      messageBox.className = 'message';
+      messageBox.textContent = '';
+
+      let endpoint = '';
+      let subject = '';
+
+      if (type === 'contact') {
+        endpoint = 'https://formspree.io/f/mrpbbyng';
+        subject = 'Community For All - nová kontaktná správa';
+      }
+
+      if (type === 'fatra') {
+        endpoint = 'https://formspree.io/f/xaennlee';
+        subject = 'Fatra Potraviny Rugby - nová objednávka';
+      }
+
+      if (type === 'face') {
+        endpoint = 'https://formspree.io/f/xqpaagye';
+        subject = 'Tinuška - nová rezervácia maľovania na tvár';
+      }
+
+      const formData = new FormData(form);
+      formData.append('_subject', subject);
+
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          form.reset();
+
+          let successText = '';
+
+          if (type === 'contact') {
+            successText = currentLanguage === 'sk'
+              ? 'Ďakujeme ❤️ Vaša správa bola úspešne odoslaná.'
+              : 'Thank you ❤️ Your message has been sent successfully.';
+          }
+
+          if (type === 'fatra') {
+            successText = currentLanguage === 'sk'
+              ? 'Ďakujeme ❤️ Vaša objednávka bola úspešne odoslaná.'
+              : 'Thank you ❤️ Your order has been sent successfully.';
+          }
+
+          if (type === 'face') {
+            successText = currentLanguage === 'sk'
+              ? 'Ďakujeme ❤️ Vaša rezervácia bola úspešne odoslaná.'
+              : 'Thank you ❤️ Your booking has been sent successfully.';
+          }
+
+          showMessage(messageId, successText, 'success');
+        } else {
+          showMessage(
+            messageId,
+            currentLanguage === 'sk'
+              ? 'Správu sa nepodarilo odoslať. Skúste to prosím znova.'
+              : 'The message could not be sent. Please try again.',
+            'error'
+          );
+        }
+      } catch (error) {
+        showMessage(
+          messageId,
+          currentLanguage === 'sk'
+            ? 'Správu sa nepodarilo odoslať. Skontrolujte internetové pripojenie a skúste to znova.'
+            : 'The message could not be sent. Check your internet connection and try again.',
+          'error'
+        );
+      }
+
+      button.disabled = false;
+    });
+  }
+
+  setupForm('contactForm', 'contactSubmitBtn', 'contactMessage', 'contact');
+  setupForm('fatraForm', 'fatraSubmitBtn', 'fatraMessage', 'fatra');
+  setupForm('faceForm', 'faceSubmitBtn', 'faceMessage', 'face');
+
+  function setLanguage(language) {
+    currentLanguage = language;
+
+    const sk = language === 'sk';
+
+    document.documentElement.lang = sk ? 'sk' : 'en';
+
+    document.getElementById('accountTitle').textContent = sk ? '👤 Môj účet' : '👤 My Account';
+    document.getElementById('loginOpenBtn').textContent = sk ? 'Prihlásiť sa' : 'Sign In';
+    document.getElementById('registerOpenBtn').textContent = sk ? 'Vytvoriť účet' : 'Create Account';
+    document.getElementById('welcomeTitle').textContent = sk ? '👤 Prihlásený používateľ' : '👤 Signed In';
+    document.getElementById('logoutBtn').textContent = sk ? 'Odhlásiť sa' : 'Sign Out';
+
+    document.getElementById('eventsBtn').textContent = sk ? '📅 Podujatia' : '📅 Events';
+    document.getElementById('bookingsBtn').textContent = sk ? '🎟️ Moje rezervácie' : '🎟️ My Bookings';
+    document.getElementById('fatraBtn').textContent = sk
+      ? '🛒 Fatra Potraviny Rugby – Objednávka'
+      : '🛒 Fatra Potraviny Rugby – Grocery Order';
+    document.getElementById('faceBtn').textContent = sk
+      ? '🎨 Tinuška – Maľovanie na tvár'
+      : '🎨 Tinuška – Face Painting';
+    document.getElementById('aboutBtn').textContent = sk ? '❤️ O nás' : '❤️ About Us';
+    document.getElementById('contactBtn').textContent = sk ? '✉️ Kontakt' : '✉️ Contact';
+
+    document.querySelectorAll('.backText').forEach(button => {
+      button.textContent = sk ? '← Späť' : '← Back';
+    });
+
+    document.getElementById('loginTitle').textContent = sk ? 'Prihlásiť sa' : 'Sign In';
+    document.getElementById('loginEmailLabel').textContent = sk ? 'E-mail' : 'Email';
+    document.getElementById('loginPasswordLabel').textContent = sk ? 'Heslo' : 'Password';
+    document.getElementById('loginSubmitBtn').textContent = sk ? 'Prihlásiť sa' : 'Sign In';
+    document.getElementById('forgotBtn').textContent = sk ? 'Zabudnuté heslo' : 'Forgot Password';
+    document.getElementById('goRegisterBtn').textContent = sk
+      ? 'Nemáte účet? Vytvoriť účet'
+      : "Don't have an account? Create Account";
+
+    document.getElementById('registerTitle').textContent = sk ? 'Vytvoriť účet' : 'Create Account';
+    document.getElementById('registerEmailLabel').textContent = sk ? 'E-mail' : 'Email';
+    document.getElementById('registerPasswordLabel').textContent = sk ? 'Heslo' : 'Password';
+    document.getElementById('registerPassword2Label').textContent = sk ? 'Zopakujte heslo' : 'Repeat Password';
+    document.getElementById('registerSubmitBtn').textContent = sk ? 'Vytvoriť účet' : 'Create Account';
+    document.getElementById('goLoginBtn').textContent = sk
+      ? 'Už máte účet? Prihlásiť sa'
+      : 'Already have an account? Sign In';
+
+    document.getElementById('forgotTitle').textContent = sk ? 'Zabudnuté heslo' : 'Forgot Password';
+    document.getElementById('forgotIntro').textContent = sk
+      ? 'Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.'
+      : 'Enter your email and we will send you a password reset link.';
+    document.getElementById('forgotEmailLabel').textContent = sk ? 'E-mail' : 'Email';
+    document.getElementById('forgotSubmitBtn').textContent = sk ? 'Poslať odkaz' : 'Send Reset Link';
+
+    document.getElementById('resetTitle').textContent = sk ? 'Nastaviť nové heslo' : 'Set New Password';
+    document.getElementById('newPasswordLabel').textContent = sk ? 'Nové heslo' : 'New Password';
+    document.getElementById('newPassword2Label').textContent = sk ? 'Zopakujte nové heslo' : 'Repeat New Password';
+    document.getElementById('resetSubmitBtn').textContent = sk ? 'Uložiť nové heslo' : 'Save New Password';
+
+    document.getElementById('aboutTitle').textContent = sk ? '❤️ O nás' : '❤️ About Us';
+
+    document.getElementById('aboutContent').innerHTML = sk
+      ? `
+        <p><strong>Community For All</strong> je komunitná iniciatíva organizácie Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.</p>
+        <p>Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať otvorenú a príjemnú komunitu.</p>
+        <p>Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a spoločné stretnutia. Naše aktivity sú otvorené ľuďom rôznych národností a vekových skupín.</p>
+        <p>Náš tím už niekoľko rokov organizuje komunitné a charitatívne podujatia vo Veľkej Británii.</p>
+        <p><strong>Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</strong></p>
+        <p class="small">Tatry Cup Community Organisation CIO<br>Registered Charity No. 1216952</p>
+      `
+      : `
+        <p><strong>Community For All</strong> is a community initiative of Tatry Cup Community Organisation CIO, a registered charity in the United Kingdom.</p>
+        <p>Our aim is to bring people, families and generations together, create new friendships and build an open and welcoming community.</p>
+        <p>We organise community events, family weekends, stays, barbecues, activities for children and adults, and social gatherings. Our activities are open to people of different nationalities and age groups.</p>
+        <p>Our team has been organising community and charitable events in the United Kingdom for several years.</p>
+        <p><strong>Connecting people. Creating memories. Building community. ❤️</strong></p>
+        <p class="small">Tatry Cup Community Organisation CIO<br>Registered Charity No. 1216952</p>
+      `;
+
+    document.getElementById('contactTitle').textContent = sk ? '✉️ Kontakt' : '✉️ Contact';
+    document.getElementById('contactNameLabel').textContent = sk ? 'Meno a priezvisko' : 'Full name';
+    document.getElementById('contactEmailLabel').textContent = sk ? 'E-mail' : 'Email';
+    document.getElementById('contactMessageLabel').textContent = sk ? 'Vaša správa' : 'Your message';
+    document.getElementById('contactSubmitBtn').textContent = sk ? 'Odoslať správu' : 'Send Message';
+
+    document.getElementById('fatraTitle').textContent = sk
+      ? '🛒 Fatra Potraviny Rugby – Objednávka'
+      : '🛒 Fatra Potraviny Rugby – Grocery Order';
+    document.getElementById('fatraIntro').textContent = sk
+      ? 'Napíšte svoju objednávku a odošlite ju cez formulár.'
+      : 'Write your order and send it using the form.';
+    document.getElementById('fatraNameLabel').textContent = sk ? 'Meno a priezvisko' : 'Full name';
+    document.getElementById('fatraEmailLabel').textContent = sk ? 'E-mail' : 'Email';
+    document.getElementById('fatraPhoneLabel').textContent = sk ? 'Telefón' : 'Phone';
+    document.getElementById('fatraOrderLabel').textContent = sk ? 'Vaša objednávka' : 'Your order';
+    document.getElementById('fatraOrder').placeholder = sk
+      ? 'Napr. 2× Horalky, 3× Kofola, klobásy…'
+      : 'E.g. 2× Horalky, 3× Kofola, sausages…';
+    document.getElementById('fatraSubmitBtn').textContent = sk ? 'Odoslať objednávku' : 'Send Order';
+
+    document.getElementById('faceTitle').textContent = sk
+      ? '🎨 Tinuška – Maľovanie na tvár'
+      : '🎨 Tinuška – Face Painting';
+    document.getElementById('faceIntro').textContent = sk
+      ? 'Rezervujte si maľovanie na tvár.'
+      : 'Book a face painting.';
+    document.getElementById('faceNameLabel').textContent = sk ? 'Meno a priezvisko' : 'Full name';
+    document.getElementById('faceEmailLabel').textContent = sk ? 'E-mail' : 'Email';
+    document.getElementById('facePhoneLabel').textContent = sk ? 'Telefón' : 'Phone';
+    document.getElementById('childNameLabel').textContent = sk ? 'Meno dieťaťa' : "Child's name";
+    document.getElementById('childAgeLabel').textContent = sk ? 'Vek dieťaťa' : "Child's age";
+    document.getElementById('paintingLabel').textContent = sk
+      ? 'Čo si želáte namaľovať?'
+      : 'What would you like painted?';
+    document.getElementById('faceSubmitBtn').textContent = sk
+      ? '🎨 Odoslať rezerváciu'
+      : '🎨 Send Booking';
+  }
+
+  async function initialiseApp() {
+    setLanguage('sk');
+    await updateAuthUI();
+
+    const hash = window.location.hash || '';
+    const query = window.location.search || '';
+
+    if (hash.includes('type=recovery') || query.includes('type=recovery')) {
+      showResetPassword();
+    } else {
+      showHome();
+    }
+  }
+
+  initialiseApp();
 </script>
 
 </body>
