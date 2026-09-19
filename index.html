@@ -3,287 +3,143 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#111827">
 <title>Community For All</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:Arial,sans-serif;
-  background:#111827;
-  color:#fff;
-  min-height:100vh
+body{margin:0;font-family:Arial,sans-serif;background:#111827;color:#fff;min-height:100vh}
+button,input,textarea,select{font-family:inherit}
+button{cursor:pointer}
+.container{max-width:600px;margin:auto;padding:16px 18px 40px}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:46px}
+.top-actions{display:flex;gap:8px;align-items:center}
+.user-btn,.cart-top-btn,.lang-btn,.back-btn{
+  border:1px solid #475569;background:#1e293b;color:#fff;border-radius:9px;padding:9px 12px
 }
-.container{
-  max-width:600px;
-  margin:auto;
-  padding:20px 18px 40px
+.cart-top-btn{position:relative;font-size:19px}
+.cart-badge{
+  position:absolute;right:-7px;top:-8px;background:#ef4444;color:#fff;border-radius:999px;
+  min-width:20px;height:20px;padding:0 5px;display:none;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;border:2px solid #111827
 }
-.topbar{
-  display:flex;
-  justify-content:flex-end;
-  min-height:42px
-}
-.user-btn,.lang-btn,.back-btn{
-  border:1px solid #475569;
-  background:#1e293b;
-  color:#fff;
-  border-radius:9px;
-  padding:9px 13px;
-  cursor:pointer
-}
-.logo{
-  text-align:center;
-  margin:4px 0 5px;
-  font-size:32px;
-  font-weight:800
-}
-.community{color:#ff9f43}
-.for{color:#32d7e8}
-.all{color:#ff5c5c}
-.charity{
-  text-align:center;
-  color:#cbd5e1;
-  font-size:12px;
-  letter-spacing:1px;
-  margin-bottom:17px
-}
-.language{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  margin-bottom:25px
-}
+
+.logo{text-align:center;margin:6px 0 5px;font-size:32px;font-weight:800}
+.community{color:#ff9f43}.for{color:#32d7e8}.all{color:#ff5c5c}
+.charity{text-align:center;color:#cbd5e1;font-size:12px;letter-spacing:1px;margin-bottom:15px}
+.language{display:flex;justify-content:center;gap:10px;margin-bottom:22px}
+.lang-btn.active{border-color:#f59e0b;color:#fbbf24}
+
 .menu-btn{
-  display:block;
-  width:100%;
-  margin:12px 0;
-  padding:17px 15px;
-  border:0;
-  border-radius:12px;
-  color:#fff;
-  font-size:17px;
-  font-weight:700;
-  cursor:pointer
+  display:block;width:100%;margin:12px 0;padding:17px 15px;border:0;border-radius:12px;
+  color:#fff;font-size:17px;font-weight:700
 }
-.events{background:#f59e0b}
-.bookings{background:#0891b2}
-.fatra{background:#16a34a}
-.face{background:#d98cff;color:#111827}
-.about{background:#dc2626}
-.contact{background:#2563eb}
+.events{background:#f59e0b}.bookings{background:#0891b2}.fatra{background:#16a34a}
+.face{background:#d98cff;color:#111827}.about{background:#dc2626}.contact{background:#2563eb}
+.donate{background:linear-gradient(135deg,#e11d48,#be123c);box-shadow:0 4px 18px rgba(225,29,72,.25)}
 
-.page{display:none}
-.page h2{text-align:center}
-
+.page{display:none}.page h2{text-align:center}
 .card,.event-card{
-  background:#1e293b;
-  border:1px solid #334155;
-  border-radius:14px;
-  padding:18px;
-  margin-bottom:15px;
-  line-height:1.55
+  background:#1e293b;border:1px solid #334155;border-radius:14px;padding:18px;margin-bottom:15px;line-height:1.55
 }
-.event-title{
-  font-size:20px;
-  font-weight:800;
-  color:#fbbf24;
-  margin-bottom:8px
-}
-.event-info,.small{color:#cbd5e1}
-.small{font-size:13px}
+.event-card{cursor:pointer}
+.event-card:active{transform:scale(.995)}
+.event-title{font-size:20px;font-weight:800;color:#fbbf24;margin-bottom:8px}
+.event-info,.small{color:#cbd5e1}.small{font-size:13px}
+.event-description{white-space:pre-line}
 
-.option-group{
-  margin-top:18px;
-  padding-top:14px;
-  border-top:1px solid #475569
-}
-.option-title{
-  font-size:17px;
-  font-weight:800;
-  margin-bottom:8px
-}
-.option-row{
-  background:#0f172a;
-  border:1px solid #334155;
-  border-radius:10px;
-  padding:12px;
-  margin:8px 0
-}
+.detail-section{margin-top:18px}
+.detail-section h3{margin-bottom:8px;color:#fbbf24}
+.detail-text{white-space:pre-line;color:#e2e8f0}
+.reserve-heading{margin-top:28px;text-align:center;color:#86efac}
+
+.option-group{margin-top:18px;padding-top:14px;border-top:1px solid #475569}
+.option-title{font-size:17px;font-weight:800;margin-bottom:8px}
+.option-row{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:12px;margin:8px 0}
 .option-name{font-weight:700}
-.option-description{
-  color:#cbd5e1;
-  font-size:13px;
-  margin-top:4px
-}
-.option-price{
-  color:#86efac;
-  font-weight:800;
-  margin-top:5px
-}
+.option-description{color:#cbd5e1;font-size:13px;margin-top:4px}
+.option-price{color:#86efac;font-weight:800;margin-top:5px}
 
-.qty-line{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  margin-top:12px
-}
-.qty-btn{
-  width:38px;
-  height:38px;
-  border:0;
-  border-radius:8px;
-  background:#334155;
-  color:#fff;
-  font-size:22px;
-  font-weight:800
-}
-.qty-value{
-  min-width:28px;
-  text-align:center;
-  font-weight:800
-}
-.add-btn{
-  margin-left:auto;
-  border:0;
-  border-radius:8px;
-  padding:10px 12px;
-  background:#16a34a;
-  color:#fff;
-  font-weight:800
-}
-.child-box{
-  margin-top:10px;
-  padding:10px;
-  background:#172033;
-  border-radius:9px
-}
-.child-age-row{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  margin-top:7px
-}
+.qty-line{display:flex;align-items:center;gap:10px;margin-top:12px}
+.qty-btn{width:38px;height:38px;border:0;border-radius:8px;background:#334155;color:#fff;font-size:22px;font-weight:800}
+.qty-value{min-width:28px;text-align:center;font-weight:800}
+.add-btn{margin-left:auto;border:0;border-radius:8px;padding:10px 12px;background:#16a34a;color:#fff;font-weight:800}
+.child-box{margin-top:10px;padding:10px;background:#172033;border-radius:9px}
+.child-age-row{display:flex;gap:8px;align-items:center;margin-top:7px}
 .child-age-row input{width:90px}
 
-.cart-box{
-  margin-top:18px;
-  background:#172554;
-  border:1px solid #3b82f6;
-  border-radius:12px;
-  padding:14px
+.cart-box{margin-top:18px;background:#172554;border:1px solid #3b82f6;border-radius:12px;padding:14px}
+.countdown{font-weight:800;color:#fbbf24;margin:8px 0}
+.cart-item{padding:11px 0;border-bottom:1px solid #334155}
+.cart-item-line{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.remove-btn{border:0;border-radius:7px;background:#7f1d1d;color:#fff;padding:7px 9px;white-space:nowrap}
+.cart-total{font-size:18px;font-weight:800;margin-top:10px}
+.cart-actions{display:grid;gap:9px;margin-top:14px}
+.secondary-btn,.checkout-btn,.voucher-btn{
+  width:100%;border:0;border-radius:9px;padding:13px;font-weight:800;color:#fff
 }
-.countdown{
-  font-weight:800;
-  color:#fbbf24;
-  margin:8px 0
-}
-.cart-item{
-  padding:8px 0;
-  border-bottom:1px solid #334155
-}
-.cart-total{
-  font-size:18px;
-  font-weight:800;
-  margin-top:10px
-}
+.secondary-btn{background:#334155}
+.checkout-btn{background:#16a34a}
+.checkout-btn:disabled{background:#475569;color:#cbd5e1;cursor:not-allowed}
+.voucher-area{margin-top:16px;padding-top:14px;border-top:1px solid #475569}
+.voucher-line{display:flex;gap:8px;margin-top:8px}
+.voucher-line input{flex:1}
+.voucher-btn{width:auto;background:#7c3aed;padding:10px 13px}
 
-label{
-  display:block;
-  margin-top:15px;
-  margin-bottom:6px;
-  font-weight:700
-}
+label{display:block;margin-top:15px;margin-bottom:6px;font-weight:700}
 input,textarea,select{
-  width:100%;
-  border:1px solid #475569;
-  background:#0f172a;
-  color:#fff;
-  border-radius:9px;
-  padding:12px;
-  font-size:16px
+  width:100%;border:1px solid #475569;background:#0f172a;color:#fff;border-radius:9px;padding:12px;font-size:16px
 }
 textarea{min-height:130px}
+.checkbox-line{display:flex;align-items:flex-start;gap:9px;margin-top:14px}
+.checkbox-line input{width:auto;margin-top:4px}
+.checkbox-line label{margin:0;font-weight:400}
 .submit-btn{
-  width:100%;
-  border:0;
-  border-radius:9px;
-  padding:14px;
-  margin-top:18px;
-  background:#0ea5e9;
-  color:#fff;
-  font-size:16px;
-  font-weight:700
+  width:100%;border:0;border-radius:9px;padding:14px;margin-top:18px;background:#0ea5e9;color:#fff;font-size:16px;font-weight:700
 }
-.logout-btn{background:#dc2626}
-.green-btn{background:#16a34a}
-.purple-btn{background:#d98cff;color:#111827}
-
-.auth-link-btn{
-  background:none;
-  border:0;
-  color:#7dd3fc;
-  text-decoration:underline;
-  margin-top:12px
-}
+.logout-btn{background:#dc2626}.green-btn{background:#16a34a}.purple-btn{background:#d98cff;color:#111827}
+.auth-link-btn{background:none;border:0;color:#7dd3fc;text-decoration:underline;margin-top:12px}
 .auth-links{text-align:center}
 
-.message{
-  display:none;
-  margin-top:15px;
-  padding:12px;
-  border-radius:9px;
-  text-align:center
-}
-.success{
-  display:block;
-  background:#14532d;
-  border:1px solid #22c55e
-}
-.error{
-  display:block;
-  background:#7f1d1d;
-  border:1px solid #ef4444
-}
-.info{
-  display:block;
-  background:#164e63;
-  border:1px solid #22d3ee
-}
-.loading{
-  text-align:center;
-  color:#cbd5e1;
-  padding:25px
-}
-.footer{
-  text-align:center;
-  color:#94a3b8;
-  font-size:12px;
-  margin-top:35px;
-  line-height:1.6
-}
-.account-name{
-  text-align:center;
-  font-size:22px;
-  font-weight:700
-}
-.account-email{
-  text-align:center;
-  color:#cbd5e1;
-  margin-bottom:20px;
-  overflow-wrap:anywhere
-}
+.message{display:none;margin-top:15px;padding:12px;border-radius:9px;text-align:center}
+.success{display:block;background:#14532d;border:1px solid #22c55e}
+.error{display:block;background:#7f1d1d;border:1px solid #ef4444}
+.info{display:block;background:#164e63;border:1px solid #22d3ee}
+.loading{text-align:center;color:#cbd5e1;padding:25px}
+.footer{text-align:center;color:#94a3b8;font-size:12px;margin-top:35px;line-height:1.6}
+.account-name{text-align:center;font-size:22px;font-weight:700}
+.account-email{text-align:center;color:#cbd5e1;margin-bottom:20px;overflow-wrap:anywhere}
+
+.donate-hero{text-align:center}
+.donate-heart{font-size:46px}
+.donate-motto{font-size:20px;font-weight:800;margin:8px 0}
+.donate-sub{color:#cbd5e1}
+.amount-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:15px}
+.amount-btn{border:1px solid #fb7185;background:#4c0519;color:#fff;border-radius:9px;padding:11px 5px;font-weight:800}
+.amount-btn.active{background:#e11d48}
+.donation-row{padding:10px 0;border-bottom:1px solid #334155}
+.donation-name{font-weight:800}
+.donation-amount{color:#86efac;font-weight:800}
+.notice{padding:12px;background:#422006;border:1px solid #a16207;border-radius:9px;color:#fde68a;margin-top:12px}
+
+.status-pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#334155;font-size:12px;margin-top:5px}
 </style>
 </head>
 
 <body>
-
 <div class="container">
 
 <div class="topbar">
-  <button class="user-btn" id="userTopBtn" onclick="openUserArea()">👤 Prihlásiť sa</button>
+  <button class="cart-top-btn" id="cartTopBtn" onclick="showCartPage()" aria-label="Cart">
+    🛒<span class="cart-badge" id="cartBadge">0</span>
+  </button>
+
+  <div class="top-actions">
+    <button class="user-btn" id="userTopBtn" onclick="openUserArea()">👤 Prihlásiť sa</button>
+  </div>
 </div>
 
 <div class="logo">
@@ -292,2444 +148,1340 @@ textarea{min-height:130px}
   <span class="all">All</span>
 </div>
 
-<div class="charity">
-  TATRY CUP COMMUNITY ORGANISATION CIO
-</div>
+<div class="charity">TATRY CUP COMMUNITY ORGANISATION CIO</div>
 
 <div class="language">
-  <button class="lang-btn" onclick="setLanguage('sk')">SK</button>
-  <button class="lang-btn" onclick="setLanguage('en')">EN</button>
+  <button class="lang-btn" id="skLangBtn" onclick="setLanguage('sk')">SK</button>
+  <button class="lang-btn" id="enLangBtn" onclick="setLanguage('en')">EN</button>
 </div>
 
 <div id="homePage">
 
-<button class="menu-btn events" id="eventsBtn" onclick="showEvents()">
-📅 Podujatia
-</button>
-
-<button class="menu-btn bookings" id="bookingsBtn" onclick="showBookings()">
-🎟️ Moje rezervácie
-</button>
-
-<button class="menu-btn fatra" id="fatraBtn" onclick="showFatra()">
-🛒 Fatra Potraviny Rugby – Objednávka
-</button>
-
-<button class="menu-btn face" id="faceBtn" onclick="showFace()">
-🎨 Tinuška – Maľovanie na tvár
-</button>
-
-<button class="menu-btn about" id="aboutBtn" onclick="showAbout()">
-❤️ O nás
-</button>
-
-<button class="menu-btn contact" id="contactBtn" onclick="showContact()">
-✉️ Kontakt
-</button>
+<button class="menu-btn events" id="eventsBtn" onclick="showEvents()">📅 Podujatia</button>
+<button class="menu-btn bookings" id="bookingsBtn" onclick="showBookings()">🎟️ Moje rezervácie</button>
+<button class="menu-btn donate" id="donateBtn" onclick="showDonate()">❤️ Podporte nás</button>
+<button class="menu-btn fatra" id="fatraBtn" onclick="showFatra()">🛒 Fatra Potraviny Rugby – Objednávka</button>
+<button class="menu-btn face" id="faceBtn" onclick="showFace()">🎨 Tinuška – Maľovanie na tvár</button>
+<button class="menu-btn about" id="aboutBtn" onclick="showAbout()">❤️ O nás</button>
+<button class="menu-btn contact" id="contactBtn" onclick="showContact()">✉️ Kontakt</button>
 
 </div>
 
 <div class="page" id="eventsPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
 <h2 id="eventsTitle">📅 Podujatia</h2>
-
-<div id="eventsLoading" class="loading">
-Načítavam podujatia...
+<div id="eventsLoading" class="loading">Načítavam podujatia...</div>
+<div id="eventsMessage" class="message"></div>
+<div id="eventsList"></div>
 </div>
 
-<div id="eventsMessage" class="message"></div>
+<div class="page" id="eventDetailPage">
+<button class="back-btn" id="eventDetailBack" onclick="showEvents()">← Podujatia</button>
+<div id="eventDetailContent"></div>
+</div>
 
-<div id="eventsList"></div>
-
+<div class="page" id="cartPage">
+<button class="back-btn backText" onclick="showHome()">← Späť</button>
+<h2 id="cartTitle">🛒 Košík</h2>
+<div id="cartPageContent"></div>
 </div>
 
 <div class="page" id="bookingsPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
 <h2 id="bookingsTitle">🎟️ Moje rezervácie</h2>
-
 <div id="bookingsContent"></div>
+</div>
 
+<div class="page" id="donatePage">
+<button class="back-btn backText" onclick="showHome()">← Späť</button>
+<h2 id="donateTitle">❤️ Podporte nás</h2>
+
+<div class="card donate-hero">
+<div class="donate-heart">❤️</div>
+<div class="donate-motto" id="donateMotto">Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</div>
+<div class="donate-sub" id="donateSub">Aj malý dar môže pomôcť vytvoriť veľký zážitok.</div>
+
+<div class="amount-grid">
+<button class="amount-btn" type="button" onclick="chooseDonationAmount(5,this)">£5</button>
+<button class="amount-btn" type="button" onclick="chooseDonationAmount(10,this)">£10</button>
+<button class="amount-btn" type="button" onclick="chooseDonationAmount(20,this)">£20</button>
+<button class="amount-btn" type="button" onclick="chooseDonationAmount(50,this)">£50</button>
+</div>
+
+<label id="customAmountLabel">Vlastná suma (£)</label>
+<input type="number" id="donationAmount" min="1" step="0.01" placeholder="£">
+
+<label id="donorNameLabel">Meno darcu</label>
+<input id="donorName">
+
+<label id="donorEmailLabel">E-mail</label>
+<input type="email" id="donorEmail">
+
+<label id="donationMessageLabel">Odkaz pre nás (nepovinné)</label>
+<textarea id="donationMessage"></textarea>
+
+<div class="checkbox-line">
+<input type="checkbox" id="anonymousDonation">
+<label for="anonymousDonation" id="anonymousDonationLabel">Chcem darovať anonymne</label>
+</div>
+
+<div class="checkbox-line">
+<input type="checkbox" id="publishDonation">
+<label for="publishDonation" id="publishDonationLabel">Súhlasím so zverejnením môjho mena a odkazu pri verejnom zozname darov.</label>
+</div>
+
+<button class="submit-btn" id="donationSubmitBtn" type="button" onclick="donationNotReady()">❤️ Darovať</button>
+
+<div class="notice" id="donationPaymentNotice">
+Online platba bude sprístupnená po pripojení zabezpečeného platobného systému.
+</div>
+</div>
+
+<div class="card">
+<h3 id="publicDonationsTitle">❤️ Naši podporovatelia</h3>
+<div id="publicDonations"></div>
+</div>
 </div>
 
 <div class="page" id="loginPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
 <h2 id="loginTitle">👤 Prihlásiť sa</h2>
-
 <div class="card">
-
 <form id="loginForm">
-
 <label id="loginEmailLabel">E-mail</label>
 <input type="email" id="loginEmail" required>
-
 <label id="loginPasswordLabel">Heslo</label>
 <input type="password" id="loginPassword" required>
-
-<button class="submit-btn" id="loginSubmitBtn">
-Prihlásiť sa
-</button>
-
+<button class="submit-btn" id="loginSubmitBtn">Prihlásiť sa</button>
 </form>
-
 <div class="auth-links">
-
-<button class="auth-link-btn" id="forgotBtn" type="button" onclick="showForgotPassword()">
-Zabudnuté heslo
-</button>
-
-<br>
-
-<button class="auth-link-btn" id="goRegisterBtn" type="button" onclick="showRegister()">
-Nemáte účet? Vytvoriť účet
-</button>
-
+<button class="auth-link-btn" id="forgotBtn" type="button" onclick="showForgotPassword()">Zabudnuté heslo</button><br>
+<button class="auth-link-btn" id="goRegisterBtn" type="button" onclick="showRegister()">Nemáte účet? Vytvoriť účet</button>
 </div>
-
 <div id="loginMessage" class="message"></div>
-
 </div>
 </div>
 
 <div class="page" id="registerPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
 <h2 id="registerTitle">👤 Vytvoriť účet</h2>
-
 <div class="card">
-
 <form id="registerForm">
-
 <label id="usernameLabel">Používateľské meno</label>
 <input id="registerUsername" maxlength="30" required>
-
-<div class="small" id="usernameHelp">
-Vyberte si meno, ktoré sa bude zobrazovať vo vašom účte.
-</div>
-
+<div class="small" id="usernameHelp">Vyberte si meno, ktoré sa bude zobrazovať vo vašom účte.</div>
 <label id="registerEmailLabel">E-mail</label>
 <input type="email" id="registerEmail" required>
-
 <label id="registerPasswordLabel">Heslo</label>
 <input type="password" id="registerPassword" minlength="6" required>
-
 <label id="registerPassword2Label">Zopakujte heslo</label>
 <input type="password" id="registerPassword2" minlength="6" required>
-
-<button class="submit-btn" id="registerSubmitBtn">
-Vytvoriť účet
-</button>
-
+<button class="submit-btn" id="registerSubmitBtn">Vytvoriť účet</button>
 </form>
-
 <div class="auth-links">
-
-<button class="auth-link-btn" id="goLoginBtn" onclick="showLogin()">
-Už máte účet? Prihlásiť sa
-</button>
-
+<button class="auth-link-btn" id="goLoginBtn" type="button" onclick="showLogin()">Už máte účet? Prihlásiť sa</button>
 </div>
-
 <div id="registerMessage" class="message"></div>
-
 </div>
 </div>
 
 <div class="page" id="accountPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
 <h2 id="accountTitle">👤 Môj účet</h2>
-
 <div class="card">
-
 <div class="account-name" id="accountUsername"></div>
 <div class="account-email" id="accountEmail"></div>
-
 <label id="changeUsernameLabel">Používateľské meno</label>
 <input id="accountUsernameInput">
-
-<button class="submit-btn" id="saveUsernameBtn" onclick="saveUsername()">
-Uložiť používateľské meno
-</button>
-
+<button class="submit-btn" id="saveUsernameBtn" onclick="saveUsername()">Uložiť používateľské meno</button>
 <div id="usernameMessage" class="message"></div>
-
-<button class="submit-btn logout-btn" id="logoutBtn" onclick="logoutUser()">
-Odhlásiť sa
-</button>
-
+<button class="submit-btn logout-btn" id="logoutBtn" onclick="logoutUser()">Odhlásiť sa</button>
 </div>
 </div>
 
 <div class="page" id="forgotPage">
-
 <button class="back-btn backText" onclick="showLogin()">← Späť</button>
-
 <h2 id="forgotTitle">Zabudnuté heslo</h2>
-
 <div class="card">
-
-<p id="forgotIntro">
-Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.
-</p>
-
+<p id="forgotIntro">Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.</p>
 <form id="forgotForm">
-
 <label id="forgotEmailLabel">E-mail</label>
 <input type="email" id="forgotEmail" required>
-
-<button class="submit-btn" id="forgotSubmitBtn">
-Poslať odkaz
-</button>
-
+<button class="submit-btn" id="forgotSubmitBtn">Poslať odkaz</button>
 </form>
-
 <div id="forgotMessage" class="message"></div>
-
 </div>
 </div>
 
 <div class="page" id="resetPage">
-
 <h2 id="resetTitle">Nastaviť nové heslo</h2>
-
 <div class="card">
-
 <form id="resetForm">
-
 <label id="newPasswordLabel">Nové heslo</label>
 <input type="password" id="newPassword" minlength="6" required>
-
 <label id="newPassword2Label">Zopakujte nové heslo</label>
 <input type="password" id="newPassword2" minlength="6" required>
-
-<button class="submit-btn" id="resetSubmitBtn">
-Uložiť nové heslo
-</button>
-
+<button class="submit-btn" id="resetSubmitBtn">Uložiť nové heslo</button>
 </form>
-
 <div id="resetMessage" class="message"></div>
-
 </div>
 </div>
 
 <div class="page" id="aboutPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
 <h2 id="aboutTitle">❤️ O nás</h2>
-
 <div class="card" id="aboutContent"></div>
-
 </div>
 
 <div class="page" id="contactPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
 <h2 id="contactTitle">✉️ Kontakt</h2>
-
 <div class="card">
-
 <form id="contactForm">
-
 <label id="contactNameLabel">Meno a priezvisko</label>
 <input name="name" required>
-
 <label id="contactEmailLabel">E-mail</label>
 <input type="email" name="email" required>
-
 <label id="contactMessageLabel">Vaša správa</label>
 <textarea name="message" required></textarea>
-
-<button class="submit-btn" id="contactSubmitBtn">
-Odoslať správu
-</button>
-
+<button class="submit-btn" id="contactSubmitBtn">Odoslať správu</button>
 </form>
-
 <div id="contactMessage" class="message"></div>
-
 </div>
 </div>
 
 <div class="page" id="fatraPage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
-<h2 id="fatraTitle">
-🛒 Fatra Potraviny Rugby – Objednávka
-</h2>
-
+<h2 id="fatraTitle">🛒 Fatra Potraviny Rugby – Objednávka</h2>
 <div class="card">
-
 <p id="fatraIntro"></p>
-
 <form id="fatraForm">
-
 <label id="fatraNameLabel">Meno a priezvisko</label>
 <input name="name" required>
-
 <label id="fatraEmailLabel">E-mail</label>
 <input type="email" name="email" required>
-
 <label id="fatraPhoneLabel">Telefón</label>
 <input name="phone" required>
-
 <label id="fatraOrderLabel">Vaša objednávka</label>
 <textarea id="fatraOrder" name="order" required></textarea>
-
-<button class="submit-btn green-btn" id="fatraSubmitBtn">
-Odoslať objednávku
-</button>
-
+<button class="submit-btn green-btn" id="fatraSubmitBtn">Odoslať objednávku</button>
 </form>
-
 <div id="fatraMessage" class="message"></div>
-
 </div>
 </div>
 
 <div class="page" id="facePage">
-
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
-
-<h2 id="faceTitle">
-🎨 Tinuška – Maľovanie na tvár
-</h2>
-
+<h2 id="faceTitle">🎨 Tinuška – Maľovanie na tvár</h2>
 <div class="card">
-
 <p id="faceIntro"></p>
-
 <form id="faceForm">
-
 <label id="faceNameLabel">Meno a priezvisko</label>
 <input name="name" required>
-
 <label id="faceEmailLabel">E-mail</label>
 <input type="email" name="email" required>
-
 <label id="facePhoneLabel">Telefón</label>
 <input name="phone" required>
-
 <label id="childNameLabel">Meno dieťaťa</label>
 <input name="child_name" required>
-
 <label id="childAgeLabel">Vek dieťaťa</label>
 <input type="number" name="child_age" min="1" max="17" required>
-
 <label id="paintingLabel">Čo si želáte namaľovať?</label>
 <textarea name="painting" required></textarea>
-
-<button class="submit-btn purple-btn" id="faceSubmitBtn">
-🎨 Odoslať rezerváciu
-</button>
-
+<button class="submit-btn purple-btn" id="faceSubmitBtn">🎨 Odoslať rezerváciu</button>
 </form>
-
 <div id="faceMessage" class="message"></div>
-
 </div>
 </div>
 
 <div class="footer">
 Community For All<br>
-Tatry Cup Community Organisation CIO
+Tatry Cup Community Organisation CIO<br>
+Registered Charity No. 1216952
 </div>
 
 </div>
 
 <script>
+const SUPABASE_URL='https://btkblcngijheanyhyiow.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_0f7Y2P49SneR1E_ZZgjsrw_679teyVH';
+const APP_URL='https://tatrycupcio.github.io/community-for-all/';
 
-const SUPABASE_URL =
-'https://btkblcngijheanyhyiow.supabase.co';
-
-const SUPABASE_PUBLISHABLE_KEY =
-'sb_publishable_0f7Y2P49SneR1E_ZZgjsrw_679teyVH';
-
-const APP_URL =
-'https://tatrycupcio.github.io/community-for-all/';
-
-const supabaseClient =
-window.supabase.createClient(
-SUPABASE_URL,
-SUPABASE_PUBLISHABLE_KEY,
-{
-auth:{
-persistSession:true,
-autoRefreshToken:true,
-detectSessionInUrl:true
-}
-}
+const supabaseClient=window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  {auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}}
 );
 
 let currentLanguage='sk';
 let currentUser=null;
 let countdownTimer=null;
+let currentEvent=null;
+let currentEventOptions=[];
+let activeCart=null;
 
 const pages=[
-'eventsPage',
-'bookingsPage',
-'loginPage',
-'registerPage',
-'accountPage',
-'forgotPage',
-'resetPage',
-'aboutPage',
-'contactPage',
-'fatraPage',
-'facePage'
+  'eventsPage','eventDetailPage','cartPage','bookingsPage','donatePage',
+  'loginPage','registerPage','accountPage','forgotPage','resetPage',
+  'aboutPage','contactPage','fatraPage','facePage'
 ];
 
-const T=(sk,en)=>
-currentLanguage==='sk'?sk:en;
+const T=(sk,en)=>currentLanguage==='sk'?sk:en;
+const el=id=>document.getElementById(id);
 
 function hidePages(){
-
-document.getElementById('homePage').style.display='none';
-
-pages.forEach(x=>{
-document.getElementById(x).style.display='none';
-});
-
+  el('homePage').style.display='none';
+  pages.forEach(id=>el(id).style.display='none');
 }
-
-function showHome(){
-
-hidePages();
-
-document.getElementById('homePage').style.display='block';
-
-scrollTo(0,0);
-
-}
-
-function go(id){
-
-hidePages();
-
-document.getElementById(id).style.display='block';
-
-scrollTo(0,0);
-
-}
-
-function showLogin(){
-go('loginPage');
-clearMessage('loginMessage');
-}
-
-function showRegister(){
-go('registerPage');
-}
-
-function showForgotPassword(){
-go('forgotPage');
-}
-
-function showResetPassword(){
-go('resetPage');
-}
-
-function showAbout(){
-go('aboutPage');
-}
-
-function requireLogin(){
-
-if(currentUser){
-return true;
-}
-
-showLogin();
-
-showMessage(
-'loginMessage',
-T(
-'Pre pokračovanie sa musíte prihlásiť.',
-'Please sign in to continue.'
-),
-'info'
-);
-
-return false;
-
-}
-
-function showContact(){
-
-if(requireLogin()){
-go('contactPage');
-}
-
-}
-
-function showFatra(){
-
-if(requireLogin()){
-go('fatraPage');
-}
-
-}
-
-function showFace(){
-
-if(requireLogin()){
-go('facePage');
-}
-
-}
-
-function showAccount(){
-
-if(!currentUser){
-return showLogin();
-}
-
-fillAccount();
-go('accountPage');
-
-}
-
-function openUserArea(){
-
-currentUser
-? showAccount()
-: showLogin();
-
-}
+function showHome(){hidePages();el('homePage').style.display='block';window.scrollTo(0,0)}
+function go(id){hidePages();el(id).style.display='block';window.scrollTo(0,0)}
 
 function clearMessage(id){
-
-const e=document.getElementById(id);
-
-if(e){
-e.className='message';
-e.textContent='';
+  const e=el(id);
+  if(e){e.className='message';e.textContent=''}
 }
-
-}
-
 function showMessage(id,text,type){
-
-const e=document.getElementById(id);
-
-if(e){
-e.className='message '+type;
-e.textContent=text;
+  const e=el(id);
+  if(e){e.className='message '+type;e.textContent=text}
 }
+function setText(id,text){const e=el(id);if(e)e.textContent=text}
 
+function showLogin(){go('loginPage');clearMessage('loginMessage')}
+function showRegister(){go('registerPage')}
+function showForgotPassword(){go('forgotPage')}
+function showResetPassword(){go('resetPage')}
+function showAbout(){go('aboutPage')}
+
+function requireLogin(){
+  if(currentUser)return true;
+  showLogin();
+  showMessage('loginMessage',T('Pre pokračovanie sa musíte prihlásiť.','Please sign in to continue.'),'info');
+  return false;
 }
+function showContact(){if(requireLogin())go('contactPage')}
+function showFatra(){if(requireLogin())go('fatraPage')}
+function showFace(){if(requireLogin())go('facePage')}
 
-function getUsername(u){
-
-return u?.user_metadata?.username?.trim() || '';
-
+function getUsername(u){return u?.user_metadata?.username?.trim()||''}
+function openUserArea(){currentUser?showAccount():showLogin()}
+function showAccount(){
+  if(!currentUser)return showLogin();
+  fillAccount();go('accountPage')
 }
-
 function updateUserButton(){
-
-document.getElementById('userTopBtn').textContent =
-currentUser
-? '👤 '+(
-getUsername(currentUser) ||
-T('Môj účet','My Account')
-)
-: T(
-'👤 Prihlásiť sa',
-'👤 Sign In'
-);
-
+  el('userTopBtn').textContent=currentUser
+    ? '👤 '+(getUsername(currentUser)||T('Môj účet','My Account'))
+    : T('👤 Prihlásiť sa','👤 Sign In');
 }
-
 function fillAccount(){
-
-if(!currentUser){
-return;
+  if(!currentUser)return;
+  el('accountUsername').textContent=getUsername(currentUser)||T('Používateľ','User');
+  el('accountEmail').textContent=currentUser.email||'';
+  el('accountUsernameInput').value=getUsername(currentUser);
 }
-
-document.getElementById('accountUsername').textContent =
-getUsername(currentUser) ||
-T('Používateľ','User');
-
-document.getElementById('accountEmail').textContent =
-currentUser.email || '';
-
-document.getElementById('accountUsernameInput').value =
-getUsername(currentUser);
-
-}
-
 async function refreshCurrentUser(){
-
-const {data} =
-await supabaseClient.auth.getUser();
-
-currentUser =
-data?.user || null;
-
-updateUserButton();
-
+  const {data}=await supabaseClient.auth.getUser();
+  currentUser=data?.user||null;
+  updateUserButton();
+  await refreshCartBadge();
 }
 
 function money(v){
-
-return new Intl.NumberFormat(
-'en-GB',
-{
-style:'currency',
-currency:'GBP'
+  return new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP'}).format(Number(v||0));
 }
-).format(Number(v || 0));
-
-}
-
 function formatDate(s){
-
-return new Intl.DateTimeFormat(
-currentLanguage==='sk'
-? 'sk-SK'
-: 'en-GB',
-{
-day:'numeric',
-month:'long',
-year:'numeric'
+  if(!s)return '';
+  return new Intl.DateTimeFormat(
+    currentLanguage==='sk'?'sk-SK':'en-GB',
+    {day:'numeric',month:'long',year:'numeric'}
+  ).format(new Date(s+'T12:00:00'));
 }
-).format(
-new Date(s+'T12:00:00')
-);
-
+function escapeHtml(value){
+  return String(value??'')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
 }
 
 function categoryTitle(c){
-
-const sk={
-accommodation:'Ubytovanie',
-accommodation_child:'Ubytovanie – deti',
-camping:'Kempovanie',
-ticket:'Vstupenky',
-tickets:'Vstupenky',
-breakfast:'Raňajky',
-parking:'Parkovanie',
-dog:'Pes',
-electricity:'Elektrická prípojka',
-other:'Doplnky'
-};
-
-const en={
-accommodation:'Accommodation',
-accommodation_child:'Accommodation – children',
-camping:'Camping',
-ticket:'Tickets',
-tickets:'Tickets',
-breakfast:'Breakfast',
-parking:'Parking',
-dog:'Dog',
-electricity:'Electric hook-up',
-other:'Extras'
-};
-
-return (
-currentLanguage==='sk'
-? sk
-: en
-)[c] || c;
-
+  const sk={
+    accommodation:'Ubytovanie',accommodation_child:'Ubytovanie – deti',
+    camping:'Kempovanie',ticket:'Vstupenky',tickets:'Vstupenky',
+    breakfast:'Raňajky',parking:'Parkovanie',dog:'Pes',
+    electricity:'Elektrická prípojka',other:'Doplnky'
+  };
+  const en={
+    accommodation:'Accommodation',accommodation_child:'Accommodation – children',
+    camping:'Camping',ticket:'Tickets',tickets:'Tickets',
+    breakfast:'Breakfast',parking:'Parking',dog:'Dog',
+    electricity:'Electric hook-up',other:'Extras'
+  };
+  return (currentLanguage==='sk'?sk:en)[c]||c;
 }
-
 function pricingText(u){
-
-const sk={
-item:'za položku',
-per_person:'za osobu',
-per_day:'za deň',
-per_person_per_day:'za osobu / deň',
-per_night:'za noc',
-per_person_per_night:'za osobu / noc',
-per_room_per_night:'za izbu / noc',
-per_tent_per_night:'za stan / noc',
-per_vehicle_per_night:'za vozidlo / noc',
-per_vehicle_per_day:'za vozidlo / deň',
-per_stay:'za pobyt'
-};
-
-const en={
-item:'per item',
-per_person:'per person',
-per_day:'per day',
-per_person_per_day:'per person / day',
-per_night:'per night',
-per_person_per_night:'per person / night',
-per_room_per_night:'per room / night',
-per_tent_per_night:'per tent / night',
-per_vehicle_per_night:'per vehicle / night',
-per_vehicle_per_day:'per vehicle / day',
-per_stay:'per stay'
-};
-
-return (
-currentLanguage==='sk'
-? sk
-: en
-)[u] || '';
-
+  const sk={
+    item:'za položku',per_person:'za osobu',per_day:'za deň',
+    per_person_per_day:'za osobu / deň',per_night:'za noc',
+    per_person_per_night:'za osobu / noc',per_room_per_night:'za izbu / noc',
+    per_tent_per_night:'za stan / noc',per_vehicle_per_night:'za vozidlo / noc',
+    per_vehicle_per_day:'za vozidlo / deň',per_stay:'za pobyt'
+  };
+  const en={
+    item:'per item',per_person:'per person',per_day:'per day',
+    per_person_per_day:'per person / day',per_night:'per night',
+    per_person_per_night:'per person / night',per_room_per_night:'per room / night',
+    per_tent_per_night:'per tent / night',per_vehicle_per_night:'per vehicle / night',
+    per_vehicle_per_day:'per vehicle / day',per_stay:'per stay'
+  };
+  return (currentLanguage==='sk'?sk:en)[u]||'';
 }
 
 const optionNames={
-
-shared_accommodation_adult:[
-'Spoločné ubytovanie – dospelý',
-'Shared accommodation – adult'
-],
-
-shared_accommodation_child:[
-'Spoločné ubytovanie – dieťa',
-'Shared accommodation – child'
-],
-
-small_tent:[
-'Malý stan',
-'Small tent'
-],
-
-large_tent:[
-'Veľký stan',
-'Large tent'
-],
-
-caravan_motorhome:[
-'Karavan / obytné auto',
-'Caravan / Motorhome'
-],
-
-electric_hookup:[
-'Elektrická prípojka',
-'Electric hook-up'
-],
-
-private_room_2:[
-'Súkromná izba – 2 osoby',
-'Private room – 2 people'
-],
-
-private_lodge_4:[
-'Súkromná chatka – 4 osoby',
-'Private lodge – 4 people'
-],
-
-adult_day_ticket:[
-'Denná vstupenka – dospelý',
-'Adult day ticket'
-],
-
-child_0_5_ticket:[
-'Vstupenka – dieťa 0–5 rokov',
-'Child 0–5 ticket'
-],
-
-child_6_17_ticket:[
-'Vstupenka – dieťa 6–17 rokov',
-'Child 6–17 ticket'
-],
-
-breakfast_adult:[
-'Raňajky – dospelý',
-'Breakfast – adult'
-],
-
-breakfast_child:[
-'Raňajky – dieťa',
-'Breakfast – child'
-],
-
-day_parking:[
-'Parkovanie pre denných návštevníkov',
-'Day visitor parking'
-],
-
-dog:[
-'Pes',
-'Dog'
-]
-
+  shared_accommodation_adult:['Lôžko v spoločnom ubytovaní – dospelý','Bed in shared accommodation – adult'],
+  shared_accommodation_child:['Lôžko v spoločnom ubytovaní – dieťa','Bed in shared accommodation – child'],
+  small_tent:['Malý stan','Small tent'],
+  large_tent:['Veľký stan','Large tent'],
+  caravan_motorhome:['Karavan / obytné auto','Caravan / Motorhome'],
+  electric_hookup:['Elektrická prípojka','Electric hook-up'],
+  private_room_2:['Súkromná izba – 2 osoby','Private room – 2 people'],
+  private_lodge_4:['Súkromná chatka – 4 osoby','Private lodge – 4 people'],
+  adult_day_ticket:['Celodenná vstupenka – dospelý','Full-day ticket – adult'],
+  child_0_5_ticket:['Celodenná vstupenka – dieťa 0–5 rokov','Full-day ticket – child 0–5'],
+  child_6_17_ticket:['Celodenná vstupenka – dieťa 6–17 rokov','Full-day ticket – child 6–17'],
+  breakfast_adult:['Raňajky – dospelý','Breakfast – adult'],
+  breakfast_child:['Raňajky – dieťa','Breakfast – child'],
+  day_parking:['Parkovanie pre denných návštevníkov','Day visitor parking'],
+  dog:['Pes','Dog']
 };
-
 function localName(o){
-
-const a =
-optionNames[o.option_code];
-
-return a
-? a[currentLanguage==='sk'?0:1]
-: (o.name || '');
-
+  const a=optionNames[o.option_code];
+  return a?a[currentLanguage==='sk'?0:1]:(o.name||'');
 }
-
 function localEventDescription(e){
-
-if(
-currentLanguage==='en' &&
-e.id==1
-){
-
-return 'IMPORTANT ACCOMMODATION INFORMATION: This is simple camp-style accommodation, not hotel accommodation. Rooms may contain bunk beds or multi-level beds and bathroom facilities may be shared. Bed linen, duvets and pillows are not provided. Each guest must bring their own sleeping bag or bed linen and their own pillow.';
-
+  if(currentLanguage==='en'&&Number(e.id)===1){
+    return 'IMPORTANT ACCOMMODATION INFORMATION: This is simple camp-style accommodation, not hotel accommodation. Rooms may contain bunk beds or multi-level beds and bathroom facilities may be shared. Bed linen, duvets and pillows are not provided. Each guest must bring their own sleeping bag or bed linen and their own pillow.';
+  }
+  return e.description||'';
 }
-
-return e.description || '';
-
-}
-
 function isChild(o){
-
-return (
-(o.option_code || '').includes('child') ||
-(
-o.max_age!==null &&
-Number(o.max_age)<18
-)
-);
-
+  return (o.option_code||'').includes('child')||(o.max_age!==null&&Number(o.max_age)<18);
 }
-
 function isTbd(o){
-
-return (
-Number(o.price)===0 &&
-!o.is_free &&
-!o.is_included &&
-!o.free_with_accommodation
-);
-
+  return Number(o.price)===0&&!o.is_free&&!o.is_included&&!o.free_with_accommodation;
 }
-
 function eventDays(e){
+  return Math.max(1,Math.round((new Date(e.end_date)-new Date(e.start_date))/86400000)+1);
+}
+function eventNights(e){return Math.max(1,eventDays(e)-1)}
 
-return Math.max(
-1,
-Math.round(
-(
-new Date(e.end_date) -
-new Date(e.start_date)
-) / 86400000
-) + 1
-);
+async function showEvents(){
+  go('eventsPage');
+  el('eventsList').innerHTML='';
+  clearMessage('eventsMessage');
+  el('eventsLoading').style.display='block';
+  el('eventsLoading').textContent=T('Načítavam podujatia...','Loading events...');
 
+  const {data,error}=await supabaseClient
+    .from('events').select('*').eq('status','published').order('start_date');
+
+  el('eventsLoading').style.display='none';
+
+  if(error){
+    showMessage('eventsMessage',T('Podujatia sa nepodarilo načítať.','Events could not be loaded.'),'error');
+    return;
+  }
+  if(!data?.length){
+    showMessage('eventsMessage',T('Momentálne nie sú zverejnené žiadne podujatia.','There are currently no published events.'),'info');
+    return;
+  }
+
+  data.forEach(e=>{
+    const card=document.createElement('div');
+    card.className='event-card';
+    card.innerHTML=`
+      <div class="event-title">${escapeHtml(e.title||'')}</div>
+      <div class="event-info">📅 ${formatDate(e.start_date)}${e.end_date&&e.end_date!==e.start_date?' – '+formatDate(e.end_date):''}</div>
+      ${e.venue_name?`<div class="event-info">📍 ${escapeHtml(e.venue_name)}</div>`:''}
+      ${e.postcode?`<div class="event-info">${escapeHtml(e.postcode)}</div>`:''}
+      ${e.short_description?`<p>${escapeHtml(e.short_description)}</p>`:''}
+      <div class="small">${T('Kliknite pre detail podujatia a rezervácie →','Open event details and reservations →')}</div>
+    `;
+    card.onclick=()=>showEventDetail(e.id);
+    el('eventsList').appendChild(card);
+  });
 }
 
-function eventNights(e){
+async function showEventDetail(eventId){
+  go('eventDetailPage');
+  el('eventDetailContent').innerHTML='<div class="loading">'+T('Načítavam podujatie...','Loading event...')+'</div>';
 
-return Math.max(
-1,
-eventDays(e)-1
-);
+  const {data:e,error}=await supabaseClient.from('events').select('*').eq('id',eventId).single();
+  if(error||!e){
+    el('eventDetailContent').innerHTML='<div class="card">'+T('Podujatie sa nepodarilo načítať.','Event could not be loaded.')+'</div>';
+    return;
+  }
 
+  currentEvent=e;
+
+  const {data:opts,error:oe}=await supabaseClient
+    .from('event_options')
+    .select('*')
+    .eq('event_id',eventId)
+    .eq('enabled',true)
+    .order('sort_order');
+
+  currentEventOptions=(opts||[]).filter(o=>o.availability_status!=='hidden');
+
+  const wrap=document.createElement('div');
+  const head=document.createElement('div');
+  head.className='card';
+
+  head.innerHTML=`
+    <div class="event-title">${escapeHtml(e.title||'')}</div>
+    <div class="event-info">📅 ${formatDate(e.start_date)}${e.end_date&&e.end_date!==e.start_date?' – '+formatDate(e.end_date):''}</div>
+    ${e.venue_name?`<div class="event-info">📍 ${escapeHtml(e.venue_name)}</div>`:''}
+    ${e.address?`<div class="event-info">${escapeHtml(e.address)}</div>`:''}
+    ${e.postcode?`<div class="event-info">${escapeHtml(e.postcode)}</div>`:''}
+    ${localEventDescription(e)?`<div class="detail-section"><div class="detail-text">${escapeHtml(localEventDescription(e))}</div></div>`:''}
+    ${e.event_details?`<div class="detail-section"><h3>${T('O podujatí','About the event')}</h3><div class="detail-text">${escapeHtml(e.event_details)}</div></div>`:''}
+    ${e.programme?`<div class="detail-section"><h3>${T('Program','Programme')}</h3><div class="detail-text">${escapeHtml(e.programme)}</div></div>`:''}
+    ${e.important_information?`<div class="detail-section"><h3>${T('Dôležité informácie','Important information')}</h3><div class="detail-text">${escapeHtml(e.important_information)}</div></div>`:''}
+    ${e.booking_information?`<div class="detail-section"><h3>${T('Informácie k rezervácii','Booking information')}</h3><div class="detail-text">${escapeHtml(e.booking_information)}</div></div>`:''}
+  `;
+  wrap.appendChild(head);
+
+  if(e.reservations_open===false){
+    const closed=document.createElement('div');
+    closed.className='card';
+    closed.textContent=T('Rezervácie pre toto podujatie zatiaľ nie sú otvorené.','Reservations for this event are not open yet.');
+    wrap.appendChild(closed);
+  }else if(oe){
+    const err=document.createElement('div');
+    err.className='card';
+    err.textContent=T('Rezervácie sa nepodarilo načítať.','Reservations could not be loaded.');
+    wrap.appendChild(err);
+  }else{
+    const title=document.createElement('h2');
+    title.className='reserve-heading';
+    title.textContent=T('Rezervácie','Reservations');
+    wrap.appendChild(title);
+
+    const grouped={};
+    currentEventOptions.forEach(o=>{
+      const cat=o.category||'other';
+      if(!grouped[cat])grouped[cat]=[];
+      grouped[cat].push(o);
+    });
+
+    Object.entries(grouped).forEach(([cat,arr])=>{
+      const g=document.createElement('div');
+      g.className='option-group';
+      g.innerHTML='<div class="option-title">'+escapeHtml(categoryTitle(cat))+'</div>';
+
+      arr.forEach(o=>{
+        const r=document.createElement('div');
+        r.className='option-row';
+
+        const price=o.is_free
+          ? T('ZDARMA','FREE')
+          : isTbd(o)
+          ? T('Cena bude doplnená','Price TBC')
+          : money(o.price)+' '+pricingText(o.pricing_unit);
+
+        r.innerHTML=`
+          <div class="option-name">${escapeHtml(localName(o))}</div>
+          ${o.description?`<div class="option-description">${escapeHtml(o.description)}</div>`:''}
+          <div class="option-price">${escapeHtml(price)}</div>
+        `;
+
+        if(o.availability_status==='sold_out'){
+          r.innerHTML+='<div class="small">'+T('Vypredané','Sold out')+'</div>';
+        }else{
+          quantityControl(r,o,e);
+        }
+        g.appendChild(r);
+      });
+      wrap.appendChild(g);
+    });
+  }
+
+  el('eventDetailContent').innerHTML='';
+  el('eventDetailContent').appendChild(wrap);
+  await refreshCartBadge();
 }
 
 function quantityControl(row,o,e){
+  let q=1;
+  let ages=[isChild(o)?(o.min_age??0):null];
 
-let q=1;
+  const line=document.createElement('div');
+  line.className='qty-line';
 
-let ages=[
-isChild(o)
-? (o.min_age ?? 0)
-: null
-];
+  const minus=document.createElement('button');
+  minus.className='qty-btn';minus.type='button';minus.textContent='−';
 
-const line =
-document.createElement('div');
+  const val=document.createElement('span');
+  val.className='qty-value';val.textContent='1';
 
-line.className='qty-line';
+  const plus=document.createElement('button');
+  plus.className='qty-btn';plus.type='button';plus.textContent='+';
 
-const minus =
-document.createElement('button');
+  const add=document.createElement('button');
+  add.className='add-btn';add.type='button';add.textContent=T('Pridať','Add');
 
-minus.className='qty-btn';
-minus.type='button';
-minus.textContent='−';
+  line.append(minus,val,plus,add);
+  row.appendChild(line);
 
-const val =
-document.createElement('span');
+  let childBox=null;
+  if(isChild(o)){
+    childBox=document.createElement('div');
+    childBox.className='child-box';
+    row.appendChild(childBox);
+  }
 
-val.className='qty-value';
-val.textContent='1';
+  const renderAges=()=>{
+    if(!childBox)return;
+    childBox.innerHTML='<b>'+T('Vek dieťaťa','Child’s age')+'</b>';
+    ages=ages.slice(0,q);
+    while(ages.length<q)ages.push(o.min_age??0);
 
-const plus =
-document.createElement('button');
+    ages.forEach((age,i)=>{
+      const r=document.createElement('div');
+      r.className='child-age-row';
 
-plus.className='qty-btn';
-plus.type='button';
-plus.textContent='+';
+      const lab=document.createElement('span');
+      lab.textContent=T('Dieťa '+(i+1),'Child '+(i+1));
 
-const add =
-document.createElement('button');
+      const inp=document.createElement('input');
+      inp.type='number';
+      inp.min=o.min_age??0;
+      inp.max=o.max_age??17;
+      inp.value=age;
+      inp.oninput=()=>ages[i]=Number(inp.value);
 
-add.className='add-btn';
-add.type='button';
-add.textContent=T('Pridať','Add');
+      r.append(lab,inp);
+      childBox.appendChild(r);
+    });
 
-line.append(
-minus,
-val,
-plus,
-add
-);
+    const note=document.createElement('div');
+    note.className='small';
+    note.style.marginTop='8px';
+    note.textContent=T('+ Pridať ďalšie dieťa použite tlačidlo +','Use + to add another child');
+    childBox.appendChild(note);
+  };
 
-row.appendChild(line);
+  renderAges();
 
-let childBox=null;
+  minus.onclick=()=>{if(q>1){q--;val.textContent=q;renderAges()}};
+  plus.onclick=()=>{q++;val.textContent=q;renderAges()};
 
-if(isChild(o)){
+  add.onclick=async()=>{
+    if(!requireLogin())return;
 
-childBox =
-document.createElement('div');
+    if(isTbd(o)){
+      alert(T('Cena tejto položky ešte nie je nastavená.','The price for this item has not been set yet.'));
+      return;
+    }
 
-childBox.className='child-box';
+    add.disabled=true;
+    add.textContent=T('Pridávam…','Adding…');
 
-row.appendChild(childBox);
+    const perDay=['per_day','per_person_per_day','per_vehicle_per_day'].includes(o.pricing_unit);
+    const perNight=[
+      'per_night','per_person_per_night','per_room_per_night',
+      'per_tent_per_night','per_vehicle_per_night'
+    ].includes(o.pricing_unit);
 
+    const {error}=await supabaseClient.rpc('add_item_to_cart',{
+      p_event_option_id:o.id,
+      p_quantity:q,
+      p_child_ages:isChild(o)?ages:[],
+      p_number_of_days:perDay?1:1,
+      p_number_of_nights:perNight?eventNights(e):1,
+      p_option_date:perDay?e.start_date:null
+    });
+
+    add.disabled=false;
+    add.textContent=T('Pridať','Add');
+
+    if(error){
+      alert(T('Nepodarilo sa pridať položku: ','Could not add item: ')+error.message);
+      return;
+    }
+
+    await refreshCartBadge();
+    alert(T('Položka bola pridaná do košíka.','Item added to cart.'));
+  };
 }
 
-const renderAges=()=>{
+async function getActiveCart(){
+  if(!currentUser)return null;
 
-if(!childBox){
-return;
+  const {data,error}=await supabaseClient
+    .from('bookings')
+    .select('*')
+    .eq('user_id',currentUser.id)
+    .eq('status','cart')
+    .order('created_at',{ascending:false})
+    .limit(1)
+    .maybeSingle();
+
+  if(error||!data)return null;
+  return data;
 }
 
-childBox.innerHTML =
-'<b>'+
-T(
-'Vek dieťaťa',
-'Child’s age'
-)+
-'</b>';
+async function getCartItems(bookingId){
+  const {data,error}=await supabaseClient
+    .from('booking_items')
+    .select('*')
+    .eq('booking_id',bookingId)
+    .order('created_at');
 
-ages=ages.slice(0,q);
-
-while(ages.length<q){
-
-ages.push(
-o.min_age ?? 0
-);
-
+  if(error)return [];
+  return data||[];
 }
 
-ages.forEach(
-(age,i)=>{
+async function refreshCartBadge(){
+  const badge=el('cartBadge');
 
-const r =
-document.createElement('div');
+  if(!currentUser){
+    badge.style.display='none';
+    badge.textContent='0';
+    activeCart=null;
+    return;
+  }
 
-r.className='child-age-row';
+  const cart=await getActiveCart();
+  activeCart=cart;
 
-const inp =
-document.createElement('input');
+  if(!cart){
+    badge.style.display='none';
+    badge.textContent='0';
+    return;
+  }
 
-inp.type='number';
-inp.min=o.min_age ?? 0;
-inp.max=o.max_age ?? 17;
-inp.value=age;
+  const items=await getCartItems(cart.id);
+  const count=items.reduce((sum,i)=>sum+Number(i.quantity||0),0);
 
-inp.oninput=()=>{
-ages[i]=Number(inp.value);
-};
-
-const lab =
-document.createElement('span');
-
-lab.textContent =
-T(
-'Dieťa '+(i+1),
-'Child '+(i+1)
-);
-
-r.append(
-lab,
-inp
-);
-
-childBox.appendChild(r);
-
-}
-);
-
-const note =
-document.createElement('div');
-
-note.className='small';
-note.style.marginTop='8px';
-
-note.textContent =
-T(
-'+ Pridať ďalšie dieťa použite tlačidlo +',
-'Use + to add another child'
-);
-
-childBox.appendChild(note);
-
-};
-
-renderAges();
-
-minus.onclick=()=>{
-
-if(q>1){
-
-q--;
-
-val.textContent=q;
-
-renderAges();
-
+  if(count>0){
+    badge.textContent=String(count);
+    badge.style.display='flex';
+  }else{
+    badge.style.display='none';
+    badge.textContent='0';
+  }
 }
 
-};
+async function showCartPage(){
+  if(!requireLogin())return;
 
-plus.onclick=()=>{
+  go('cartPage');
+  el('cartPageContent').innerHTML='<div class="loading">'+T('Načítavam košík...','Loading cart...')+'</div>';
 
-q++;
+  const cart=await getActiveCart();
+  activeCart=cart;
 
-val.textContent=q;
+  if(!cart){
+    el('cartPageContent').innerHTML='<div class="card">'+T('Váš košík je prázdny.','Your cart is empty.')+'</div>';
+    await refreshCartBadge();
+    return;
+  }
 
-renderAges();
+  const items=await getCartItems(cart.id);
 
-};
+  if(!items.length){
+    el('cartPageContent').innerHTML='<div class="card">'+T('Váš košík je prázdny.','Your cart is empty.')+'</div>';
+    await refreshCartBadge();
+    return;
+  }
 
-add.onclick=async()=>{
+  const box=document.createElement('div');
+  box.className='cart-box';
 
-if(!requireLogin()){
-return;
+  box.innerHTML=`
+    <b>🛒 ${T('Košík','Cart')}</b>
+    <div class="countdown" data-exp="${escapeHtml(cart.cart_expires_at||'')}"></div>
+  `;
+
+  items.forEach(i=>{
+    const d=document.createElement('div');
+    d.className='cart-item';
+
+    const line=document.createElement('div');
+    line.className='cart-item-line';
+
+    const text=document.createElement('div');
+    text.innerHTML=`
+      <b>${escapeHtml(i.quantity)}× ${escapeHtml(i.item_name)}</b><br>
+      ${money(i.line_total)}
+      ${i.child_ages?.length?'<div class="small">'+T('Veky: ','Ages: ')+escapeHtml(i.child_ages.join(', '))+'</div>':''}
+    `;
+
+    const remove=document.createElement('button');
+    remove.className='remove-btn';
+    remove.type='button';
+    remove.textContent=T('Odstrániť','Remove');
+    remove.onclick=()=>removeCartItem(i.id);
+
+    line.append(text,remove);
+    d.appendChild(line);
+    box.appendChild(d);
+  });
+
+  if(Number(cart.discount_amount||0)>0){
+    const subtotal=document.createElement('div');
+    subtotal.className='small';
+    subtotal.style.marginTop='10px';
+    subtotal.textContent=T('Medzisúčet: ','Subtotal: ')+money(cart.subtotal_amount);
+    box.appendChild(subtotal);
+
+    const discount=document.createElement('div');
+    discount.style.color='#86efac';
+    discount.textContent=T('Zľava: −','Discount: −')+money(cart.discount_amount);
+    box.appendChild(discount);
+  }
+
+  const total=document.createElement('div');
+  total.className='cart-total';
+  total.textContent=T('Spolu: ','Total: ')+money(cart.total_amount);
+  box.appendChild(total);
+
+  const voucher=document.createElement('div');
+  voucher.className='voucher-area';
+  voucher.innerHTML=`
+    <b>🏷️ ${T('Zľavový kód / voucher','Discount code / voucher')}</b>
+    <div class="voucher-line">
+      <input id="voucherInput" autocomplete="off" placeholder="${T('Zadajte kód','Enter code')}">
+      <button class="voucher-btn" type="button" onclick="applyVoucher()">OK</button>
+    </div>
+    <div id="voucherMessage" class="message"></div>
+  `;
+  box.appendChild(voucher);
+
+  const actions=document.createElement('div');
+  actions.className='cart-actions';
+
+  const continueBtn=document.createElement('button');
+  continueBtn.className='secondary-btn';
+  continueBtn.textContent=T('← Pokračovať v rezervácii','← Continue reservation');
+  continueBtn.onclick=async()=>{
+    if(cart.event_id)await showEventDetail(cart.event_id);
+    else await showEvents();
+  };
+
+  const checkout=document.createElement('button');
+  checkout.className='checkout-btn';
+  checkout.disabled=true;
+  checkout.textContent=T('Prejsť k platbe – čoskoro','Proceed to payment – coming soon');
+
+  actions.append(continueBtn,checkout);
+  box.appendChild(actions);
+
+  const note=document.createElement('div');
+  note.className='small';
+  note.style.marginTop='10px';
+  note.textContent=T(
+    'Položky sú dočasne rezervované počas odpočtu. Platbu sprístupníme po pripojení zabezpečeného platobného systému.',
+    'Items are temporarily reserved during the countdown. Payment will be enabled after the secure payment provider is connected.'
+  );
+  box.appendChild(note);
+
+  el('cartPageContent').innerHTML='';
+  el('cartPageContent').appendChild(box);
+  startCountdowns();
+  await refreshCartBadge();
 }
 
-if(isTbd(o)){
+async function removeCartItem(itemId){
+  if(!currentUser)return;
 
-alert(
-T(
-'Cena tejto položky ešte nie je nastavená.',
-'The price for this item has not been set yet.'
-)
-);
+  if(!confirm(T('Odstrániť túto položku z košíka?','Remove this item from the cart?')))return;
 
-return;
+  const {error}=await supabaseClient.rpc('remove_cart_item',{p_booking_item_id:itemId});
 
+  if(error){
+    alert(T('Položku sa nepodarilo odstrániť: ','Could not remove item: ')+error.message);
+    return;
+  }
+
+  await refreshCartBadge();
+  await showCartPage();
 }
 
-add.disabled=true;
+async function applyVoucher(){
+  if(!activeCart)return;
 
-add.textContent =
-T(
-'Pridávam…',
-'Adding…'
-);
+  const input=el('voucherInput');
+  const code=input?.value.trim();
 
-const perDay=[
-'per_day',
-'per_person_per_day',
-'per_vehicle_per_day'
-].includes(
-o.pricing_unit
-);
+  if(!code){
+    showMessage('voucherMessage',T('Zadajte zľavový kód.','Enter a discount code.'),'info');
+    return;
+  }
 
-const perNight=[
-'per_night',
-'per_person_per_night',
-'per_room_per_night',
-'per_tent_per_night',
-'per_vehicle_per_night'
-].includes(
-o.pricing_unit
-);
+  const {data,error}=await supabaseClient.rpc('apply_discount_code',{
+    p_booking_id:activeCart.id,
+    p_code:code
+  });
 
-const args={
+  if(error){
+    showMessage('voucherMessage',T('Kód sa nepodarilo použiť: ','Could not apply code: ')+error.message,'error');
+    return;
+  }
 
-p_event_option_id:o.id,
+  showMessage('voucherMessage',T('Zľavový kód bol použitý.','Discount code applied.'),'success');
 
-p_quantity:q,
-
-p_child_ages:
-isChild(o)
-? ages
-: [],
-
-p_number_of_days:
-perDay
-? 1
-: 1,
-
-p_number_of_nights:
-perNight
-? eventNights(e)
-: 1,
-
-p_option_date:
-perDay
-? e.start_date
-: null
-
-};
-
-const {error} =
-await supabaseClient.rpc(
-'add_item_to_cart',
-args
-);
-
-add.disabled=false;
-
-add.textContent =
-T(
-'Pridať',
-'Add'
-);
-
-if(error){
-
-alert(
-T(
-'Nepodarilo sa pridať položku: ',
-'Could not add item: '
-)+
-error.message
-);
-
-return;
-
-}
-
-await renderCart(
-e.id,
-row.closest('.event-card')
-);
-
-};
-
-}
-
-async function renderCart(
-eventId,
-card
-){
-
-const old =
-card.querySelector('.cart-box');
-
-if(old){
-old.remove();
-}
-
-if(!currentUser){
-return;
-}
-
-const {data:b} =
-await supabaseClient
-.from('bookings')
-.select('*')
-.eq('event_id',eventId)
-.eq('user_id',currentUser.id)
-.eq('status','cart')
-.order(
-'created_at',
-{ascending:false}
-)
-.limit(1)
-.maybeSingle();
-
-if(!b){
-return;
-}
-
-const {data:items} =
-await supabaseClient
-.from('booking_items')
-.select('*')
-.eq('booking_id',b.id)
-.order('created_at');
-
-const box =
-document.createElement('div');
-
-box.className='cart-box';
-
-box.innerHTML =
-'<b>🛒 '+
-T(
-'Košík',
-'Cart'
-)+
-'</b>'+
-'<div class="countdown" data-exp="'+
-(b.cart_expires_at || '')+
-'"></div>';
-
-(items || []).forEach(
-i=>{
-
-const d =
-document.createElement('div');
-
-d.className='cart-item';
-
-d.textContent =
-i.quantity+
-'× '+
-i.item_name+
-' — '+
-money(i.line_total)+
-(
-i.child_ages?.length
-? ' | '+
-T(
-'Veky: ',
-'Ages: '
-)+
-i.child_ages.join(', ')
-: ''
-);
-
-box.appendChild(d);
-
-}
-);
-
-const total =
-document.createElement('div');
-
-total.className='cart-total';
-
-total.textContent =
-T(
-'Spolu: ',
-'Total: '
-)+
-money(b.total_amount);
-
-box.appendChild(total);
-
-const note =
-document.createElement('div');
-
-note.className='small';
-note.style.marginTop='8px';
-
-note.textContent =
-T(
-'Platba bude doplnená v ďalšom kroku. Položky sú dočasne rezervované počas odpočtu.',
-'Payment will be added in the next step. Items are temporarily reserved during the countdown.'
-);
-
-box.appendChild(note);
-
-card.appendChild(box);
-
-startCountdowns();
-
+  setTimeout(()=>showCartPage(),500);
 }
 
 function startCountdowns(){
+  clearInterval(countdownTimer);
 
-clearInterval(
-countdownTimer
-);
+  const tick=()=>{
+    document.querySelectorAll('.countdown').forEach(x=>{
+      if(!x.dataset.exp){x.textContent='';return}
 
-const tick=()=>{
+      const t=new Date(x.dataset.exp).getTime()-Date.now();
 
-document
-.querySelectorAll('.countdown')
-.forEach(
-x=>{
+      if(t<=0){
+        x.textContent=T('Čas košíka vypršal.','Cart time expired.');
+        return;
+      }
 
-const t =
-new Date(
-x.dataset.exp
-).getTime() -
-Date.now();
+      const m=Math.floor(t/60000);
+      const s=Math.floor((t%60000)/1000);
 
-if(!x.dataset.exp){
+      x.textContent=T('Rezervované ešte: ','Reserved for: ')+m+':'+String(s).padStart(2,'0');
+    });
+  };
 
-x.textContent='';
-
-return;
-
-}
-
-if(t<=0){
-
-x.textContent =
-T(
-'Čas košíka vypršal.',
-'Cart time expired.'
-);
-
-return;
-
-}
-
-const m =
-Math.floor(t/60000);
-
-const s =
-Math.floor(
-(t%60000)/1000
-);
-
-x.textContent =
-T(
-'Rezervované ešte: ',
-'Reserved for: '
-)+
-m+
-':'+
-String(s).padStart(2,'0');
-
-}
-);
-
-};
-
-tick();
-
-countdownTimer =
-setInterval(
-tick,
-1000
-);
-
-}
-
-async function showEvents(){
-
-go('eventsPage');
-
-document.getElementById('eventsList').innerHTML='';
-
-document.getElementById('eventsLoading').style.display='block';
-
-document.getElementById('eventsLoading').textContent =
-T(
-'Načítavam podujatia...',
-'Loading events...'
-);
-
-await loadEvents();
-
-}
-
-async function loadEvents(){
-
-try{
-
-const {
-data:events,
-error
-} =
-await supabaseClient
-.from('events')
-.select('*')
-.eq('status','published')
-.order('start_date');
-
-if(error){
-throw error;
-}
-
-document.getElementById('eventsLoading').style.display='none';
-
-if(!events?.length){
-
-showMessage(
-'eventsMessage',
-T(
-'Momentálne nie sú zverejnené žiadne podujatia.',
-'There are currently no published events.'
-),
-'info'
-);
-
-return;
-
-}
-
-for(const e of events){
-
-const {
-data:opts,
-error:oe
-} =
-await supabaseClient
-.from('event_options')
-.select('*')
-.eq('event_id',e.id)
-.eq('enabled',true)
-.neq(
-'availability_status',
-'hidden'
-)
-.order('sort_order');
-
-if(oe){
-throw oe;
-}
-
-const card =
-document.createElement('div');
-
-card.className='event-card';
-
-card.innerHTML =
-'<div class="event-title">'+
-(e.title || '')+
-'</div>'+
-'<div class="event-info">📅 '+
-formatDate(e.start_date)+
-(
-e.end_date &&
-e.end_date!==e.start_date
-? ' – '+formatDate(e.end_date)
-: ''
-)+
-'</div>'+
-(
-e.venue_name
-? '<div class="event-info">📍 '+
-e.venue_name+
-'</div>'
-: ''
-)+
-(
-e.postcode
-? '<div class="event-info">'+
-e.postcode+
-'</div>'
-: ''
-)+
-(
-localEventDescription(e)
-? '<p>'+
-localEventDescription(e)+
-'</p>'
-: ''
-);
-
-const grouped={};
-
-(opts || []).forEach(
-o=>{
-
-const cat =
-o.category || 'other';
-
-if(!grouped[cat]){
-grouped[cat]=[];
-}
-
-grouped[cat].push(o);
-
-}
-);
-
-Object.entries(grouped)
-.forEach(
-([cat,arr])=>{
-
-const g =
-document.createElement('div');
-
-g.className='option-group';
-
-g.innerHTML =
-'<div class="option-title">'+
-categoryTitle(cat)+
-'</div>';
-
-arr.forEach(
-o=>{
-
-const r =
-document.createElement('div');
-
-r.className='option-row';
-
-const price =
-o.is_free
-? T('ZDARMA','FREE')
-: isTbd(o)
-? T(
-'Cena bude doplnená',
-'Price TBC'
-)
-: money(o.price)+
-' '+
-pricingText(o.pricing_unit);
-
-r.innerHTML =
-'<div class="option-name">'+
-localName(o)+
-'</div>'+
-(
-o.description
-? '<div class="option-description">'+
-(
-currentLanguage==='en'
-? o.description
-: ''
-)+
-'</div>'
-: ''
-)+
-'<div class="option-price">'+
-price+
-'</div>';
-
-if(
-o.availability_status==='sold_out'
-){
-
-r.innerHTML +=
-'<div class="small">'+
-T(
-'Vypredané',
-'Sold out'
-)+
-'</div>';
-
-}else{
-
-quantityControl(
-r,
-o,
-e
-);
-
-}
-
-g.appendChild(r);
-
-}
-);
-
-card.appendChild(g);
-
-}
-);
-
-document
-.getElementById('eventsList')
-.appendChild(card);
-
-await renderCart(
-e.id,
-card
-);
-
-}
-
-}catch(err){
-
-document.getElementById('eventsLoading').style.display='none';
-
-showMessage(
-'eventsMessage',
-T(
-'Podujatia sa nepodarilo načítať.',
-'Events could not be loaded.'
-),
-'error'
-);
-
-console.error(err);
-
-}
-
+  tick();
+  countdownTimer=setInterval(tick,1000);
 }
 
 async function showBookings(){
+  if(!requireLogin())return;
 
-if(!requireLogin()){
-return;
+  go('bookingsPage');
+  el('bookingsContent').innerHTML='<div class="loading">'+T('Načítavam rezervácie...','Loading bookings...')+'</div>';
+
+  const {data,error}=await supabaseClient
+    .from('bookings')
+    .select('*')
+    .eq('user_id',currentUser.id)
+    .order('created_at',{ascending:false});
+
+  if(error){
+    el('bookingsContent').innerHTML='<div class="card">'+T('Rezervácie sa nepodarilo načítať.','Bookings could not be loaded.')+'</div>';
+    return;
+  }
+
+  if(!data?.length){
+    el('bookingsContent').innerHTML='<div class="card">'+T('Zatiaľ nemáte žiadne rezervácie.','You do not have any bookings yet.')+'</div>';
+    return;
+  }
+
+  el('bookingsContent').innerHTML='';
+
+  for(const b of data){
+    const {data:items}=await supabaseClient.from('booking_items').select('*').eq('booking_id',b.id);
+
+    const c=document.createElement('div');
+    c.className='card';
+
+    c.innerHTML=`
+      <b>${T('Rezervácia ','Booking ')}${escapeHtml(b.booking_number||b.id)}</b>
+      <div><span class="status-pill">${escapeHtml(b.status)}</span></div>
+      <div class="small">${T('Platba: ','Payment: ')}${escapeHtml(b.payment_status||'')}</div>
+    `;
+
+    (items||[]).forEach(i=>{
+      const d=document.createElement('div');
+      d.className='cart-item';
+      d.textContent=i.quantity+'× '+i.item_name+' — '+money(i.line_total);
+      c.appendChild(d);
+    });
+
+    if(Number(b.discount_amount||0)>0){
+      const dis=document.createElement('div');
+      dis.className='small';
+      dis.textContent=T('Zľava: ','Discount: ')+money(b.discount_amount);
+      c.appendChild(dis);
+    }
+
+    const total=document.createElement('div');
+    total.className='cart-total';
+    total.textContent=T('Spolu: ','Total: ')+money(b.total_amount);
+    c.appendChild(total);
+
+    el('bookingsContent').appendChild(c);
+  }
 }
 
-go('bookingsPage');
+async function showDonate(){
+  go('donatePage');
 
-document.getElementById('bookingsContent').innerHTML =
-'<div class="loading">'+
-T(
-'Načítavam rezervácie...',
-'Loading bookings...'
-)+
-'</div>';
+  if(currentUser){
+    el('donorName').value=getUsername(currentUser)||'';
+    el('donorEmail').value=currentUser.email||'';
+  }
 
-const {
-data,
-error
-} =
-await supabaseClient
-.from('bookings')
-.select('*')
-.eq(
-'user_id',
-currentUser.id
-)
-.order(
-'created_at',
-{ascending:false}
-);
-
-if(error){
-
-document.getElementById('bookingsContent').innerHTML =
-'<div class="card">'+
-T(
-'Rezervácie sa nepodarilo načítať.',
-'Bookings could not be loaded.'
-)+
-'</div>';
-
-return;
-
+  await loadPublicDonations();
 }
 
-if(!data?.length){
-
-document.getElementById('bookingsContent').innerHTML =
-'<div class="card">'+
-T(
-'Zatiaľ nemáte žiadne rezervácie.',
-'You do not have any bookings yet.'
-)+
-'</div>';
-
-return;
-
+function chooseDonationAmount(amount,button){
+  el('donationAmount').value=amount;
+  document.querySelectorAll('.amount-btn').forEach(b=>b.classList.remove('active'));
+  if(button)button.classList.add('active');
 }
 
-document.getElementById('bookingsContent').innerHTML='';
+function donationNotReady(){
+  const amount=Number(el('donationAmount').value||0);
 
-for(const b of data){
+  if(amount<=0){
+    alert(T('Zadajte sumu daru.','Enter a donation amount.'));
+    return;
+  }
 
-const {data:it} =
-await supabaseClient
-.from('booking_items')
-.select('*')
-.eq(
-'booking_id',
-b.id
-);
-
-const c =
-document.createElement('div');
-
-c.className='card';
-
-c.innerHTML =
-'<b>'+
-T(
-'Rezervácia ',
-'Booking '
-)+
-(
-b.booking_number ||
-b.id
-)+
-'</b>'+
-'<div class="small">'+
-T(
-'Stav: ',
-'Status: '
-)+
-b.status+
-'</div>';
-
-(it || []).forEach(
-i=>{
-
-const d =
-document.createElement('div');
-
-d.className='cart-item';
-
-d.textContent =
-i.quantity+
-'× '+
-i.item_name+
-' — '+
-money(i.line_total);
-
-c.appendChild(d);
-
-}
-);
-
-const t =
-document.createElement('div');
-
-t.className='cart-total';
-
-t.textContent =
-T(
-'Spolu: ',
-'Total: '
-)+
-money(b.total_amount);
-
-c.appendChild(t);
-
-document
-.getElementById('bookingsContent')
-.appendChild(c);
-
+  alert(T(
+    'Ďakujeme ❤️ Online platbu ešte neprijímame. Tlačidlo aktivujeme po pripojení zabezpečeného platobného systému.',
+    'Thank you ❤️ Online payments are not active yet. This button will be enabled after the secure payment provider is connected.'
+  ));
 }
 
+async function loadPublicDonations(){
+  el('publicDonations').innerHTML='<div class="loading">'+T('Načítavam...','Loading...')+'</div>';
+
+  const {data,error}=await supabaseClient.rpc('get_public_donations');
+
+  if(error){
+    el('publicDonations').innerHTML='<div class="small">'+T('Zoznam darov sa momentálne nedá načítať.','The donation list cannot be loaded right now.')+'</div>';
+    return;
+  }
+
+  if(!data?.length){
+    el('publicDonations').innerHTML='<div class="small">'+T('Zatiaľ tu nie sú zverejnené žiadne dary.','There are no public donations yet.')+'</div>';
+    return;
+  }
+
+  el('publicDonations').innerHTML='';
+
+  data.forEach(d=>{
+    const row=document.createElement('div');
+    row.className='donation-row';
+
+    row.innerHTML=`
+      <div class="donation-name">${escapeHtml(d.donor_name)}</div>
+      <div class="donation-amount">${money(d.amount)}</div>
+      ${d.message?`<div>${escapeHtml(d.message)}</div>`:''}
+      ${d.donated_at?`<div class="small">${new Date(d.donated_at).toLocaleDateString(currentLanguage==='sk'?'sk-SK':'en-GB')}</div>`:''}
+    `;
+
+    el('publicDonations').appendChild(row);
+  });
 }
 
-document.getElementById('loginForm').onsubmit =
-async e=>{
+el('loginForm').onsubmit=async e=>{
+  e.preventDefault();
 
-e.preventDefault();
+  const {data,error}=await supabaseClient.auth.signInWithPassword({
+    email:el('loginEmail').value.trim(),
+    password:el('loginPassword').value
+  });
 
-const {
-data,
-error
-} =
-await supabaseClient.auth.signInWithPassword({
-email:
-document.getElementById('loginEmail').value.trim(),
+  if(error){
+    showMessage('loginMessage',T('Prihlásenie sa nepodarilo.','Sign in failed.'),'error');
+    return;
+  }
 
-password:
-document.getElementById('loginPassword').value
-});
-
-if(error){
-
-return showMessage(
-'loginMessage',
-T(
-'Prihlásenie sa nepodarilo.',
-'Sign in failed.'
-),
-'error'
-);
-
-}
-
-currentUser=data.user;
-
-updateUserButton();
-
-showHome();
-
+  currentUser=data.user;
+  updateUserButton();
+  await refreshCartBadge();
+  showHome();
 };
 
-document.getElementById('registerForm').onsubmit =
-async e=>{
+el('registerForm').onsubmit=async e=>{
+  e.preventDefault();
 
-e.preventDefault();
+  const password=el('registerPassword').value;
+  const password2=el('registerPassword2').value;
 
-const password =
-document.getElementById('registerPassword').value;
+  if(password!==password2){
+    showMessage('registerMessage',T('Heslá sa nezhodujú.','Passwords do not match.'),'error');
+    return;
+  }
 
-const password2 =
-document.getElementById('registerPassword2').value;
+  const {data,error}=await supabaseClient.auth.signUp({
+    email:el('registerEmail').value.trim(),
+    password,
+    options:{
+      data:{username:el('registerUsername').value.trim()},
+      emailRedirectTo:APP_URL
+    }
+  });
 
-if(password!==password2){
+  if(error){
+    showMessage('registerMessage',error.message,'error');
+    return;
+  }
 
-return showMessage(
-'registerMessage',
-T(
-'Heslá sa nezhodujú.',
-'Passwords do not match.'
-),
-'error'
-);
+  if(data.session)currentUser=data.user;
 
-}
+  updateUserButton();
 
-const {
-data,
-error
-} =
-await supabaseClient.auth.signUp({
-
-email:
-document.getElementById('registerEmail').value.trim(),
-
-password,
-
-options:{
-data:{
-username:
-document.getElementById('registerUsername').value.trim()
-},
-emailRedirectTo:APP_URL
-}
-
-});
-
-if(error){
-
-return showMessage(
-'registerMessage',
-error.message,
-'error'
-);
-
-}
-
-if(data.session){
-currentUser=data.user;
-}
-
-updateUserButton();
-
-showMessage(
-'registerMessage',
-T(
-'Účet bol vytvorený. Skontrolujte e-mail a potvrďte registráciu.',
-'Account created. Check your email and confirm registration.'
-),
-'success'
-);
-
+  showMessage(
+    'registerMessage',
+    T('Účet bol vytvorený. Skontrolujte e-mail a potvrďte registráciu.','Account created. Check your email and confirm registration.'),
+    'success'
+  );
 };
 
 async function saveUsername(){
+  const username=el('accountUsernameInput').value.trim();
+  if(!username)return;
 
-const username =
-document.getElementById('accountUsernameInput').value.trim();
+  const {data,error}=await supabaseClient.auth.updateUser({data:{username}});
 
-if(!username){
-return;
-}
+  if(error){
+    showMessage('usernameMessage',error.message,'error');
+    return;
+  }
 
-const {
-data,
-error
-} =
-await supabaseClient.auth.updateUser({
-data:{username}
-});
-
-if(error){
-
-return showMessage(
-'usernameMessage',
-error.message,
-'error'
-);
-
-}
-
-currentUser=data.user;
-
-fillAccount();
-
-updateUserButton();
-
-showMessage(
-'usernameMessage',
-T(
-'Používateľské meno bolo uložené.',
-'Username saved.'
-),
-'success'
-);
-
+  currentUser=data.user;
+  fillAccount();
+  updateUserButton();
+  showMessage('usernameMessage',T('Používateľské meno bolo uložené.','Username saved.'),'success');
 }
 
 async function logoutUser(){
-
-await supabaseClient.auth.signOut();
-
-currentUser=null;
-
-updateUserButton();
-
-showHome();
-
+  await supabaseClient.auth.signOut();
+  currentUser=null;
+  activeCart=null;
+  updateUserButton();
+  await refreshCartBadge();
+  showHome();
 }
 
-document.getElementById('forgotForm').onsubmit =
-async e=>{
+el('forgotForm').onsubmit=async e=>{
+  e.preventDefault();
 
-e.preventDefault();
+  const {error}=await supabaseClient.auth.resetPasswordForEmail(
+    el('forgotEmail').value.trim(),
+    {redirectTo:APP_URL}
+  );
 
-const {error} =
-await supabaseClient.auth.resetPasswordForEmail(
-document.getElementById('forgotEmail').value.trim(),
-{
-redirectTo:APP_URL
-}
-);
-
-showMessage(
-'forgotMessage',
-error
-? error.message
-: T(
-'Odkaz na obnovenie hesla bol odoslaný.',
-'Password reset link sent.'
-),
-error
-? 'error'
-: 'success'
-);
-
+  showMessage(
+    'forgotMessage',
+    error?error.message:T('Odkaz na obnovenie hesla bol odoslaný.','Password reset link sent.'),
+    error?'error':'success'
+  );
 };
 
-document.getElementById('resetForm').onsubmit =
-async e=>{
+el('resetForm').onsubmit=async e=>{
+  e.preventDefault();
 
-e.preventDefault();
+  const p1=el('newPassword').value;
+  const p2=el('newPassword2').value;
 
-const p1 =
-document.getElementById('newPassword').value;
+  if(p1!==p2){
+    showMessage('resetMessage',T('Heslá sa nezhodujú.','Passwords do not match.'),'error');
+    return;
+  }
 
-const p2 =
-document.getElementById('newPassword2').value;
+  const {error}=await supabaseClient.auth.updateUser({password:p1});
 
-if(p1!==p2){
-
-return showMessage(
-'resetMessage',
-T(
-'Heslá sa nezhodujú.',
-'Passwords do not match.'
-),
-'error'
-);
-
-}
-
-const {error} =
-await supabaseClient.auth.updateUser({
-password:p1
-});
-
-showMessage(
-'resetMessage',
-error
-? error.message
-: T(
-'Nové heslo bolo uložené.',
-'New password saved.'
-),
-error
-? 'error'
-: 'success'
-);
-
+  showMessage(
+    'resetMessage',
+    error?error.message:T('Nové heslo bolo uložené.','New password saved.'),
+    error?'error':'success'
+  );
 };
 
-async function sendForm(
-form,
-id,
-url,
-sk,
-en
-){
+async function sendForm(form,id,url,sk,en){
+  const r=await fetch(url,{
+    method:'POST',
+    body:new FormData(form),
+    headers:{Accept:'application/json'}
+  }).catch(()=>null);
 
-const r =
-await fetch(
-url,
-{
-method:'POST',
-body:new FormData(form),
-headers:{
-Accept:'application/json'
-}
-}
-).catch(()=>null);
-
-if(r?.ok){
-
-form.reset();
-
-showMessage(
-id,
-T(sk,en),
-'success'
-);
-
-}else{
-
-showMessage(
-id,
-T(
-'Odoslanie sa nepodarilo.',
-'Sending failed.'
-),
-'error'
-);
-
+  if(r?.ok){
+    form.reset();
+    showMessage(id,T(sk,en),'success');
+  }else{
+    showMessage(id,T('Odoslanie sa nepodarilo.','Sending failed.'),'error');
+  }
 }
 
-}
-
-document.getElementById('contactForm').onsubmit =
-e=>{
-
-e.preventDefault();
-
-if(requireLogin()){
-
-sendForm(
-e.target,
-'contactMessage',
-'https://formspree.io/f/mrpbbyng',
-'Správa bola úspešne odoslaná.',
-'Your message has been sent successfully.'
-);
-
-}
-
+el('contactForm').onsubmit=e=>{
+  e.preventDefault();
+  if(requireLogin()){
+    sendForm(e.target,'contactMessage','https://formspree.io/f/mrpbbyng',
+      'Správa bola úspešne odoslaná.','Your message has been sent successfully.');
+  }
 };
 
-document.getElementById('fatraForm').onsubmit =
-e=>{
-
-e.preventDefault();
-
-if(requireLogin()){
-
-sendForm(
-e.target,
-'fatraMessage',
-'https://formspree.io/f/xaennlee',
-'Objednávka bola úspešne odoslaná.',
-'Your order has been sent successfully.'
-);
-
-}
-
+el('fatraForm').onsubmit=e=>{
+  e.preventDefault();
+  if(requireLogin()){
+    sendForm(e.target,'fatraMessage','https://formspree.io/f/xaennlee',
+      'Objednávka bola úspešne odoslaná.','Your order has been sent successfully.');
+  }
 };
 
-document.getElementById('faceForm').onsubmit =
-e=>{
-
-e.preventDefault();
-
-if(requireLogin()){
-
-sendForm(
-e.target,
-'faceMessage',
-'https://formspree.io/f/xqpaagye',
-'Rezervácia bola úspešne odoslaná.',
-'Your booking has been sent successfully.'
-);
-
-}
-
+el('faceForm').onsubmit=e=>{
+  e.preventDefault();
+  if(requireLogin()){
+    sendForm(e.target,'faceMessage','https://formspree.io/f/xqpaagye',
+      'Rezervácia bola úspešne odoslaná.','Your booking has been sent successfully.');
+  }
 };
-
-function setText(id,s){
-
-const e =
-document.getElementById(id);
-
-if(e){
-e.textContent=s;
-}
-
-}
 
 function setLanguage(lang){
+  currentLanguage=lang;
+  document.documentElement.lang=lang;
+  const sk=lang==='sk';
 
-currentLanguage=lang;
+  el('skLangBtn').classList.toggle('active',sk);
+  el('enLangBtn').classList.toggle('active',!sk);
 
-document.documentElement.lang=lang;
+  setText('eventsBtn',sk?'📅 Podujatia':'📅 Events');
+  setText('bookingsBtn',sk?'🎟️ Moje rezervácie':'🎟️ My Bookings');
+  setText('donateBtn',sk?'❤️ Podporte nás':'❤️ Donate');
+  setText('fatraBtn',sk?'🛒 Fatra Potraviny Rugby – Objednávka':'🛒 Fatra Potraviny Rugby – Grocery Order');
+  setText('faceBtn',sk?'🎨 Tinuška – Maľovanie na tvár':'🎨 Tinuška – Face Painting');
+  setText('aboutBtn',sk?'❤️ O nás':'❤️ About Us');
+  setText('contactBtn',sk?'✉️ Kontakt':'✉️ Contact');
 
-const sk =
-lang==='sk';
+  setText('eventsTitle',sk?'📅 Podujatia':'📅 Events');
+  setText('eventDetailBack',sk?'← Podujatia':'← Events');
+  setText('cartTitle',sk?'🛒 Košík':'🛒 Cart');
+  setText('bookingsTitle',sk?'🎟️ Moje rezervácie':'🎟️ My Bookings');
 
-setText(
-'eventsBtn',
-sk
-? '📅 Podujatia'
-: '📅 Events'
-);
+  setText('donateTitle',sk?'❤️ Podporte nás':'❤️ Donate');
+  setText('donateMotto',sk
+    ?'Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️'
+    :'Bringing people together. Creating experiences. Building community. ❤️');
+  setText('donateSub',sk
+    ?'Aj malý dar môže pomôcť vytvoriť veľký zážitok.'
+    :'Even a small donation can help create a big experience.');
+  setText('customAmountLabel',sk?'Vlastná suma (£)':'Custom amount (£)');
+  setText('donorNameLabel',sk?'Meno darcu':'Donor name');
+  setText('donorEmailLabel','E-mail');
+  setText('donationMessageLabel',sk?'Odkaz pre nás (nepovinné)':'Message to us (optional)');
+  setText('anonymousDonationLabel',sk?'Chcem darovať anonymne':'I want to donate anonymously');
+  setText('publishDonationLabel',sk
+    ?'Súhlasím so zverejnením môjho mena a odkazu pri verejnom zozname darov.'
+    :'I agree that my name and message may be shown in the public donation list.');
+  setText('donationSubmitBtn',sk?'❤️ Darovať':'❤️ Donate');
+  setText('donationPaymentNotice',sk
+    ?'Online platba bude sprístupnená po pripojení zabezpečeného platobného systému.'
+    :'Online payment will be enabled after the secure payment provider is connected.');
+  setText('publicDonationsTitle',sk?'❤️ Naši podporovatelia':'❤️ Our supporters');
 
-setText(
-'bookingsBtn',
-sk
-? '🎟️ Moje rezervácie'
-: '🎟️ My Bookings'
-);
+  setText('loginTitle',sk?'👤 Prihlásiť sa':'👤 Sign In');
+  setText('loginEmailLabel','E-mail');
+  setText('loginPasswordLabel',sk?'Heslo':'Password');
+  setText('loginSubmitBtn',sk?'Prihlásiť sa':'Sign In');
+  setText('forgotBtn',sk?'Zabudnuté heslo':'Forgot password');
+  setText('goRegisterBtn',sk?'Nemáte účet? Vytvoriť účet':"Don't have an account? Create account");
 
-setText(
-'fatraBtn',
-sk
-? '🛒 Fatra Potraviny Rugby – Objednávka'
-: '🛒 Fatra Potraviny Rugby – Grocery Order'
-);
+  setText('registerTitle',sk?'👤 Vytvoriť účet':'👤 Create Account');
+  setText('usernameLabel',sk?'Používateľské meno':'Username');
+  setText('usernameHelp',sk
+    ?'Vyberte si meno, ktoré sa bude zobrazovať vo vašom účte.'
+    :'Choose a name that will be displayed in your account.');
+  setText('registerEmailLabel','E-mail');
+  setText('registerPasswordLabel',sk?'Heslo':'Password');
+  setText('registerPassword2Label',sk?'Zopakujte heslo':'Repeat password');
+  setText('registerSubmitBtn',sk?'Vytvoriť účet':'Create Account');
+  setText('goLoginBtn',sk?'Už máte účet? Prihlásiť sa':'Already have an account? Sign in');
 
-setText(
-'faceBtn',
-sk
-? '🎨 Tinuška – Maľovanie na tvár'
-: '🎨 Tinuška – Face Painting'
-);
+  setText('accountTitle',sk?'👤 Môj účet':'👤 My Account');
+  setText('changeUsernameLabel',sk?'Používateľské meno':'Username');
+  setText('saveUsernameBtn',sk?'Uložiť používateľské meno':'Save username');
+  setText('logoutBtn',sk?'Odhlásiť sa':'Sign Out');
 
-setText(
-'aboutBtn',
-sk
-? '❤️ O nás'
-: '❤️ About Us'
-);
+  setText('forgotTitle',sk?'Zabudnuté heslo':'Forgot password');
+  setText('forgotIntro',sk
+    ?'Zadajte svoj e-mail a pošleme vám odkaz na obnovenie hesla.'
+    :'Enter your email and we will send you a password reset link.');
+  setText('forgotEmailLabel','E-mail');
+  setText('forgotSubmitBtn',sk?'Poslať odkaz':'Send link');
 
-setText(
-'contactBtn',
-sk
-? '✉️ Kontakt'
-: '✉️ Contact'
-);
+  setText('resetTitle',sk?'Nastaviť nové heslo':'Set new password');
+  setText('newPasswordLabel',sk?'Nové heslo':'New password');
+  setText('newPassword2Label',sk?'Zopakujte nové heslo':'Repeat new password');
+  setText('resetSubmitBtn',sk?'Uložiť nové heslo':'Save new password');
 
-setText(
-'eventsTitle',
-sk
-? '📅 Podujatia'
-: '📅 Events'
-);
+  setText('aboutTitle',sk?'❤️ O nás':'❤️ About Us');
 
-setText(
-'bookingsTitle',
-sk
-? '🎟️ Moje rezervácie'
-: '🎟️ My Bookings'
-);
+  el('aboutContent').innerHTML=sk?`
+    <p><strong>Community For All</strong> je komunitná iniciatíva organizácie Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.</p>
+    <p>Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať otvorenú a príjemnú komunitu.</p>
+    <p>Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a spoločné stretnutia.</p>
+    <p><strong>Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</strong></p>
+    <p class="small">Tatry Cup Community Organisation CIO<br>Registered Charity No. 1216952</p>
+  `:`
+    <p><strong>Community For All</strong> is a community initiative of Tatry Cup Community Organisation CIO, a registered charity in the United Kingdom.</p>
+    <p>Our aim is to bring people, families and generations together, create new friendships and build an open and welcoming community.</p>
+    <p>We organise community events, family weekends, stays, barbecues, activities for children and adults, and community gatherings.</p>
+    <p><strong>Bringing people together. Creating experiences. Building community. ❤️</strong></p>
+    <p class="small">Tatry Cup Community Organisation CIO<br>Registered Charity No. 1216952</p>
+  `;
 
-setText(
-'loginTitle',
-sk
-? '👤 Prihlásiť sa'
-: '👤 Sign In'
-);
+  setText('contactTitle',sk?'✉️ Kontakt':'✉️ Contact');
+  setText('contactNameLabel',sk?'Meno a priezvisko':'Full name');
+  setText('contactEmailLabel','E-mail');
+  setText('contactMessageLabel',sk?'Vaša správa':'Your message');
+  setText('contactSubmitBtn',sk?'Odoslať správu':'Send Message');
 
-setText(
-'loginPasswordLabel',
-sk
-? 'Heslo'
-: 'Password'
-);
+  setText('fatraTitle',sk?'🛒 Fatra Potraviny Rugby – Objednávka':'🛒 Fatra Potraviny Rugby – Grocery Order');
+  setText('fatraIntro',sk?'Napíšte svoju objednávku a odošlite ju cez formulár.':'Write your order and send it using the form.');
+  setText('fatraNameLabel',sk?'Meno a priezvisko':'Full name');
+  setText('fatraEmailLabel','E-mail');
+  setText('fatraPhoneLabel',sk?'Telefón':'Phone');
+  setText('fatraOrderLabel',sk?'Vaša objednávka':'Your order');
+  setText('fatraSubmitBtn',sk?'Odoslať objednávku':'Send Order');
 
-setText(
-'loginSubmitBtn',
-sk
-? 'Prihlásiť sa'
-: 'Sign In'
-);
+  setText('faceTitle',sk?'🎨 Tinuška – Maľovanie na tvár':'🎨 Tinuška – Face Painting');
+  setText('faceIntro',sk?'Rezervujte si maľovanie na tvár.':'Book a face painting session.');
+  setText('faceNameLabel',sk?'Meno a priezvisko':'Full name');
+  setText('faceEmailLabel','E-mail');
+  setText('facePhoneLabel',sk?'Telefón':'Phone');
+  setText('childNameLabel',sk?'Meno dieťaťa':"Child's name");
+  setText('childAgeLabel',sk?'Vek dieťaťa':"Child's age");
+  setText('paintingLabel',sk?'Čo si želáte namaľovať?':'What would you like painted?');
+  setText('faceSubmitBtn',sk?'🎨 Odoslať rezerváciu':'🎨 Send Booking');
 
-setText(
-'forgotBtn',
-sk
-? 'Zabudnuté heslo'
-: 'Forgot password'
-);
+  document.querySelectorAll('.backText').forEach(b=>b.textContent=sk?'← Späť':'← Back');
 
-setText(
-'goRegisterBtn',
-sk
-? 'Nemáte účet? Vytvoriť účet'
-: "Don't have an account? Create account"
-);
+  updateUserButton();
 
-setText(
-'registerTitle',
-sk
-? '👤 Vytvoriť účet'
-: '👤 Create Account'
-);
-
-setText(
-'usernameLabel',
-sk
-? 'Používateľské meno'
-: 'Username'
-);
-
-setText(
-'registerPasswordLabel',
-sk
-? 'Heslo'
-: 'Password'
-);
-
-setText(
-'registerPassword2Label',
-sk
-? 'Zopakujte heslo'
-: 'Repeat password'
-);
-
-setText(
-'registerSubmitBtn',
-sk
-? 'Vytvoriť účet'
-: 'Create Account'
-);
-
-setText(
-'goLoginBtn',
-sk
-? 'Už máte účet? Prihlásiť sa'
-: 'Already have an account? Sign in'
-);
-
-setText(
-'accountTitle',
-sk
-? '👤 Môj účet'
-: '👤 My Account'
-);
-
-setText(
-'changeUsernameLabel',
-sk
-? 'Používateľské meno'
-: 'Username'
-);
-
-setText(
-'saveUsernameBtn',
-sk
-? 'Uložiť používateľské meno'
-: 'Save username'
-);
-
-setText(
-'logoutBtn',
-sk
-? 'Odhlásiť sa'
-: 'Sign Out'
-);
-
-setText(
-'aboutTitle',
-sk
-? '❤️ O nás'
-: '❤️ About Us'
-);
-
-document.getElementById('aboutContent').innerHTML =
-sk
-? `
-<p><strong>Community For All</strong> je komunitná iniciatíva organizácie Tatry Cup Community Organisation CIO, registrovanej charity vo Veľkej Británii.</p>
-
-<p>Naším cieľom je spájať ľudí, rodiny a generácie, vytvárať nové priateľstvá a budovať otvorenú a príjemnú komunitu.</p>
-
-<p>Organizujeme komunitné podujatia, rodinné víkendy, pobyty, opekačky, aktivity pre deti aj dospelých a spoločné stretnutia.</p>
-
-<p><strong>Spájame ľudí. Vytvárame zážitky. Budujeme komunitu. ❤️</strong></p>
-
-<p class="small">
-Tatry Cup Community Organisation CIO<br>
-Registered Charity No. 1216952
-</p>
-`
-: `
-<p><strong>Community For All</strong> is a community initiative of Tatry Cup Community Organisation CIO, a registered charity in the United Kingdom.</p>
-
-<p>Our aim is to bring people, families and generations together, create new friendships and build an open and welcoming community.</p>
-
-<p>We organise community events, family weekends, stays, barbecues and activities for children and adults.</p>
-
-<p><strong>Connecting people. Creating experiences. Building community. ❤️</strong></p>
-
-<p class="small">
-Tatry Cup Community Organisation CIO<br>
-Registered Charity No. 1216952
-</p>
-`;
-
-setText(
-'contactTitle',
-sk
-? '✉️ Kontakt'
-: '✉️ Contact'
-);
-
-setText(
-'contactNameLabel',
-sk
-? 'Meno a priezvisko'
-: 'Full name'
-);
-
-setText(
-'contactMessageLabel',
-sk
-? 'Vaša správa'
-: 'Your message'
-);
-
-setText(
-'contactSubmitBtn',
-sk
-? 'Odoslať správu'
-: 'Send Message'
-);
-
-setText(
-'fatraTitle',
-sk
-? '🛒 Fatra Potraviny Rugby – Objednávka'
-: '🛒 Fatra Potraviny Rugby – Grocery Order'
-);
-
-setText(
-'fatraIntro',
-sk
-? 'Napíšte svoju objednávku a odošlite ju cez formulár.'
-: 'Write your order and send it using the form.'
-);
-
-setText(
-'fatraNameLabel',
-sk
-? 'Meno a priezvisko'
-: 'Full name'
-);
-
-setText(
-'fatraPhoneLabel',
-sk
-? 'Telefón'
-: 'Phone'
-);
-
-setText(
-'fatraOrderLabel',
-sk
-? 'Vaša objednávka'
-: 'Your order'
-);
-
-setText(
-'fatraSubmitBtn',
-sk
-? 'Odoslať objednávku'
-: 'Send Order'
-);
-
-setText(
-'faceTitle',
-sk
-? '🎨 Tinuška – Maľovanie na tvár'
-: '🎨 Tinuška – Face Painting'
-);
-
-setText(
-'faceIntro',
-sk
-? 'Rezervujte si maľovanie na tvár.'
-: 'Book a face painting session.'
-);
-
-setText(
-'faceNameLabel',
-sk
-? 'Meno a priezvisko'
-: 'Full name'
-);
-
-setText(
-'facePhoneLabel',
-sk
-? 'Telefón'
-: 'Phone'
-);
-
-setText(
-'childNameLabel',
-sk
-? 'Meno dieťaťa'
-: "Child's name"
-);
-
-setText(
-'childAgeLabel',
-sk
-? 'Vek dieťaťa'
-: "Child's age"
-);
-
-setText(
-'paintingLabel',
-sk
-? 'Čo si želáte namaľovať?'
-: 'What would you like painted?'
-);
-
-setText(
-'faceSubmitBtn',
-sk
-? '🎨 Odoslať rezerváciu'
-: '🎨 Send Booking'
-);
-
-document
-.querySelectorAll('.backText')
-.forEach(
-b=>{
-b.textContent =
-sk
-? '← Späť'
-: '← Back';
-}
-);
-
-updateUserButton();
-
-if(
-document.getElementById('eventsPage').style.display==='block'
-){
-showEvents();
+  if(el('eventsPage').style.display==='block')showEvents();
+  if(el('eventDetailPage').style.display==='block'&&currentEvent)showEventDetail(currentEvent.id);
+  if(el('cartPage').style.display==='block'&&currentUser)showCartPage();
+  if(el('bookingsPage').style.display==='block'&&currentUser)showBookings();
+  if(el('donatePage').style.display==='block')loadPublicDonations();
 }
 
-if(
-document.getElementById('bookingsPage').style.display==='block' &&
-currentUser
-){
-showBookings();
-}
+supabaseClient.auth.onAuthStateChange((event,session)=>{
+  currentUser=session?.user||null;
+  updateUserButton();
+  setTimeout(refreshCartBadge,0);
 
-}
-
-supabaseClient.auth.onAuthStateChange(
-(event,session)=>{
-
-currentUser =
-session?.user || null;
-
-updateUserButton();
-
-if(event==='PASSWORD_RECOVERY'){
-showResetPassword();
-}
-
-}
-);
+  if(event==='PASSWORD_RECOVERY'){
+    showResetPassword();
+  }
+});
 
 (async()=>{
-
-await refreshCurrentUser();
-
-setLanguage('sk');
-
-showHome();
-
+  await refreshCurrentUser();
+  setLanguage('sk');
+  showHome();
 })();
-
 </script>
 
 </body>
-  </html>
+</html>
