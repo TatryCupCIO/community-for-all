@@ -1179,7 +1179,25 @@ return null;
 
 return data||null;
 }
+async function getCartItems(id){
+const{data,error}=await supabaseClient
+.from('booking_items')
+.select('*,event_options(option_code,is_accommodation,free_with_accommodation)')
+.eq('booking_id',id)
+.order('created_at');
 
+if(error){
+alert(
+'GET CART ITEMS ERROR:\n'+
+(error.message||'Unknown error')+
+'\n\nBooking ID:\n'+id
+);
+console.error('getCartItems error:',error);
+return[];
+}
+
+return data||[];
+}
 async function refreshCartBadge(){
 const badge=el('cartBadge');
 if(!currentUser){
