@@ -366,7 +366,61 @@ document.addEventListener('click', function(event) {
   }));
 
 });
+// ===== CART FIX =====
 
+// Remove duplicate extension empty-cart message
+function removeDuplicateExtensionEmptyCart() {
+  const container = document.querySelector('.extension-cart-content');
+
+  if (container && extensionCart.length === 0) {
+    container.remove();
+  }
+}
+
+// Capture reservation ADD button
+document.addEventListener('click', function (event) {
+  const button = event.target.closest('.add-btn');
+  if (!button) return;
+
+  const row = button.closest('.option-row');
+  if (!row) return;
+
+  const name =
+    row.querySelector('.option-name')?.textContent?.trim() ||
+    T('Rezervácia', 'Reservation');
+
+  const priceText =
+    row.querySelector('.option-price')?.textContent || '0';
+
+  const priceMatch = priceText.match(/[\d,.]+/);
+  const price = priceMatch
+    ? Number(priceMatch[0].replace(',', '.'))
+    : 0;
+
+  const qty =
+    Number(
+      row.querySelector('.qty-value')?.textContent ||
+      row.querySelector('.guest-count')?.textContent ||
+      1
+    ) || 1;
+
+  const item = {
+    id: Date.now() + '-' + Math.random(),
+    type: 'reservation',
+    name: name,
+    price: price,
+    quantity: qty,
+    nights: 1
+  };
+
+  extensionAddItem(item);
+});
+
+// Keep badge updated
+document.addEventListener('DOMContentLoaded', function () {
+  updateExtensionCartBadge();
+  removeDuplicateExtensionEmptyCart();
+});
 
 // Restore cart after page load
 document.addEventListener('DOMContentLoaded', function() {
