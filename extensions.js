@@ -105,3 +105,22 @@ function saveExtensionCart() {
 function extensionCartCount() {
   return extensionCart.reduce((total, item) => total + (item.quantity || 1), 0);
 }
+// ===== ADD RESERVATION TO CART =====
+
+function addReservationToExtensionCart(item) {
+  if (!item) return;
+
+  const cartItem = {
+    ...item,
+    quantity: Number(item.quantity || 1)
+  };
+
+  extensionCart.push(cartItem);
+  saveExtensionCart();
+
+  const badge = document.querySelector('.cart-badge');
+  if (badge) {
+    badge.textContent = extensionCartCount();
+    badge.style.display = extensionCartCount() > 0 ? 'inline-flex' : 'none';
+  }
+}
