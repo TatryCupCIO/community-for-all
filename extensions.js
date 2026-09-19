@@ -94,3 +94,14 @@ showEventDetail = async function(id) {
   });
 
 };
+// ===== CART EXTENSION =====
+
+let extensionCart = JSON.parse(localStorage.getItem('communityForAllCart') || '[]');
+
+function saveExtensionCart() {
+  localStorage.setItem('communityForAllCart', JSON.stringify(extensionCart));
+}
+
+function extensionCartCount() {
+  return extensionCart.reduce((total, item) => total + (item.quantity || 1), 0);
+}
