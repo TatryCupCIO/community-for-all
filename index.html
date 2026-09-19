@@ -12,12 +12,16 @@ let ticketAges=isChild(o)?[childMin]:[];
 let capacityNote=null;
 let unitValue=null;
 
+function isSharedAccommodation(){
+return o.option_code==='shared_accommodation_adult'
+}
+
 function accommodationUnitLabel(){
 if(o.option_code==='small_tent'||o.option_code==='large_tent'){
 return T('Počet stanov','Number of tents')
 }
 if(o.option_code==='caravan_motorhome'){
-return T('Počet karavanov / obytných áut','Number of caravans / motorhomes')
+return T('Počet vozidiel','Number of vehicles')
 }
 if(o.option_code==='private_room_2'){
 return T('Počet izieb','Number of rooms')
@@ -25,10 +29,10 @@ return T('Počet izieb','Number of rooms')
 if(o.option_code==='private_lodge_4'){
 return T('Počet chatiek','Number of lodges')
 }
-if(o.option_code==='shared_accommodation_adult'){
-return T('Počet lôžok','Number of beds')
-}
-return T('Počet ubytovacích jednotiek','Number of accommodation units')
+return T(
+'Počet ubytovacích jednotiek',
+'Number of accommodation units'
+)
 }
 
 function updateCapacityNote(){
@@ -38,11 +42,12 @@ unitValue.textContent=q
 
 if(!capacityNote||!o.max_occupancy)return;
 
-const maxTotal=Number(o.max_occupancy)*q;
+const unitCapacity=Number(o.max_occupancy);
+const maxTotal=unitCapacity*q;
 
 capacityNote.textContent=T(
-`Kapacita jednej jednotky: ${o.max_occupancy} osoby. Pri počte ${q} je maximálna kapacita ${maxTotal} osôb spolu.`,
-`Capacity per unit: ${o.max_occupancy} people. With ${q} selected, the maximum capacity is ${maxTotal} people in total.`
+`Kapacita jednej jednotky: ${unitCapacity} osoby. Pri počte ${q} je maximálna kapacita ${maxTotal} osôb spolu.`,
+`Capacity per unit: ${unitCapacity} people. With ${q} selected, the maximum capacity is ${maxTotal} people in total.`
 )
 }
 
@@ -51,14 +56,21 @@ const box=document.createElement('div');
 box.className='guest-box';
 
 box.innerHTML=
-`<div class="guest-title">👥 ${T('Hostia v tejto rezervácii','Guests in this booking')}</div>`;
+`<div class="guest-title">👥 ${T(
+'Hostia v tejto rezervácii',
+'Guests in this booking'
+)}</div>`;
 
 /*
   POČET UBYTOVACÍCH JEDNOTIEK
-  Je priamo vo vnútri rámčeka ubytovania.
-  Spodný anonymný ovládač sa pri ubytovaní nezobrazuje.
+
+  Zobrazuje sa iba pri ubytovaní, kde zákazník
+  rezervuje konkrétny počet jednotiek:
+  stan, izba, chatka, karavan atď.
+
+  Pri spoločnom ubytovaní sa nezobrazuje.
 */
-if(o.is_accommodation){
+if(o.is_accommodation&&!isSharedAccommodation()){
 const unitLine=document.createElement('div');
 unitLine.className='guest-counter';
 
@@ -75,6 +87,7 @@ unitValue=document.createElement('span');
 
 unitMinus.type='button';
 unitPlus.type='button';
+
 unitMinus.className='guest-btn';
 unitPlus.className='guest-btn';
 unitValue.className='guest-count';
@@ -95,11 +108,23 @@ q++;
 updateCapacityNote()
 };
 
-unitControls.append(unitMinus,unitValue,unitPlus);
-unitLine.append(unitLabel,unitControls);
+unitControls.append(
+unitMinus,
+unitValue,
+unitPlus
+);
+
+unitLine.append(
+unitLabel,
+unitControls
+);
+
 box.appendChild(unitLine)
 }
 
+/*
+  DOSPELÍ
+*/
 box.appendChild(
 makeCounter(
 T('Dospelí','Adults'),
@@ -108,29 +133,36 @@ n=>adultCount=n
 )
 );
 
-/* UBYTOVANIE S POSTEĽAMI */
+/*
+  UBYTOVANIE S POSTEĽAMI
+*/
 if(isBedAccommodation(o)){
 const paid=document.createElement('div');
 paid.className='guest-section';
 
 const pt=document.createElement('div');
 pt.className='paid-child-title';
+
 pt.textContent=T(
 'Deti – vlastné lôžko',
 'Children – own bed'
 );
+
 paid.appendChild(pt);
 
 const pp=document.createElement('div');
 pp.className='option-price';
 
-if(o.option_code==='shared_accommodation_adult'){
+if(isSharedAccommodation()){
 const childOpt=allEventOptions.find(
 x=>Number(x.id)===Number(o.child_bed_option_id)
 );
 
 pp.textContent=childOpt
-?money(childOpt.price)+' '+T('za dieťa / noc','per child / night')
+?money(childOpt.price)+' '+T(
+'za dieťa / noc',
+'per child / night'
+)
 :T(
 'Cena detského lôžka nie je dostupná',
 'Child bed price is unavailable'
@@ -149,7 +181,10 @@ paidAges.className='child-age-list';
 
 paid.appendChild(
 makeCounter(
-T('Počet detí','Number of children'),
+T(
+'Počet detí',
+'Number of children'
+),
 0,
 n=>{
 while(paidChildAges.length<n){
@@ -175,7 +210,9 @@ T(
 paid.appendChild(paidAges);
 box.appendChild(paid);
 
-/* DETI BEZ VLASTNÉHO LÔŽKA */
+/*
+  DETI BEZ VLASTNÉHO LÔŽKA
+*/
 const free=document.createElement('div');
 free.className='child-free-note';
 
@@ -191,6 +228,7 @@ free.appendChild(ft);
 
 const fp=document.createElement('span');
 fp.className='free-price';
+
 fp.textContent=T(
 '£0.00 / ZDARMA',
 '£0.00 / FREE'
@@ -225,7 +263,8 @@ while(otherChildAges.length<n){
 otherChildAges.push('')
 }
 
-otherChildAges=otherChildAges.slice(0,n);
+otherChildAges=
+otherChildAges.slice(0,n);
 
 renderAgeInputs(
 freeAges,
@@ -245,7 +284,9 @@ free.appendChild(freeAges);
 box.appendChild(free)
 }
 
-/* STAN / KARAVAN */
+/*
+  STANY / KARAVANY
+*/
 else if(isCamping(o)){
 const childAges=document.createElement('div');
 childAges.className='child-age-list';
@@ -259,40 +300,8 @@ while(otherChildAges.length<n){
 otherChildAges.push('')
 }
 
-otherChildAges=otherChildAges.slice(0,n);
-
-renderAgeInputs(
-childAges,
-otherChildAges,
-T(
-'Vek každého dieťaťa:',
-'Age of each child:'
-),
-0,
-17
-)
-}
-)
-);
-
-box.appendChild(childAges)
-}
-
-/* INÉ UBYTOVANIE S EVIDENCIOU HOSTÍ */
-else{
-const childAges=document.createElement('div');
-childAges.className='child-age-list';
-
-box.appendChild(
-makeCounter(
-T('Deti','Children'),
-0,
-n=>{
-while(otherChildAges.length<n){
-otherChildAges.push('')
-}
-
-otherChildAges=otherChildAges.slice(0,n);
+otherChildAges=
+otherChildAges.slice(0,n);
 
 renderAgeInputs(
 childAges,
@@ -312,11 +321,51 @@ box.appendChild(childAges)
 }
 
 /*
-  INFORMÁCIA O KAPACITE
+  INÉ UBYTOVANIE S EVIDENCIOU HOSTÍ
 */
-if(o.max_occupancy){
+else{
+const childAges=document.createElement('div');
+childAges.className='child-age-list';
+
+box.appendChild(
+makeCounter(
+T('Deti','Children'),
+0,
+n=>{
+while(otherChildAges.length<n){
+otherChildAges.push('')
+}
+
+otherChildAges=
+otherChildAges.slice(0,n);
+
+renderAgeInputs(
+childAges,
+otherChildAges,
+T(
+'Vek každého dieťaťa:',
+'Age of each child:'
+),
+0,
+17
+)
+}
+)
+);
+
+box.appendChild(childAges)
+}
+
+/*
+  KAPACITA
+
+  Pri spoločnom ubytovaní nie je samostatný počet
+  ubytovacích jednotiek.
+*/
+if(o.max_occupancy&&!isSharedAccommodation()){
 capacityNote=document.createElement('div');
 capacityNote.className='capacity-note';
+
 box.appendChild(capacityNote);
 updateCapacityNote()
 }
@@ -334,10 +383,13 @@ row.appendChild(box)
 }
 
 /*
-  SPODNÝ RIADOK.
-  Pri ubytovaní už NEOBSAHUJE − 1 +.
-  Zostane iba tlačidlo Pridať.
-  Pri ostatných produktoch zostáva klasický počet kusov.
+  SPODNÝ RIADOK
+
+  Ubytovanie:
+  iba tlačidlo Pridať.
+
+  Ostatné položky:
+  − počet +
 */
 const line=document.createElement('div');
 line.className='qty-line';
@@ -359,11 +411,12 @@ add.className='add-btn';
 minus.textContent='−';
 plus.textContent='+';
 val.textContent='1';
-add.textContent=T('Pridať','Add');
 
-/*
-  Pri ubytovaní je dole iba tlačidlo Pridať.
-*/
+add.textContent=T(
+'Pridať',
+'Add'
+);
+
 if(o.is_accommodation){
 line.style.justifyContent='flex-end';
 line.appendChild(add)
@@ -380,21 +433,30 @@ q++;
 val.textContent=q
 };
 
-line.append(minus,val,plus,add)
+line.append(
+minus,
+val,
+plus,
+add
+)
 }
 
 row.appendChild(line);
 
-/* VEK PRI DETSKÝCH PRODUKTOCH */
+/*
+  VEK PRI DETSKÝCH PRODUKTOCH
+*/
 let childBox=null;
 
 if(isChild(o)){
 childBox=document.createElement('div');
 childBox.className='child-box';
+
 row.appendChild(childBox);
 
 const renderTickets=()=>{
-ticketAges=ticketAges.slice(0,q);
+ticketAges=
+ticketAges.slice(0,q);
 
 while(ticketAges.length<q){
 ticketAges.push(childMin)
@@ -429,6 +491,9 @@ renderTickets()
 }
 }
 
+/*
+  PRIDAŤ DO KOŠÍKA
+*/
 add.onclick=async()=>{
 if(!requireLogin())return;
 
@@ -477,10 +542,13 @@ T(
 }
 
 /*
-  KAPACITA:
-  počet jednotiek × kapacita jednej jednotky
+  KAPACITA UBYTOVANIA
+
+  Jedna izba/chatka/stan/vozidlo má max_occupancy.
+  Celková povolená kapacita je:
+  max_occupancy × počet rezervovaných jednotiek.
 */
-if(o.max_occupancy){
+if(o.max_occupancy&&!isSharedAccommodation()){
 const allowed=
 Number(o.max_occupancy)*q;
 
@@ -496,7 +564,7 @@ T(
 }
 
 /*
-  PRESNÁ KONTROLA VEKU DETSKÝCH PRODUKTOV
+  KONTROLA VEKU DETSKÝCH PRODUKTOV
 */
 if(isChild(o)){
 const invalidTicketAges=
@@ -518,6 +586,7 @@ T(
 }
 
 add.disabled=true;
+
 add.textContent=T(
 'Pridávam…',
 'Adding…'
@@ -528,18 +597,24 @@ let error=null;
 /*
   UBYTOVANIE
 */
-if(collectsGuests(o)&&o.is_accommodation){
-const result=await supabaseClient.rpc(
+if(
+collectsGuests(o)&&
+o.is_accommodation
+){
+const result=
+await supabaseClient.rpc(
 'add_accommodation_to_cart',
 {
 p_event_option_id:o.id,
-p_quantity:q,
+p_quantity:isSharedAccommodation()?1:q,
 p_adult_count:adultCount,
 p_paid_child_ages:isBedAccommodation(o)
 ?paidChildAges.map(Number)
 :[],
-p_free_child_ages:otherChildAges.map(Number),
-p_number_of_nights:isNightPricing(o)
+p_free_child_ages:
+otherChildAges.map(Number),
+p_number_of_nights:
+isNightPricing(o)
 ?eventNights(e)
 :1
 }
@@ -552,7 +627,8 @@ error=result.error
   OSTATNÉ POLOŽKY
 */
 else{
-const result=await supabaseClient.rpc(
+const result=
+await supabaseClient.rpc(
 'add_item_to_cart',
 {
 p_event_option_id:o.id,
@@ -577,6 +653,7 @@ error=result.error
 }
 
 add.disabled=false;
+
 add.textContent=T(
 'Pridať',
 'Add'
