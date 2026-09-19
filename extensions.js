@@ -430,3 +430,150 @@ document.addEventListener('DOMContentLoaded', function() {
     updateExtensionCartBadge();
   }, 300);
 });
+// ===== CART DUPLICATE + ACCOMMODATION CHILD CAPACITY FIX =====
+
+// 1. Remove ONLY the duplicate empty-cart message created by extensions.js.
+// The original app message "Váš košík je prázdny / Your cart is empty"
+// stays untouched.
+function extensionRemoveDuplicateEmptyCartMessage() {
+  const duplicate = document.querySelector(
+    '#cartPage .extension-cart-content'
+  );
+
+  if (duplicate && extensionCart.length === 0) {
+    duplicate.remove();
+  }
+}
+
+
+// 2. Children without their own bed do NOT use bed capacity.
+// Maximum 3 children without their own bed per accommodation option.
+function extensionFixAccommodationChildCapacity() {
+
+  const rows = document.querySelectorAll(
+    '#eventDetailContent .option-row'
+  );
+
+  rows.forEach((row) => {
+
+    // We only work with accommodation rows that contain
+    // the "children without own bed" section.
+    const text = row.textContent || '';
+
+    const isAccommodationWithFreeChildren =
+      text.includes('bez vlastného lôžka') ||
+      text.includes('without own bed');
+
+    if (!isAccommodationWithFreeChildren) return;
+
+
+    // Find child-without-bed controls.
+    const childSection = Array.from(
+      row.querySelectorAll('div')
+    ).find(el => {
+      const t = el.textContent || '';
+
+      return (
+        t.includes('Deti – bez vlastného lôžka') ||
+        t.includes('Children – without own bed')
+      );
+    });
+
+    if (!childSection) return;
+
+
+    // Find the nearest quantity controls belonging to this section.
+    const buttons = childSection.querySelectorAll('button');
+
+    buttons.forEach(button => {
+
+      if (button.dataset.extensionChildCapacity === '1') return;
+
+      const buttonText = button.textContent.trim();
+
+      // Only intercept the PLUS button.
+      if (buttonText !== '+') return;
+
+      button.dataset.extensionChildCapacity = '1';
+
+      button.addEventListener(
+        'click',
+        function(event) {
+
+          const section =
+            button.closest('.guest-row') ||
+            button.parentElement;
+
+          if (!section) return;
+
+          const valueElement =
+            section.querySelector('.qty-value') ||
+            section.querySelector('.guest-count') ||
+            Array.from(section.querySelectorAll('span,strong'))
+              .find(el => /^\d+$/.test(el.textContent.trim()));
+
+          if (!valueElement) return;
+
+          const current =
+            Number(valueElement.textContent.trim()) || 0;
+
+          // Maximum 3 free children without their own bed.
+          if (current >= 3) {
+
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            alert(
+              T(
+                'Maximálne 3 deti bez vlastného lôžka sú povolené zdarma.',
+                'A maximum of 3 children without their own bed are allowed free of charge.'
+              )
+            );
+          }
+
+        },
+        true
+      );
+
+    });
+
+  });
+}
+
+
+// 3. Apply fixes after event/accommodation detail opens.
+const extensionPreviousShowEventDetail = showEventDetail;
+
+showEventDetail = async function(id) {
+
+  await extensionPreviousShowEventDetail(id);
+
+  setTimeout(() => {
+    extensionFixAccommodationChildCapacity();
+  }, 100);
+};
+
+
+// 4. Keep ONLY the original empty-cart message.
+document.addEventListener('click', function(event) {
+
+  if (event.target.closest('.cart-top-btn')) {
+
+    setTimeout(() => {
+      extensionRemoveDuplicateEmptyCartMessage();
+    }, 100);
+
+  }
+
+});
+
+
+// 5. Apply after page load.
+document.addEventListener('DOMContentLoaded', function() {
+
+  setTimeout(() => {
+    extensionRemoveDuplicateEmptyCartMessage();
+    extensionFixAccommodationChildCapacity();
+  }, 300);
+
+});
