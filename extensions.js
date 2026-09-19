@@ -135,3 +135,244 @@ function updateExtensionCartBadge() {
   badge.textContent = count;
   badge.style.display = count > 0 ? 'inline-flex' : 'none';
 }
+// ===== COMPLETE CART FUNCTIONS =====
+
+// Update cart badge
+function refreshExtensionCart() {
+  saveExtensionCart();
+  updateExtensionCartBadge();
+
+  if (document.querySelector('#cartPage')) {
+    renderExtensionCart();
+  }
+}
+
+
+// Add item to cart
+function extensionAddItem(item) {
+  if (!item) return;
+
+  const existing = extensionCart.find(x =>
+    x.id === item.id &&
+    x.type === item.type
+  );
+
+  if (existing) {
+    existing.quantity = Number(existing.quantity || 1) +
+                        Number(item.quantity || 1);
+  } else {
+    extensionCart.push({
+      ...item,
+      quantity: Number(item.quantity || 1)
+    });
+  }
+
+  refreshExtensionCart();
+}
+
+
+// Change quantity
+function extensionChangeQuantity(index, change) {
+  const item = extensionCart[index];
+  if (!item) return;
+
+  item.quantity = Number(item.quantity || 1) + change;
+
+  if (item.quantity <= 0) {
+    extensionCart.splice(index, 1);
+  }
+
+  refreshExtensionCart();
+}
+
+
+// Remove item
+function extensionRemoveItem(index) {
+  extensionCart.splice(index, 1);
+  refreshExtensionCart();
+}
+
+
+// Calculate total
+function extensionCartTotal() {
+  return extensionCart.reduce((total, item) => {
+    const price = Number(item.price || 0);
+    const quantity = Number(item.quantity || 1);
+    const nights = Number(item.nights || 1);
+
+    return total + (price * quantity * nights);
+  }, 0);
+}
+
+
+// Render cart
+function renderExtensionCart() {
+  const page = document.querySelector('#cartPage');
+  if (!page) return;
+
+  let container = page.querySelector('.extension-cart-content');
+
+  if (!container) {
+    container = document.createElement('div');
+    container.className = 'extension-cart-content';
+    page.appendChild(container);
+  }
+
+  if (!extensionCart.length) {
+    container.innerHTML = `
+      <div style="
+        margin-top:20px;
+        padding:20px;
+        text-align:center;
+        background:#1e293b;
+        border-radius:14px;
+      ">
+        ${T('Košík je prázdny.', 'Your cart is empty.')}
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = extensionCart.map((item, index) => {
+
+    const quantity = Number(item.quantity || 1);
+    const nights = Number(item.nights || 1);
+    const price = Number(item.price || 0);
+    const subtotal = price * quantity * nights;
+
+    return `
+      <div style="
+        background:#1e293b;
+        border:1px solid #334155;
+        border-radius:14px;
+        padding:16px;
+        margin-top:12px;
+      ">
+
+        <div style="font-weight:800;font-size:17px;">
+          ${item.name || item.title || T('Rezervácia','Reservation')}
+        </div>
+
+        ${item.details ? `
+          <div style="margin-top:6px;color:#cbd5e1;">
+            ${item.details}
+          </div>
+        ` : ''}
+
+        <div style="margin-top:8px;color:#86efac;font-weight:700;">
+          £${subtotal.toFixed(2)}
+        </div>
+
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:12px;
+          margin-top:12px;
+        ">
+          <button
+            type="button"
+            onclick="extensionChangeQuantity(${index},-1)"
+          >−</button>
+
+          <strong>${quantity}</strong>
+
+          <button
+            type="button"
+            onclick="extensionChangeQuantity(${index},1)"
+          >+</button>
+
+          <button
+            type="button"
+            onclick="extensionRemoveItem(${index})"
+            style="margin-left:auto;"
+          >
+            ${T('Odstrániť','Remove')}
+          </button>
+        </div>
+
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML += `
+    <div style="
+      margin-top:20px;
+      padding:18px;
+      background:#0f172a;
+      border:1px solid #334155;
+      border-radius:14px;
+      font-size:20px;
+      font-weight:800;
+    ">
+      ${T('Spolu','Total')}: £${extensionCartTotal().toFixed(2)}
+    </div>
+
+    <button
+      type="button"
+      id="extensionCheckoutButton"
+      style="
+        width:100%;
+        margin-top:16px;
+        padding:15px;
+        font-size:17px;
+        font-weight:800;
+        border:0;
+        border-radius:12px;
+        background:#22c55e;
+      "
+    >
+      ${T('Pokračovať k pokladni','Continue to checkout')}
+    </button>
+  `;
+}
+
+
+// Watch ADD buttons and connect them to cart
+document.addEventListener('click', function(event) {
+
+  const button = event.target.closest('.add-btn');
+  if (!button) return;
+
+  setTimeout(() => {
+    updateExtensionCartBadge();
+  }, 50);
+
+});
+
+
+// Refresh cart when cart button is opened
+document.addEventListener('click', function(event) {
+
+  if (event.target.closest('.cart-top-btn')) {
+    setTimeout(() => {
+      renderExtensionCart();
+      updateExtensionCartBadge();
+    }, 50);
+  }
+
+});
+
+
+// Checkout button
+document.addEventListener('click', function(event) {
+
+  if (!event.target.closest('#extensionCheckoutButton')) return;
+
+  window.dispatchEvent(new CustomEvent('communityForAllCheckout', {
+    detail: {
+      items: extensionCart,
+      total: extensionCartTotal()
+    }
+  }));
+
+});
+
+
+// Restore cart after page load
+document.addEventListener('DOMContentLoaded', function() {
+  updateExtensionCartBadge();
+
+  setTimeout(() => {
+    updateExtensionCartBadge();
+  }, 300);
+});
