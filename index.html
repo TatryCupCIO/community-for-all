@@ -192,24 +192,19 @@ textarea{min-height:130px}
 <div class="page" id="loginPage">
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
 <h2 id="loginTitle"></h2>
-
 <div class="card">
 <form id="loginForm">
 <label id="loginEmailLabel"></label>
 <input type="email" id="loginEmail" required>
-
 <label id="loginPasswordLabel"></label>
 <input type="password" id="loginPassword" required>
-
 <button class="submit-btn" id="loginSubmitBtn"></button>
 </form>
-
 <div class="auth-links">
 <button class="auth-link-btn" id="forgotPasswordBtn" onclick="showForgotPassword()"></button>
 <br>
 <button class="auth-link-btn" id="registerLinkBtn" onclick="showRegister()"></button>
 </div>
-
 <div id="loginMessage" class="message"></div>
 </div>
 </div>
@@ -217,24 +212,18 @@ textarea{min-height:130px}
 <div class="page" id="registerPage">
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
 <h2 id="registerTitle"></h2>
-
 <div class="card">
 <form id="registerForm">
 <label id="registerUsernameLabel"></label>
 <input id="registerUsername" required>
-
 <label id="registerEmailLabel"></label>
 <input type="email" id="registerEmail" required>
-
 <label id="registerPasswordLabel"></label>
 <input type="password" id="registerPassword" required>
-
 <label id="registerPassword2Label"></label>
 <input type="password" id="registerPassword2" required>
-
 <button class="submit-btn" id="registerSubmitBtn"></button>
 </form>
-
 <div id="registerMessage" class="message"></div>
 </div>
 </div>
@@ -242,17 +231,13 @@ textarea{min-height:130px}
 <div class="page" id="accountPage">
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
 <h2 id="accountTitle"></h2>
-
 <div class="card">
 <div class="account-name" id="accountUsername"></div>
 <div class="account-email" id="accountEmail"></div>
-
 <label id="accountUsernameLabel"></label>
 <input id="accountUsernameInput">
-
 <button class="submit-btn" id="saveUsernameBtn" onclick="saveUsername()"></button>
 <div id="usernameMessage" class="message"></div>
-
 <button class="submit-btn logout-btn" id="logoutBtn" onclick="logoutUser()"></button>
 </div>
 </div>
@@ -260,32 +245,26 @@ textarea{min-height:130px}
 <div class="page" id="forgotPage">
 <button class="back-btn" id="forgotBackBtn" onclick="showLogin()">← Späť</button>
 <h2 id="forgotTitle"></h2>
-
 <div class="card">
 <form id="forgotForm">
 <label id="forgotEmailLabel"></label>
 <input type="email" id="forgotEmail" required>
 <button class="submit-btn" id="forgotSubmitBtn"></button>
 </form>
-
 <div id="forgotMessage" class="message"></div>
 </div>
 </div>
 
 <div class="page" id="resetPage">
 <h2 id="resetTitle"></h2>
-
 <div class="card">
 <form id="resetForm">
 <label id="newPasswordLabel"></label>
 <input type="password" id="newPassword" required>
-
 <label id="newPassword2Label"></label>
 <input type="password" id="newPassword2" required>
-
 <button class="submit-btn" id="resetSubmitBtn"></button>
 </form>
-
 <div id="resetMessage" class="message"></div>
 </div>
 </div>
@@ -299,21 +278,16 @@ textarea{min-height:130px}
 <div class="page" id="contactPage">
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
 <h2 id="contactTitle"></h2>
-
 <div class="card">
 <form id="contactForm">
 <label id="contactNameLabel"></label>
 <input name="name" required>
-
 <label id="contactEmailLabel"></label>
 <input type="email" name="email" required>
-
 <label id="contactMessageLabel"></label>
 <textarea name="message" required></textarea>
-
 <button class="submit-btn" id="contactSubmitBtn"></button>
 </form>
-
 <div id="contactMessage" class="message"></div>
 </div>
 </div>
@@ -321,24 +295,18 @@ textarea{min-height:130px}
 <div class="page" id="fatraPage">
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
 <h2 id="fatraTitle"></h2>
-
 <div class="card">
 <form id="fatraForm">
 <label id="fatraNameLabel"></label>
 <input name="name" required>
-
 <label id="fatraEmailLabel"></label>
 <input type="email" name="email" required>
-
 <label id="fatraPhoneLabel"></label>
 <input name="phone" required>
-
 <label id="fatraOrderLabel"></label>
 <textarea name="order" required></textarea>
-
 <button class="submit-btn green-btn" id="fatraSubmitBtn"></button>
 </form>
-
 <div id="fatraMessage" class="message"></div>
 </div>
 </div>
@@ -346,30 +314,22 @@ textarea{min-height:130px}
 <div class="page" id="facePage">
 <button class="back-btn backText" onclick="showHome()">← Späť</button>
 <h2 id="faceTitle"></h2>
-
 <div class="card">
 <form id="faceForm">
 <label id="faceNameLabel"></label>
 <input name="name" required>
-
 <label id="faceEmailLabel"></label>
 <input type="email" name="email" required>
-
 <label id="facePhoneLabel"></label>
 <input name="phone" required>
-
 <label id="faceChildNameLabel"></label>
 <input name="child_name" required>
-
 <label id="faceChildAgeLabel"></label>
 <input type="number" name="child_age" min="1" max="17" required>
-
 <label id="facePaintingLabel"></label>
 <textarea name="painting" required></textarea>
-
 <button class="submit-btn purple-btn" id="faceSubmitBtn"></button>
 </form>
-
 <div id="faceMessage" class="message"></div>
 </div>
 </div>
@@ -496,6 +456,15 @@ return Math.max(1,eventDays(e)-1)
 
 function getUsername(u){
 return u?.user_metadata?.username?.trim()||''
+}
+
+/* EVENT DESCRIPTION LANGUAGE */
+function localEventDescription(e){
+if(!e)return'';
+
+return currentLanguage==='sk'
+?(e.description_sk||e.description||e.description_en||'')
+:(e.description_en||e.description||e.description_sk||'')
 }
 
 function showLogin(){
@@ -916,6 +885,8 @@ const wrap=document.createElement('div');
 const head=document.createElement('div');
 head.className='card';
 
+const eventDescription=localEventDescription(e);
+
 head.innerHTML=`
 <div class="event-title">
 ${escapeHtml(e.title)}
@@ -932,8 +903,8 @@ ${e.venue_name
 ?`<div class="event-info">📍 ${escapeHtml(e.venue_name)}</div>`
 :''}
 
-${e.description
-?`<div class="detail-section detail-text">${escapeHtml(e.description)}</div>`
+${eventDescription
+?`<div class="detail-section detail-text">${escapeHtml(eventDescription)}</div>`
 :''}`;
 
 wrap.appendChild(head);
