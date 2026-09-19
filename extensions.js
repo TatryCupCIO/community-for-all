@@ -46,3 +46,51 @@ function availabilityHtml(option) {
     </div>
   `;
 }
+// Add availability status to reservation options
+
+const originalShowEventDetail = showEventDetail;
+
+showEventDetail = async function(id) {
+
+  await originalShowEventDetail(id);
+
+  const rows = document.querySelectorAll(
+    '#eventDetailContent .option-row'
+  );
+
+  rows.forEach((row, index) => {
+
+    const option = currentEventOptions[index];
+
+    if (!option) return;
+
+    const existing = row.querySelector(
+      '.extension-availability'
+    );
+
+    if (existing) return;
+
+    const info = availabilityInfo(option);
+
+    const status = document.createElement('div');
+
+    status.className = 'extension-availability';
+
+    status.style.marginTop = '8px';
+    status.style.fontSize = '13px';
+    status.style.fontWeight = '800';
+    status.style.color = info.color;
+
+    status.textContent = '● ' + info.text;
+
+    const price = row.querySelector('.option-price');
+
+    if (price) {
+      price.insertAdjacentElement('afterend', status);
+    } else {
+      row.appendChild(status);
+    }
+
+  });
+
+};
