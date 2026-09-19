@@ -1155,10 +1155,29 @@ if(error)return null;
 return data||null
 }
 
-async function getCartItems(id){
-const{data,error}=await supabaseClient.from('booking_items').select('*,event_options(option_code,is_accommodation,free_with_accommodation)').eq('booking_id',id).order('created_at');
-if(error)return[];
-return data||[]
+async function getActiveCart(){
+if(!currentUser)return null;
+
+const{data,error}=await supabaseClient
+.from('bookings')
+.select('*')
+.eq('user_id',currentUser.id)
+.eq('status','cart')
+.order('created_at',{ascending:false})
+.limit(1)
+.maybeSingle();
+
+if(error){
+alert(
+'GET CART ERROR:\n'+
+(error.message||'Unknown error')+
+'\n\nUser ID:\n'+currentUser.id
+);
+console.error('getActiveCart error:',error);
+return null;
+}
+
+return data||null;
 }
 
 async function refreshCartBadge(){
