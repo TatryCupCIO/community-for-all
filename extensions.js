@@ -124,3 +124,14 @@ function addReservationToExtensionCart(item) {
     badge.style.display = extensionCartCount() > 0 ? 'inline-flex' : 'none';
   }
 }
+// ===== CART BADGE =====
+
+function updateExtensionCartBadge() {
+  const badge = document.querySelector('.cart-badge');
+  if (!badge) return;
+
+  const count = extensionCartCount();
+
+  badge.textContent = count;
+  badge.style.display = count > 0 ? 'inline-flex' : 'none';
+}
