@@ -1497,3 +1497,27 @@ setLanguage = function(lang) {
     }
   }, 50);
 };
+// ============================================================
+// BREAKFAST AGE LABEL FIX
+// 0–11 child / 12+ adult
+// ============================================================
+
+const extOriginalLocalName = localName;
+
+localName = function(o) {
+  if (o?.option_code === 'breakfast_adult') {
+    return T(
+      'Raňajky – dospelý (od 12 rokov)',
+      'Breakfast – adult (12+ years)'
+    );
+  }
+
+  if (o?.option_code === 'breakfast_child') {
+    return T(
+      'Raňajky – dieťa (0–11 rokov)',
+      'Breakfast – child (0–11 years)'
+    );
+  }
+
+  return extOriginalLocalName(o);
+};
