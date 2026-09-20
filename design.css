@@ -1,1006 +1,313 @@
 /* =========================================================
-   COMMUNITY FOR ALL
-   NEW VISUAL DESIGN
-   Mení iba vzhľad. Funkcie aplikácie zostávajú nedotknuté.
+   COMMUNITY FOR ALL - COMPACT MOBILE HOME
    ========================================================= */
 
-:root {
-  --cfa-bg: #07131f;
-  --cfa-bg-2: #0b1b2b;
-  --cfa-card: #102338;
-  --cfa-card-2: #0d1c2c;
-  --cfa-orange: #ff7a00;
-  --cfa-orange-light: #ff9d2e;
-  --cfa-red: #e74735;
-  --cfa-white: #ffffff;
-  --cfa-text: #f5f7fa;
-  --cfa-muted: #aab5c2;
-  --cfa-border: rgba(255,255,255,.14);
-  --cfa-radius: 18px;
+*{
+  box-sizing:border-box;
 }
-
-/* CELÁ APLIKÁCIA */
-
-html,
-body {
-  background:
-    radial-gradient(circle at 85% 5%, rgba(255,122,0,.13), transparent 24rem),
-    linear-gradient(180deg, #081522 0%, #07131f 55%, #06111c 100%) !important;
-  color: var(--cfa-text) !important;
-}
-
-body {
-  min-height: 100vh;
-}
-
-/* HLAVNÝ OBSAH */
-
-main,
-.container,
-.page,
-.content,
-#app {
-  position: relative;
-}
-
-/* NADPISY */
-
-h1,
-h2,
-h3 {
-  color: var(--cfa-white);
-  letter-spacing: -.02em;
-}
-
-h1 {
-  font-weight: 900;
-}
-
-h2,
-h3 {
-  font-weight: 800;
-}
-
-/* COMMUNITY FOR ALL */
-
-.brand-title,
-.logo-title,
-.site-title {
-  color: var(--cfa-white) !important;
-  font-weight: 900 !important;
-}
-
-.brand-title span,
-.logo-title span,
-.site-title span {
-  color: var(--cfa-orange) !important;
-}
-
-/* TLAČIDLÁ */
-
-button,
-.btn {
-  border-radius: 15px;
-  font-weight: 800;
-  transition:
-    transform .15s ease,
-    box-shadow .15s ease,
-    border-color .15s ease;
-}
-
-button:active,
-.btn:active {
-  transform: scale(.98);
-}
-
-/* VŠEOBECNÉ KARTY */
-
-.card,
-.panel,
-.box,
-.event-card,
-.booking-card,
-.option-row {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(18,42,65,.97),
-      rgba(8,25,40,.97)
-    ) !important;
-
-  border: 1px solid var(--cfa-border) !important;
-  border-radius: var(--cfa-radius) !important;
-
-  box-shadow:
-    0 12px 30px rgba(0,0,0,.22),
-    inset 0 1px 0 rgba(255,255,255,.04);
-}
-
-/* HLAVNÉ MENU */
-
-.home-menu,
-.menu,
-.main-menu {
-  display: grid;
-  gap: 14px;
-}
-
-/* veľké menu tlačidlá */
-
-.home-menu button,
-.home-menu .btn,
-.menu button,
-.menu .btn,
-.main-menu button,
-.main-menu .btn {
-  position: relative;
-
-  background:
-    linear-gradient(
-      135deg,
-      rgba(17,39,60,.98),
-      rgba(7,24,38,.98)
-    ) !important;
-
-  color: white !important;
-
-  border: 1px solid rgba(255,255,255,.16) !important;
-
-  border-radius: 18px !important;
-
-  min-height: 78px;
-
-  box-shadow:
-    0 10px 28px rgba(0,0,0,.20);
-
-  text-align: left;
-}
-
-/* prvá hlavná položka / podujatia */
-
-.home-menu button:first-child,
-.home-menu .btn:first-child,
-.menu button:first-child,
-.menu .btn:first-child,
-.main-menu button:first-child,
-.main-menu .btn:first-child {
-  background:
-    linear-gradient(
-      135deg,
-      #d95e00 0%,
-      #ff7a00 48%,
-      #a94300 100%
-    ) !important;
-
-  border-color: #ff8a20 !important;
-
-  box-shadow:
-    0 12px 32px rgba(255,122,0,.22);
-}
-
-/* oranžový akcent */
-
-a {
-  color: var(--cfa-orange-light);
-}
-
-/* SK / EN */
-
-.lang-btn,
-.language-btn {
-  background: rgba(7,20,32,.82) !important;
-  color: white !important;
-  border: 1px solid rgba(255,255,255,.22) !important;
-}
-
-.lang-btn.active,
-.language-btn.active {
-  color: var(--cfa-orange-light) !important;
-  border-color: var(--cfa-orange) !important;
-  box-shadow:
-    0 0 0 1px rgba(255,122,0,.2),
-    0 0 22px rgba(255,122,0,.13);
-}
-
-/* KOŠÍK */
-
-.cart,
-.cart-box,
-#cartContent {
-  color: var(--cfa-text);
-}
-
-.cart-item {
-  background:
-    linear-gradient(
-      135deg,
-      rgba(16,38,59,.98),
-      rgba(8,25,40,.98)
-    ) !important;
-
-  border: 1px solid rgba(255,255,255,.13) !important;
-  border-radius: 16px !important;
-}
-
-/* FORMULÁRE */
-
-input,
-select,
-textarea {
-  background: rgba(5,18,30,.92) !important;
-  color: white !important;
-  border: 1px solid rgba(255,255,255,.20) !important;
-  border-radius: 13px !important;
-}
-
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none !important;
-  border-color: var(--cfa-orange) !important;
-  box-shadow: 0 0 0 3px rgba(255,122,0,.12) !important;
-}
-
-/* CHECKBOX */
-
-input[type="checkbox"] {
-  accent-color: var(--cfa-orange);
-}
-
-/* CENY */
-
-.option-price,
-.price,
-.total {
-  color: var(--cfa-orange-light) !important;
-}
-
-/* AVAILABLE */
-
-.extension-availability {
-  font-weight: 800 !important;
-}
-
-/* ODSTRÁNIŤ */
-
-.remove-btn,
-.delete-btn,
-button.danger {
-  background: linear-gradient(135deg,#a91f1f,#d32d26) !important;
-  color: white !important;
-  border: 1px solid rgba(255,100,90,.35) !important;
-}
-
-/* SUPPORT */
-
-.support-btn {
-  background: rgba(8,20,32,.9) !important;
-  color: white !important;
-  border: 1px solid rgba(231,71,53,.8) !important;
-  box-shadow: 0 8px 22px rgba(0,0,0,.18);
-}
-
-/* FOOTER */
-
-footer,
-.footer {
-  color: var(--cfa-muted) !important;
-  border-top-color: rgba(255,255,255,.08) !important;
-}
-
-/* ORANŽOVÝ DETAIL V SPODNEJ ČASTI */
-
-footer::before,
-.footer::before {
-  content: "";
-  display: block;
-  width: 72px;
-  height: 2px;
-  margin: 20px auto;
-  background: var(--cfa-orange);
-  border-radius: 10px;
-}
-
-/* MOBIL */
-
-@media (max-width: 700px) {
-
-  body {
-    background:
-      radial-gradient(circle at 88% 4%, rgba(255,122,0,.14), transparent 18rem),
-      linear-gradient(180deg,#081522,#07131f 55%,#06111c) !important;
-  }
-
-  .card,
-  .panel,
-  .box,
-  .event-card,
-  .booking-card,
-  .option-row {
-    border-radius: 17px !important;
-  }
-
-  .home-menu button,
-  .home-menu .btn,
-  .menu button,
-  .menu .btn,
-  .main-menu button,
-  .main-menu .btn {
-    min-height: 74px;
-  }
-}
-/* =========================================================
-   COMMUNITY FOR ALL
-   HOME PAGE REDESIGN
-   Visual layer only - no functionality changes
-   ========================================================= */
-
-:root{
-  --cfa-bg:#07131f;
-  --cfa-bg2:#0b1c2b;
-  --cfa-card:#102436;
-  --cfa-card2:#0b1b29;
-
-  --cfa-orange:#ff7a00;
-  --cfa-orange2:#ff9d21;
-  --cfa-red:#e84c3d;
-
-  --cfa-white:#ffffff;
-  --cfa-text:#f4f7fa;
-  --cfa-muted:#aebac6;
-
-  --cfa-border:rgba(255,255,255,.13);
-  --cfa-orange-border:rgba(255,122,0,.75);
-
-  --cfa-radius:20px;
-}
-
-
-/* =========================================================
-   PAGE BACKGROUND
-   ========================================================= */
 
 html,
 body{
+  margin:0 !important;
+  padding:0 !important;
+  min-height:100% !important;
+  background:#061521 !important;
+  color:#fff !important;
+}
+
+body{
   background:
-    radial-gradient(
-      circle at 82% 8%,
-      rgba(255,122,0,.14),
-      transparent 23%
-    ),
-    radial-gradient(
-      circle at 10% 55%,
-      rgba(20,75,105,.18),
-      transparent 30%
-    ),
-    linear-gradient(
-      180deg,
-      #0b1824 0%,
-      #07131f 45%,
-      #06111b 100%
-    ) !important;
-
-  color:var(--cfa-text);
+    radial-gradient(circle at 84% 15%,rgba(255,126,20,.10),transparent 19%),
+    linear-gradient(180deg,#071723 0%,#06131e 100%) !important;
 }
 
 
-/* subtle warm glow at top */
+/* =========================
+   TOP AREA
+   ========================= */
 
-body::before{
-  content:"";
-  position:fixed;
-  top:0;
-  left:0;
-  right:0;
-  height:280px;
+header{
+  padding-top:8px !important;
+  margin-bottom:0 !important;
+}
 
-  background:
-    radial-gradient(
-      ellipse at 80% 0%,
-      rgba(255,122,0,.12),
-      transparent 58%
-    );
-
-  pointer-events:none;
-  z-index:-1;
+.topbar,
+.top-bar,
+.header-actions{
+  min-height:42px !important;
+  margin-bottom:3px !important;
 }
 
 
-/* =========================================================
-   MAIN HOME AREA
-   ========================================================= */
+/* SUPPORT */
 
-#homePage{
-  width:100%;
-  max-width:720px;
-  margin:0 auto;
-}
+#supportBtn,
+.support-btn,
+.donate-btn{
+  min-height:36px !important;
+  height:36px !important;
 
+  padding:0 14px !important;
 
-/* =========================================================
-   COMMUNITY FOR ALL TITLE
-   ========================================================= */
+  border:1px solid #e84848 !important;
+  border-radius:999px !important;
 
-.logo{
-  margin-top:16px !important;
-  margin-bottom:5px !important;
-
-  font-weight:900 !important;
-  letter-spacing:-1.5px !important;
-
-  text-shadow:
-    0 3px 20px rgba(0,0,0,.35);
-}
-
-
-/* Charity organisation subtitle */
-
-.charity{
-  color:#d2dae2 !important;
-  letter-spacing:2px !important;
-  font-weight:500 !important;
-  opacity:.95;
-}
-
-
-/* =========================================================
-   LANGUAGE BUTTONS
-   ========================================================= */
-
-.language{
-  margin-top:26px !important;
-  margin-bottom:34px !important;
-  gap:0 !important;
-}
-
-.lang-btn{
-  min-width:88px !important;
-  height:54px !important;
-
-  border-radius:0 !important;
-
-  background:#0b1b29 !important;
+  background:rgba(40,14,22,.35) !important;
   color:#fff !important;
 
-  border:1px solid rgba(255,255,255,.18) !important;
-
-  font-size:17px !important;
-  font-weight:800 !important;
+  font-size:14px !important;
+  font-weight:700 !important;
 
   box-shadow:none !important;
 }
 
-#skLangBtn{
-  border-radius:27px 0 0 27px !important;
-}
 
-#enLangBtn{
-  border-radius:0 27px 27px 0 !important;
-}
+/* CART / PROFILE */
 
-.lang-btn.active,
-.lang-btn:hover{
-  color:#ff9d21 !important;
-  border-color:#ff7a00 !important;
+.cart-btn,
+.profile-btn,
+#cartBtn,
+#profileBtn{
+  min-height:40px !important;
+  height:40px !important;
 
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,122,0,.14),
-      rgba(255,122,0,.04)
-    ) !important;
+  border:1px solid rgba(119,151,174,.35) !important;
+  border-radius:12px !important;
 
-  box-shadow:
-    inset 0 0 18px rgba(255,122,0,.08) !important;
-}
-
-
-/* =========================================================
-   HOME MENU - GENERAL
-   ========================================================= */
-
-#homePage .menu-btn{
-  position:relative;
-
-  width:100% !important;
-  min-height:92px !important;
-
-  margin:0 0 15px 0 !important;
-  padding:20px 62px 20px 76px !important;
-
-  display:flex !important;
-  align-items:center !important;
-  justify-content:flex-start !important;
-
-  text-align:left !important;
-
-  border-radius:var(--cfa-radius) !important;
-
-  background:
-    linear-gradient(
-      110deg,
-      rgba(17,42,61,.98),
-      rgba(7,22,34,.96)
-    ) !important;
-
-  border:1px solid var(--cfa-border) !important;
-
+  background:#0b1e2d !important;
   color:#fff !important;
 
-  font-size:22px !important;
+  box-shadow:none !important;
+}
+
+
+/* =========================
+   MAIN TITLE
+   ========================= */
+
+.logo{
+  margin:4px auto 1px !important;
+
+  color:#f5f5f5 !important;
+  background:none !important;
+
+  -webkit-text-fill-color:initial !important;
+
+  font-size:clamp(26px,7vw,34px) !important;
   font-weight:800 !important;
+
+  line-height:1 !important;
+  letter-spacing:-1px !important;
+
+  text-align:center !important;
+}
+
+.logo .cfa-all{
+  color:#ff7a00 !important;
+}
+
+.charity{
+  margin:6px auto 3px !important;
+
+  color:#d1d8de !important;
+
+  font-size:9px !important;
+  font-weight:500 !important;
+
   line-height:1.2 !important;
+  letter-spacing:2.4px !important;
 
-  box-shadow:
-    0 10px 28px rgba(0,0,0,.18),
-    inset 0 1px 0 rgba(255,255,255,.035) !important;
-
-  overflow:hidden;
-  transition:
-    transform .18s ease,
-    border-color .18s ease,
-    box-shadow .18s ease !important;
+  text-align:center !important;
 }
 
 
-/* right arrow */
+/* =========================
+   HOME
+   ========================= */
 
-#homePage .menu-btn::after{
-  content:"›";
+#homePage{
+  width:calc(100% - 26px) !important;
+  max-width:660px !important;
 
-  position:absolute;
-  right:22px;
-  top:50%;
-  transform:translateY(-52%);
+  margin:0 auto !important;
+  padding:0 !important;
+}
 
-  color:#fff;
 
-  font-size:42px;
-  font-family:Arial,sans-serif;
-  font-weight:300;
+/* PEOPLE COMMUNITY OPPORTUNITIES */
 
+#homePage::before{
+  content:"PEOPLE  |  COMMUNITY  |  OPPORTUNITIES";
+
+  display:block;
+
+  margin:7px auto 0 !important;
+
+  color:#d5dbe0;
+
+  font-size:8px;
+  font-weight:500;
+
+  letter-spacing:2px;
   line-height:1;
+
+  text-align:center;
 }
 
 
-/* icon container */
+/* STRONGER TOGETHER */
 
-#homePage .menu-btn::before{
-  position:absolute;
+#homePage::after{
+  content:"Stronger Together";
 
-  left:24px;
-  top:50%;
-  transform:translateY(-50%);
+  display:block;
 
-  width:40px;
+  margin:2px auto 7px !important;
+
+  color:#ff7900;
+
+  font-family:
+    "Segoe Script",
+    "Brush Script MT",
+    "Lucida Handwriting",
+    cursive;
+
+  font-size:23px;
+
+  font-weight:400;
+  line-height:1;
 
   text-align:center;
 
-  font-size:31px;
-  line-height:1;
-
-  filter:none;
+  transform:rotate(-3deg);
 }
 
 
-/* press effect */
+/* =========================
+   LANGUAGE
+   ========================= */
 
-#homePage .menu-btn:active{
-  transform:scale(.985);
+.language{
+  width:184px !important;
+  height:38px !important;
+
+  margin:7px auto 10px !important;
+  padding:0 !important;
+
+  display:flex !important;
+
+  overflow:hidden !important;
+
+  border:1px solid rgba(107,143,169,.45) !important;
+  border-radius:999px !important;
+
+  background:#071724 !important;
+
+  box-shadow:none !important;
 }
 
+.lang-btn{
+  flex:1 !important;
 
-/* =========================================================
-   EVENTS - MAIN ORANGE BUTTON
-   ========================================================= */
+  height:36px !important;
+  min-height:36px !important;
 
-#homePage .menu-btn.events{
-  min-height:104px !important;
+  margin:0 !important;
+  padding:0 !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  background:transparent !important;
+  color:#fff !important;
+
+  font-size:14px !important;
+  font-weight:700 !important;
+
+  box-shadow:none !important;
+}
+
+.lang-btn.active{
+  color:#ff8616 !important;
 
   background:
-    radial-gradient(
-      circle at 75% 30%,
-      rgba(255,191,91,.28),
-      transparent 32%
-    ),
     linear-gradient(
-      110deg,
-      #d95d00 0%,
-      #f27600 48%,
-      #9b3f00 100%
+      100deg,
+      rgba(255,121,0,.14),
+      rgba(255,121,0,.02)
     ) !important;
-
-  border:1px solid #ff8a19 !important;
 
   box-shadow:
-    0 13px 32px rgba(0,0,0,.25),
-    0 0 24px rgba(255,122,0,.10),
-    inset 0 1px 0 rgba(255,255,255,.22) !important;
-}
-
-#homePage .menu-btn.events::before{
-  content:"▣";
-  color:#fff;
-  font-size:35px;
+    inset 0 0 0 1px #ff7900 !important;
 }
 
 
-/* =========================================================
-   MY BOOKINGS
-   ========================================================= */
-
-#homePage .menu-btn.bookings{
-  background:
-    linear-gradient(
-      110deg,
-      #15314a 0%,
-      #0b1c2c 60%,
-      #071622 100%
-    ) !important;
-
-  border-color:rgba(119,157,187,.28) !important;
-}
-
-#homePage .menu-btn.bookings::before{
-  content:"◆";
-  color:#f5f7fa;
-  font-size:28px;
-}
-
-
-/* =========================================================
-   FATRA
-   ========================================================= */
-
-#homePage .menu-btn.fatra{
-  background:
-    radial-gradient(
-      circle at 92% 50%,
-      rgba(255,122,0,.16),
-      transparent 32%
-    ),
-    linear-gradient(
-      110deg,
-      #17222a 0%,
-      #101b23 60%,
-      #24180f 100%
-    ) !important;
-
-  border-color:rgba(255,154,54,.28) !important;
-}
-
-#homePage .menu-btn.fatra::before{
-  content:"♨";
-  color:#ff982f;
-  font-size:34px;
-}
-
-
-/* =========================================================
-   FACE PAINTING
-   ========================================================= */
-
-#homePage .menu-btn.face{
-  background:
-    radial-gradient(
-      circle at 90% 50%,
-      rgba(229,76,61,.20),
-      transparent 35%
-    ),
-    linear-gradient(
-      110deg,
-      #3a1119 0%,
-      #27121a 58%,
-      #16121a 100%
-    ) !important;
-
-  border-color:rgba(232,76,61,.42) !important;
-}
-
-#homePage .menu-btn.face::before{
-  content:"✿";
-  color:#ff6d63;
-  font-size:35px;
-}
-
-
-/* =========================================================
-   ABOUT US - FAMILY / COMMUNITY
-   ========================================================= */
-
-#homePage .menu-btn.about{
-  background:
-    radial-gradient(
-      circle at 86% 50%,
-      rgba(255,122,0,.15),
-      transparent 36%
-    ),
-    linear-gradient(
-      110deg,
-      #182b38 0%,
-      #10212e 55%,
-      #1b1b1a 100%
-    ) !important;
-
-  border-color:rgba(255,255,255,.18) !important;
-}
-
-#homePage .menu-btn.about::before{
-  content:"●●";
-  color:#fff;
-  font-size:18px;
-  letter-spacing:-6px;
-}
-
-
-/* =========================================================
-   CONTACT
-   ========================================================= */
-
-#homePage .menu-btn.contact{
-  background:
-    linear-gradient(
-      110deg,
-      #132c41 0%,
-      #0d2233 55%,
-      #081824 100%
-    ) !important;
-
-  border-color:rgba(111,153,184,.30) !important;
-}
-
-#homePage .menu-btn.contact::before{
-  content:"✉";
-  color:#fff;
-  font-size:34px;
-}
-
-
-/* =========================================================
-   ORANGE HIGHLIGHT
-   ========================================================= */
-
-#homePage .menu-btn.events:hover,
-#homePage .menu-btn.events:focus{
-  border-color:#ffad45 !important;
-
-  box-shadow:
-    0 14px 34px rgba(0,0,0,.26),
-    0 0 26px rgba(255,122,0,.18) !important;
-}
-
-#homePage .menu-btn:not(.events):hover,
-#homePage .menu-btn:not(.events):focus{
-  border-color:rgba(255,122,0,.55) !important;
-}
-
-
-/* =========================================================
-   TOP ACTION BUTTONS
-   ========================================================= */
-
-.support-btn{
-  border-radius:25px !important;
-
-  background:
-    linear-gradient(
-      135deg,
-      #c91d3d,
-      #e1264c
-    ) !important;
-
-  border:1px solid rgba(255,91,110,.65) !important;
-
-  box-shadow:
-    0 8px 22px rgba(0,0,0,.22) !important;
-}
-
-
-/* cart + user */
-
-.cart-btn,
-.user-btn{
-  background:
-    linear-gradient(
-      180deg,
-      #142638,
-      #0d1d2c
-    ) !important;
-
-  border:1px solid rgba(255,255,255,.16) !important;
-
-  box-shadow:
-    0 8px 20px rgba(0,0,0,.16) !important;
-}
-
-
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-footer{
-  position:relative;
-
-  margin-top:52px !important;
-  padding-top:38px !important;
-
-  color:#aeb9c4 !important;
-}
-
-footer::before{
-  content:"";
-
-  position:absolute;
-  top:0;
-  left:50%;
-  transform:translateX(-50%);
-
-  width:135px;
-  height:3px;
-
-  border-radius:5px;
-
-  background:
-    linear-gradient(
-      90deg,
-      transparent,
-      #ff7a00 20%,
-      #ff9d21 50%,
-      #ff7a00 80%,
-      transparent
-    );
-}
-
-
-/* =========================================================
-   MOBILE
-   ========================================================= */
-
-@media(max-width:600px){
-
-  #homePage{
-    padding-left:0;
-    padding-right:0;
-  }
-
-  #homePage .menu-btn{
-    min-height:88px !important;
-
-    padding:
-      18px
-      54px
-      18px
-      70px !important;
-
-    border-radius:18px !important;
-
-    font-size:20px !important;
-  }
-
-  #homePage .menu-btn.events{
-    min-height:98px !important;
-  }
-
-  #homePage .menu-btn::before{
-    left:20px;
-  }
-
-  #homePage .menu-btn::after{
-    right:19px;
-    font-size:38px;
-  }
-
-  .logo{
-    font-size:31px !important;
-  }
-
-  .charity{
-    font-size:12px !important;
-    letter-spacing:1.7px !important;
-  }
-
-}
-
-
-/* =========================================================
-   SMALL PHONES
-   ========================================================= */
-
-@media(max-width:390px){
-
-  #homePage .menu-btn{
-    font-size:18px !important;
-    padding-left:64px !important;
-  }
-
-  #homePage .menu-btn::before{
-    left:17px;
-  }
-
-}
-/* =========================================================
-   CFA HOME - RESPONSIVE VISUAL UPGRADE
-   ========================================================= */
-
-#homePage{
-  width:min(100%, 720px) !important;
-  margin:0 auto !important;
-}
-
-/* MENU - responsive size */
+/* =========================
+   MENU CARDS
+   ========================= */
 
 #homePage .menu-btn{
-  min-height:clamp(58px, 7.2vh, 76px) !important;
-  height:auto !important;
+  position:relative !important;
 
-  margin-bottom:clamp(8px, 1.15vh, 13px) !important;
+  width:100% !important;
+  min-height:58px !important;
+  height:58px !important;
 
-  padding:
-    clamp(10px,1.4vh,15px)
-    52px
-    clamp(10px,1.4vh,15px)
-    66px !important;
+  margin:0 0 7px !important;
 
-  border-radius:17px !important;
+  padding:7px 40px 7px 62px !important;
 
-  font-size:clamp(17px,4.5vw,21px) !important;
+  display:flex !important;
+  align-items:center !important;
+
+  overflow:hidden !important;
+
+  border:1px solid rgba(111,144,167,.32) !important;
+  border-radius:14px !important;
 
   background:
     linear-gradient(
       105deg,
-      rgba(17,40,58,.98),
-      rgba(6,20,31,.98)
+      #17334a,
+      #081c2a 70%
     ) !important;
 
-  border:1px solid rgba(255,255,255,.15) !important;
+  color:#f7f7f7 !important;
+
+  font-size:17px !important;
+  font-weight:750 !important;
+
+  line-height:1.08 !important;
+  text-align:left !important;
+
+  text-shadow:none !important;
 
   box-shadow:
-    0 8px 20px rgba(0,0,0,.22),
-    inset 0 1px 0 rgba(255,255,255,.04) !important;
+    0 5px 12px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.03) !important;
 }
 
 
-/* MAIN EVENTS CARD */
+/* EVENTS */
 
 #homePage .menu-btn.events{
-  min-height:clamp(64px,8vh,84px) !important;
+  min-height:62px !important;
+  height:62px !important;
 
   background:
     radial-gradient(
       circle at 82% 45%,
-      rgba(255,190,90,.30),
-      transparent 30%
+      rgba(255,195,91,.25),
+      transparent 32%
     ),
     linear-gradient(
       105deg,
-      #c94e00 0%,
-      #f47700 52%,
-      #8d3200 100%
+      #c94c00 0%,
+      #f27600 50%,
+      #7e3106 100%
     ) !important;
 
-  border:1px solid #ff8614 !important;
-
-  box-shadow:
-    0 8px 25px rgba(0,0,0,.28),
-    0 0 18px rgba(255,122,0,.10) !important;
-}
-
-
-/* ICONS */
-
-#homePage .menu-btn::before{
-  left:20px !important;
-  width:32px !important;
-  font-size:clamp(23px,6vw,30px) !important;
-}
-
-
-/* ARROWS */
-
-#homePage .menu-btn::after{
-  right:18px !important;
-  font-size:32px !important;
-  opacity:.95;
+  border-color:#ff8112 !important;
 }
 
 
@@ -1010,8 +317,8 @@ footer::before{
   background:
     linear-gradient(
       105deg,
-      #17334b,
-      #091b29 70%
+      #17354d,
+      #081c2b 72%
     ) !important;
 }
 
@@ -1022,51 +329,51 @@ footer::before{
   background:
     radial-gradient(
       circle at 90% 50%,
-      rgba(255,122,0,.20),
-      transparent 35%
+      rgba(255,134,22,.14),
+      transparent 34%
     ),
     linear-gradient(
       105deg,
       #24241f,
-      #101a21 65%
+      #111b21 70%
     ) !important;
 
-  border-color:rgba(255,137,31,.32) !important;
+  border-color:rgba(255,137,30,.28) !important;
 }
 
 
-/* FACE PAINTING */
+/* FACE */
 
 #homePage .menu-btn.face{
   background:
     radial-gradient(
       circle at 90% 50%,
-      rgba(232,76,61,.22),
-      transparent 36%
+      rgba(238,79,76,.18),
+      transparent 34%
     ),
     linear-gradient(
       105deg,
-      #43131b,
-      #21131a 68%
+      #48121a,
+      #21141a 70%
     ) !important;
 
-  border-color:rgba(238,80,67,.38) !important;
+  border-color:rgba(238,79,76,.34) !important;
 }
 
 
-/* ABOUT - warm family feel */
+/* ABOUT */
 
 #homePage .menu-btn.about{
   background:
     radial-gradient(
-      circle at 88% 50%,
-      rgba(255,145,35,.20),
-      transparent 36%
+      circle at 90% 50%,
+      rgba(255,147,36,.14),
+      transparent 34%
     ),
     linear-gradient(
       105deg,
-      #1a303d,
-      #101e28 68%
+      #193449,
+      #101f2b 70%
     ) !important;
 }
 
@@ -1077,583 +384,156 @@ footer::before{
   background:
     linear-gradient(
       105deg,
-      #16334a,
-      #091b29 70%
+      #17354c,
+      #081c2b 72%
     ) !important;
 }
 
 
-/* LANGUAGE */
-
-.language{
-  margin-top:clamp(15px,2vh,23px) !important;
-  margin-bottom:clamp(18px,2.5vh,28px) !important;
-}
-
-.lang-btn{
-  height:clamp(42px,5.3vh,50px) !important;
-}
-
-
-/* HEADER TITLE */
-
-.logo{
-  margin-top:clamp(8px,1.5vh,15px) !important;
-  font-size:clamp(28px,7vw,36px) !important;
-}
-
-.charity{
-  margin-top:4px !important;
-  font-size:clamp(10px,2.8vw,13px) !important;
-}
-
-
-/* FOOTER */
-
-footer{
-  margin-top:clamp(24px,3.5vh,38px) !important;
-  padding-top:clamp(20px,2.8vh,30px) !important;
-}
-
-
-/* VERY SHORT PHONE SCREENS */
-
-@media(max-height:760px){
-
-  #homePage .menu-btn{
-    min-height:54px !important;
-    margin-bottom:7px !important;
-    padding-top:8px !important;
-    padding-bottom:8px !important;
-  }
-
-  #homePage .menu-btn.events{
-    min-height:60px !important;
-  }
-
-  .language{
-    margin-top:12px !important;
-    margin-bottom:15px !important;
-  }
-
-  footer{
-    margin-top:20px !important;
-  }
-}
-
-
-/* LARGE / TALL PHONES */
-
-@media(min-height:900px) and (max-width:700px){
-
-  #homePage .menu-btn{
-    min-height:68px !important;
-  }
-
-  #homePage .menu-btn.events{
-    min-height:76px !important;
-  }
-}
-/* =========================================================
-   COMMUNITY FOR ALL
-   PREMIUM HOME DESIGN V3
-   ========================================================= */
-
-
-/* ---------- HOME WIDTH ---------- */
-
-#homePage{
-  width:min(calc(100% - 28px), 680px) !important;
-  margin:0 auto !important;
-  padding:0 !important;
-}
-
-
-/* ---------- MAIN BACKGROUND ---------- */
-
-html,
-body{
-  background:
-    radial-gradient(
-      circle at 82% 15%,
-      rgba(255,118,0,.09),
-      transparent 22%
-    ),
-    linear-gradient(
-      180deg,
-      #071521 0%,
-      #06131e 45%,
-      #04101a 100%
-    ) !important;
-}
-
-
-/* =========================================================
-   MAIN LOGO / TITLE
-   ========================================================= */
-
-.logo{
-  color:#f7f7f7 !important;
-  background:none !important;
-
-  font-size:clamp(34px,8.5vw,46px) !important;
-  font-weight:800 !important;
-
-  line-height:.96 !important;
-  letter-spacing:-1.5px !important;
-
-  max-width:430px !important;
-  margin:
-    clamp(26px,4vh,42px)
-    auto
-    12px !important;
-
-  text-align:center !important;
-
-  -webkit-text-fill-color:initial !important;
-}
-
-
-/* make final word visually orange when JS enhancement loads */
-
-.logo .cfa-all{
-  color:#ff7900 !important;
-}
-
-
-/* ---------- CHARITY NAME ---------- */
-
-.charity{
-  color:#d8dde3 !important;
-
-  font-size:clamp(10px,2.8vw,13px) !important;
-  font-weight:500 !important;
-
-  letter-spacing:3px !important;
-  line-height:1.45 !important;
-
-  text-align:center !important;
-
-  margin:0 auto 18px !important;
-}
-
-
-/* =========================================================
-   PEOPLE COMMUNITY OPPORTUNITIES
-   ========================================================= */
-
-#homePage::before{
-  content:"PEOPLE   |   COMMUNITY   |   OPPORTUNITIES";
-
-  display:block;
-
-  color:#d9dde2;
-
-  font-size:clamp(9px,2.6vw,12px);
-  font-weight:500;
-
-  letter-spacing:clamp(2px,.8vw,4px);
-
-  text-align:center;
-
-  margin:
-    clamp(12px,2vh,20px)
-    auto
-    8px;
-
-  opacity:.92;
-}
-
-
-/* =========================================================
-   STRONGER TOGETHER
-   ========================================================= */
-
-#homePage::after{
-  content:"Stronger Together";
-
-  display:block;
-
-  color:#ff7900;
-
-  font-family:
-    "Segoe Script",
-    "Brush Script MT",
-    "Lucida Handwriting",
-    cursive;
-
-  font-size:clamp(28px,8vw,42px);
-
-  font-weight:400;
-
-  line-height:1;
-
-  text-align:center;
-
-  transform:rotate(-3deg);
-
-  margin:
-    3px
-    auto
-    clamp(22px,3vh,32px);
-
-  text-shadow:
-    0 0 18px rgba(255,121,0,.10);
-}
-
-
-/* =========================================================
-   LANGUAGE SWITCH
-   ========================================================= */
-
-.language{
-  width:min(255px,72%) !important;
-
-  margin:
-    0 auto
-    clamp(20px,3vh,30px) !important;
-
-  padding:0 !important;
-
-  display:flex !important;
-
-  border:
-    1px solid
-    rgba(129,156,177,.35) !important;
-
-  border-radius:999px !important;
-
-  overflow:hidden !important;
-
-  background:#071725 !important;
-
-  box-shadow:
-    inset 0 0 14px rgba(0,0,0,.24) !important;
-}
-
-
-.lang-btn{
-  flex:1 !important;
-
-  height:48px !important;
-
-  margin:0 !important;
-
-  border:0 !important;
-  border-radius:0 !important;
-
-  background:transparent !important;
-
-  color:#f5f5f5 !important;
-
-  font-size:17px !important;
-  font-weight:700 !important;
-
-  box-shadow:none !important;
-}
-
-
-.lang-btn.active{
-  color:#ff8a18 !important;
-
-  background:
-    linear-gradient(
-      100deg,
-      rgba(255,117,0,.14),
-      rgba(255,117,0,.03)
-    ) !important;
-
-  box-shadow:
-    inset 0 0 0 1px #ff7900 !important;
-}
-
-
-/* =========================================================
-   MENU CARDS
-   ========================================================= */
-
-#homePage .menu-btn{
-  position:relative !important;
-
-  width:100% !important;
-
-  min-height:78px !important;
-  height:auto !important;
-
-  margin:0 0 11px !important;
-
-  padding:
-    14px
-    52px
-    14px
-    82px !important;
-
-  display:flex !important;
-  align-items:center !important;
-
-  border-radius:17px !important;
-
-  border:
-    1px solid
-    rgba(111,143,165,.34) !important;
-
-  background:
-    linear-gradient(
-      105deg,
-      #122b3e 0%,
-      #071a29 72%,
-      #071521 100%
-    ) !important;
-
-  color:#f7f7f7 !important;
-
-  font-size:clamp(18px,4.8vw,23px) !important;
-  font-weight:750 !important;
-
-  line-height:1.12 !important;
-
-  text-align:left !important;
-
-  box-shadow:
-    0 8px 22px rgba(0,0,0,.22),
-    inset 0 1px 0 rgba(255,255,255,.035) !important;
-
-  overflow:hidden !important;
-
-  isolation:isolate !important;
-}
-
-
-/* subtle light on right */
-
-#homePage .menu-btn span{
-  position:relative;
-  z-index:2;
-}
-
-
-/* =========================================================
-   EVENTS
-   ========================================================= */
-
-#homePage .menu-btn.events{
-  min-height:86px !important;
-
-  background:
-    radial-gradient(
-      circle at 78% 48%,
-      rgba(255,187,77,.24),
-      transparent 34%
-    ),
-    linear-gradient(
-      105deg,
-      #c84b00 0%,
-      #f47b00 48%,
-      #743006 100%
-    ) !important;
-
-  border-color:#ff8110 !important;
-
-  box-shadow:
-    0 8px 24px rgba(0,0,0,.28),
-    inset 0 1px 0 rgba(255,219,169,.16) !important;
-}
-
-
-/* =========================================================
-   BOOKINGS
-   ========================================================= */
-
-#homePage .menu-btn.bookings{
-  background:
-    linear-gradient(
-      105deg,
-      #17354c 0%,
-      #0a2132 58%,
-      #071725 100%
-    ) !important;
-}
-
-
-/* =========================================================
-   FATRA
-   ========================================================= */
-
-#homePage .menu-btn.fatra{
-  background:
-    radial-gradient(
-      circle at 88% 50%,
-      rgba(255,135,26,.16),
-      transparent 32%
-    ),
-    linear-gradient(
-      105deg,
-      #25251f 0%,
-      #171d20 54%,
-      #11191f 100%
-    ) !important;
-
-  border-color:
-    rgba(255,136,31,.28) !important;
-}
-
-
-/* =========================================================
-   FACE PAINTING
-   ========================================================= */
-
-#homePage .menu-btn.face{
-  background:
-    radial-gradient(
-      circle at 88% 50%,
-      rgba(239,84,81,.18),
-      transparent 35%
-    ),
-    linear-gradient(
-      105deg,
-      #4b1019 0%,
-      #321219 55%,
-      #19151b 100%
-    ) !important;
-
-  border-color:
-    rgba(239,84,81,.34) !important;
-}
-
-
-/* =========================================================
-   ABOUT
-   ========================================================= */
-
-#homePage .menu-btn.about{
-  background:
-    radial-gradient(
-      circle at 88% 50%,
-      rgba(255,145,38,.17),
-      transparent 34%
-    ),
-    linear-gradient(
-      105deg,
-      #193247 0%,
-      #102433 58%,
-      #161b1d 100%
-    ) !important;
-}
-
-
-/* =========================================================
-   CONTACT
-   ========================================================= */
-
-#homePage .menu-btn.contact{
-  background:
-    linear-gradient(
-      105deg,
-      #17354b 0%,
-      #0b2334 60%,
-      #071824 100%
-    ) !important;
-}
-
-
-/* =========================================================
-   ICON AREA
-   ========================================================= */
+/* =========================
+   SMALL LINE ICONS
+   ========================= */
 
 #homePage .menu-btn::before{
   position:absolute !important;
 
-  left:22px !important;
+  left:17px !important;
   top:50% !important;
 
-  transform:
-    translateY(-50%) !important;
+  width:30px !important;
+  height:30px !important;
 
-  width:40px !important;
+  transform:translateY(-50%) !important;
 
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
 
-  font-size:28px !important;
+  font-family:
+    "Segoe UI Symbol",
+    Arial,
+    sans-serif !important;
+
+  font-size:24px !important;
+  font-weight:400 !important;
 
   line-height:1 !important;
 
-  z-index:3 !important;
+  color:#f2f4f6 !important;
 
-  filter:none !important;
+  z-index:3 !important;
 }
 
 
-/* =========================================================
-   RIGHT ARROW
-   ========================================================= */
+/* CALENDAR */
+
+#homePage .menu-btn.events::before{
+  content:"▣" !important;
+  font-size:26px !important;
+}
+
+
+/* TICKET */
+
+#homePage .menu-btn.bookings::before{
+  content:"◇" !important;
+  font-size:27px !important;
+  transform:translateY(-50%) rotate(-45deg) !important;
+}
+
+
+/* FOOD / SHOP */
+
+#homePage .menu-btn.fatra::before{
+  content:"♨" !important;
+  color:#ff8618 !important;
+  font-size:25px !important;
+}
+
+
+/* FACE PAINTING */
+
+#homePage .menu-btn.face::before{
+  content:"✿" !important;
+  color:#ff6b70 !important;
+  font-size:27px !important;
+}
+
+
+/* COMMUNITY */
+
+#homePage .menu-btn.about::before{
+  content:"●●" !important;
+  color:#f2f4f6 !important;
+  font-size:14px !important;
+  letter-spacing:-3px !important;
+}
+
+
+/* CONTACT */
+
+#homePage .menu-btn.contact::before{
+  content:"✉" !important;
+  color:#f2f4f6 !important;
+  font-size:25px !important;
+}
+
+
+/* =========================
+   RIGHT CHEVRON
+   ========================= */
 
 #homePage .menu-btn::after{
   content:"›" !important;
 
   position:absolute !important;
 
-  right:18px !important;
+  right:13px !important;
   top:50% !important;
 
-  transform:
-    translateY(-52%) !important;
+  transform:translateY(-53%) !important;
 
-  color:#ffffff !important;
+  color:#fff !important;
 
   font-family:Arial,sans-serif !important;
 
-  font-size:43px !important;
+  font-size:32px !important;
   font-weight:200 !important;
 
   line-height:1 !important;
 
-  opacity:.96 !important;
-
-  z-index:5 !important;
+  z-index:4 !important;
 }
 
 
-/* =========================================================
-   REMOVE VISUAL EMOJI FEEL
-   ========================================================= */
-
-#homePage .menu-btn{
-  text-shadow:none !important;
-}
-
-
-/* =========================================================
+/* =========================
    FOOTER
-   ========================================================= */
+   ========================= */
 
 footer{
   position:relative !important;
 
-  width:min(calc(100% - 30px),650px) !important;
+  width:calc(100% - 40px) !important;
+  max-width:620px !important;
 
-  margin:
-    clamp(38px,5vh,55px)
-    auto
-    0 !important;
+  margin:12px auto 0 !important;
 
-  padding:
-    48px
-    10px
-    42px !important;
-
-  text-align:center !important;
+  padding:15px 5px 12px !important;
 
   border:0 !important;
 
   background:transparent !important;
 
-  color:#aeb9c4 !important;
+  color:#aeb8c1 !important;
+
+  text-align:center !important;
+
+  font-size:10px !important;
+  line-height:1.35 !important;
 }
 
 
-/* orange line */
+/* SMALL ORANGE LINE */
 
 footer::before{
   content:"";
@@ -1663,222 +543,136 @@ footer::before{
   top:0;
   left:50%;
 
-  transform:translateX(-50%);
+  width:95px;
+  height:2px;
 
-  width:135px;
-  height:3px;
+  transform:translateX(-50%);
 
   border-radius:10px;
 
   background:#ff7900;
-
-  box-shadow:
-    0 0 10px rgba(255,121,0,.15);
 }
 
 
-/* footer motto */
+/* MOTTO */
 
 footer::after{
-  content:"♥  SMALL ACTIONS  MAKE A BIG DIFFERENCE";
+  content:"♥   SMALL ACTIONS  MAKE A BIG DIFFERENCE";
 
   display:block;
 
-  margin-top:28px;
+  margin-top:9px;
 
-  color:#c8d0d7;
+  color:#ff7900;
 
-  font-size:clamp(9px,2.7vw,12px);
-
+  font-size:8px;
   font-weight:600;
 
-  letter-spacing:2.5px;
+  letter-spacing:1.6px;
 
-  line-height:1.8;
-
-  white-space:normal;
+  line-height:1.3;
 }
 
 
-/* =========================================================
-   FOOTER HEART
-   ========================================================= */
+/* =========================
+   VERY TALL PHONES
+   ========================= */
 
-footer::after{
-  color:#ff7900;
-}
-
-
-/* =========================================================
-   DECORATIVE TREES / MOUNTAIN FEEL
-   WITHOUT IMAGE FILES YET
-   ========================================================= */
-
-body::after{
-  content:"";
-
-  position:fixed;
-
-  left:0;
-  right:0;
-  bottom:0;
-
-  height:190px;
-
-  pointer-events:none;
-
-  z-index:-1;
-
-  opacity:.28;
-
-  background:
-    linear-gradient(
-      155deg,
-      transparent 0 52%,
-      rgba(14,39,54,.42) 52% 55%,
-      transparent 55%
-    ),
-    linear-gradient(
-      205deg,
-      transparent 0 56%,
-      rgba(14,39,54,.35) 56% 59%,
-      transparent 59%
-    );
-}
-
-
-/* =========================================================
-   TOP BUTTONS
-   ========================================================= */
-
-#supportBtn,
-.support-btn{
-  border-radius:999px !important;
-
-  background:
-    rgba(92,8,25,.20) !important;
-
-  border:
-    1px solid
-    rgba(255,65,77,.70) !important;
-
-  color:#f6f6f6 !important;
-
-  box-shadow:none !important;
-}
-
-
-/* =========================================================
-   RESPONSIVE - STANDARD PHONES
-   ========================================================= */
-
-@media(max-width:700px){
-
-  #homePage{
-    width:calc(100% - 28px) !important;
-  }
+@media(min-height:850px) and (max-width:700px){
 
   #homePage .menu-btn{
-    min-height:72px !important;
-
-    padding:
-      12px
-      48px
-      12px
-      72px !important;
-
-    border-radius:16px !important;
+    height:60px !important;
+    min-height:60px !important;
   }
 
   #homePage .menu-btn.events{
-    min-height:80px !important;
-  }
-
-  #homePage .menu-btn::before{
-    left:18px !important;
-    width:36px !important;
-    font-size:26px !important;
-  }
-
-  #homePage .menu-btn::after{
-    right:16px !important;
-    font-size:39px !important;
+    height:64px !important;
+    min-height:64px !important;
   }
 }
 
 
-/* =========================================================
-   SMALL PHONES
-   ========================================================= */
+/* =========================
+   SHORTER PHONES
+   ========================= */
+
+@media(max-height:780px){
+
+  header{
+    padding-top:3px !important;
+  }
+
+  .logo{
+    font-size:25px !important;
+    margin-top:1px !important;
+  }
+
+  .charity{
+    margin-top:3px !important;
+    font-size:8px !important;
+  }
+
+  #homePage::before{
+    margin-top:4px !important;
+    font-size:7px !important;
+  }
+
+  #homePage::after{
+    font-size:19px !important;
+    margin-bottom:4px !important;
+  }
+
+  .language{
+    height:34px !important;
+    margin-top:4px !important;
+    margin-bottom:7px !important;
+  }
+
+  .lang-btn{
+    height:32px !important;
+    min-height:32px !important;
+  }
+
+  #homePage .menu-btn{
+    height:51px !important;
+    min-height:51px !important;
+    margin-bottom:5px !important;
+  }
+
+  #homePage .menu-btn.events{
+    height:55px !important;
+    min-height:55px !important;
+  }
+
+  footer{
+    margin-top:7px !important;
+    padding-top:11px !important;
+  }
+}
+
+
+/* =========================
+   SMALL WIDTH
+   ========================= */
 
 @media(max-width:390px){
 
   #homePage{
-    width:calc(100% - 22px) !important;
+    width:calc(100% - 20px) !important;
   }
 
   #homePage .menu-btn{
-    min-height:66px !important;
+    padding-left:56px !important;
+    padding-right:35px !important;
 
-    margin-bottom:8px !important;
-
-    padding:
-      10px
-      43px
-      10px
-      64px !important;
-
-    font-size:17px !important;
-  }
-
-  #homePage .menu-btn.events{
-    min-height:72px !important;
+    font-size:15px !important;
   }
 
   #homePage .menu-btn::before{
-    left:15px !important;
-    font-size:23px !important;
-  }
-
-  #homePage .menu-btn::after{
-    right:13px !important;
-    font-size:35px !important;
+    left:14px !important;
   }
 
   .language{
-    width:220px !important;
-  }
-
-  .lang-btn{
-    height:44px !important;
-  }
-}
-
-
-/* =========================================================
-   SHORT SCREENS
-   ========================================================= */
-
-@media(max-height:760px){
-
-  .logo{
-    margin-top:18px !important;
-  }
-
-  #homePage::before{
-    margin-top:8px;
-  }
-
-  #homePage::after{
-    margin-bottom:18px;
-  }
-
-  #homePage .menu-btn{
-    min-height:62px !important;
-    margin-bottom:7px !important;
-  }
-
-  #homePage .menu-btn.events{
-    min-height:68px !important;
+    width:170px !important;
   }
 }
