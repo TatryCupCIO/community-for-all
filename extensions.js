@@ -1386,3 +1386,7 @@ setLanguage = function(lang) {
 
   }, 0);
 };
+const cfaDesign = document.createElement('link');
+cfaDesign.rel = 'stylesheet';
+cfaDesign.href = 'design.css?v=20260920-1';
+document.head.appendChild(cfaDesign);
