@@ -1351,3 +1351,9 @@ body {
   background:
     url('Onas.png') center center / cover no-repeat !important;
 }
+/* ===== KONTAKT – NOVÁ FINÁLNA FOTKA ===== */
+
+#contactBtn {
+  background:
+    url('Kontakt.png') center center / cover no-repeat !important;
+}
