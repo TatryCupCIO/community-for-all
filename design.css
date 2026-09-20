@@ -1145,3 +1145,34 @@ body {
   background-repeat: no-repeat !important;
   background-color: #17364b !important;
 }
+/* =========================================================
+   FINAL MENU DESIGN FIX
+   ========================================================= */
+
+/* Výraznejšie názvy všetkých menu kariet */
+.menu-card,
+.menu-card span,
+.menu-card strong,
+.menu-card b {
+  font-weight: 900 !important;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.95),
+    0 0 8px rgba(0,0,0,.75) !important;
+}
+
+/* Väčší hlavný text na kartách */
+.menu-card {
+  font-size: 21px !important;
+  line-height: 1.12 !important;
+}
+
+/* Kontakt – fotografia notebooku a rúk */
+#contactBtn {
+  background-image:
+    linear-gradient(90deg, rgba(15,45,65,.82), rgba(15,45,65,.28)),
+    url('Kontakt.jpg') !important;
+
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+}
