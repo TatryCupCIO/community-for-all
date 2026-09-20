@@ -1134,3 +1134,10 @@ body {
     linear-gradient(90deg, rgba(8,55,84,.72), rgba(8,55,84,.25)),
     url('Mojerezarvacie.jpg') center / 100% 100% no-repeat !important;
 }
+/* ===== KONTAKT FOTO ===== */
+
+#homePage button:nth-of-type(6) {
+  background:
+    linear-gradient(90deg, rgba(7,56,87,.72), rgba(7,56,87,.25)),
+    url('Kontaktujtenas.jpg') center / 100% 100% no-repeat !important;
+}
