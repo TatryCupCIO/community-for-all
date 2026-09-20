@@ -1,234 +1,375 @@
 /* =========================================================
    COMMUNITY FOR ALL
    HOME DESIGN
-   ONLY VISUAL STYLING
    ========================================================= */
 
 :root {
-  --cfa-navy: #0d2034;
-  --cfa-navy-2: #12304c;
-  --cfa-navy-3: #173b5b;
+  --cfa-navy: #071d31;
+  --cfa-navy-mid: #0d3453;
+  --cfa-navy-light: #174b70;
 
-  --cfa-orange: #ff7a1a;
-  --cfa-orange-light: #ff9b38;
-  --cfa-orange-dark: #d95810;
+  --cfa-orange: #ff7a18;
+  --cfa-orange-light: #ff9b35;
+  --cfa-orange-dark: #d6530c;
 
+  --cfa-red: #a91932;
   --cfa-white: #ffffff;
   --cfa-soft: #dce7f1;
-  --cfa-border: rgba(132, 184, 224, 0.34);
+  --cfa-muted: #aebdca;
 
-  --cfa-radius: 18px;
+  --cfa-border: rgba(118, 184, 229, .42);
+  --cfa-shadow: 0 8px 22px rgba(0, 0, 0, .22);
 }
 
 
 /* =========================================================
-   PAGE
+   GLOBAL
    ========================================================= */
 
 html {
-  background: #0d2034;
+  background: var(--cfa-navy);
 }
 
 body {
+  margin: 0 !important;
+  min-height: 100vh;
+  color: var(--cfa-white);
   background:
     radial-gradient(
-      circle at 82% 15%,
-      rgba(255, 133, 38, 0.22) 0,
-      rgba(255, 133, 38, 0.08) 18%,
+      circle at 82% 18%,
+      rgba(255, 126, 30, .22) 0,
+      rgba(255, 126, 30, .08) 16%,
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at 15% 35%,
+      rgba(26, 93, 139, .35) 0,
       transparent 38%
     ),
     linear-gradient(
       180deg,
-      #112b45 0%,
-      #0e263e 35%,
-      #0b1f33 70%,
-      #0d2942 100%
+      #07182b 0%,
+      #0b2d49 47%,
+      #071d31 100%
     ) !important;
 
-  color: var(--cfa-white) !important;
+  background-attachment: fixed !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+
+/* subtle mountain-like atmosphere */
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+
+  background:
+    linear-gradient(
+      150deg,
+      transparent 0 63%,
+      rgba(4, 20, 34, .28) 63% 67%,
+      transparent 67%
+    ),
+    linear-gradient(
+      30deg,
+      transparent 0 70%,
+      rgba(5, 27, 44, .35) 70% 74%,
+      transparent 74%
+    );
 }
 
 
 /* =========================================================
-   TOP AREA
+   MAIN CONTAINER
    ========================================================= */
 
-.topbar,
-.header-actions,
-.top-actions {
-  position: relative;
-  z-index: 5;
+.container {
+  width: 100% !important;
+  max-width: 720px !important;
+  margin: 0 auto !important;
+  padding: 14px 22px 18px !important;
 }
 
 
-/* SUPPORT BUTTON */
+/* =========================================================
+   TOP BAR
+   ========================================================= */
 
-.support-btn,
-.donate-btn,
-#supportBtn {
+.topbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  margin-bottom: 8px !important;
+}
+
+.top-left,
+.top-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+
+/* SUPPORT */
+
+.donate-top-btn {
+  min-height: 42px !important;
+  padding: 8px 15px !important;
+
   background:
     linear-gradient(
-      90deg,
-      rgba(255, 91, 27, 0.14),
-      rgba(255, 145, 42, 0.24)
+      100deg,
+      rgba(255, 93, 22, .92),
+      rgba(107, 41, 26, .72)
     ) !important;
 
   color: #fff !important;
 
-  border: 2px solid #ff6a27 !important;
-  border-radius: 999px !important;
+  border: 1.5px solid var(--cfa-orange) !important;
+  border-radius: 18px !important;
 
   box-shadow:
-    0 0 18px rgba(255, 107, 31, 0.16) !important;
+    inset 0 0 16px rgba(255, 126, 30, .12),
+    0 5px 14px rgba(0, 0, 0, .18) !important;
 
-  font-weight: 700 !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
 }
 
 
-/* CART + PROFILE */
+/* CART + USER */
 
-.cart-btn,
-.profile-btn,
-#cartBtn,
-#profileBtn {
-  background:
-    linear-gradient(
-      145deg,
-      rgba(25, 65, 99, 0.88),
-      rgba(11, 36, 58, 0.92)
-    ) !important;
+.cart-top-btn,
+.user-btn {
+  min-height: 42px !important;
+  background: rgba(9, 39, 63, .78) !important;
+  color: #fff !important;
 
-  color: white !important;
-
-  border: 1px solid rgba(130, 186, 229, 0.45) !important;
-
+  border: 1.5px solid rgba(115, 183, 229, .48) !important;
   border-radius: 16px !important;
 
   box-shadow:
-    0 7px 22px rgba(0, 0, 0, 0.16) !important;
+    inset 0 0 15px rgba(53, 132, 185, .10),
+    0 5px 14px rgba(0, 0, 0, .15) !important;
+}
+
+.cart-top-btn {
+  min-width: 50px !important;
+  padding: 7px 12px !important;
+  font-size: 21px !important;
+}
+
+.user-btn {
+  padding: 7px 14px !important;
+  font-size: 16px !important;
+}
+
+
+/* CART BADGE */
+
+.cart-badge {
+  background: #ef3d2f !important;
+  color: white !important;
+  border: 2px solid #10283d !important;
+  font-weight: 900 !important;
 }
 
 
 /* =========================================================
-   MAIN BRAND
+   MAIN LOGO / TITLE
    ========================================================= */
 
 .logo {
-  color: white !important;
+  margin: 5px auto 2px !important;
 
-  font-size: clamp(30px, 8vw, 48px) !important;
-  line-height: 0.94 !important;
-
-  font-weight: 800 !important;
-  letter-spacing: -1px !important;
-
-  text-shadow:
-    0 3px 12px rgba(0, 0, 0, 0.28) !important;
-
-  margin-top: 14px !important;
-  margin-bottom: 9px !important;
-}
-
-
-/* Try to make last highlighted part orange
-   where existing HTML allows it */
-
-.logo span:last-child,
-.logo .cfa-all {
-  color: var(--cfa-orange-light) !important;
-}
-
-
-.charity {
-  color: #e8eef4 !important;
-
-  font-size: 13px !important;
-  font-weight: 500 !important;
-
-  letter-spacing: 3px !important;
-  line-height: 1.45 !important;
-
+  color: #fff !important;
   text-align: center !important;
 
-  margin-bottom: 14px !important;
+  font-size: 38px !important;
+  line-height: .96 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.8px !important;
+
+  text-shadow: 0 3px 12px rgba(0, 0, 0, .28) !important;
+}
+
+
+/*
+  If Community / For / All are separate spans,
+  these rules give the reference orange-white-orange look.
+*/
+
+.logo span:first-child {
+  color: #fff !important;
+}
+
+.logo span:nth-child(2) {
+  color: #fff !important;
+}
+
+.logo span:last-child {
+  color: var(--cfa-orange) !important;
+}
+
+
+/* ORGANISATION */
+
+.charity {
+  position: relative !important;
+
+  margin: 8px auto 0 !important;
+  padding-bottom: 42px !important;
+
+  color: #fff !important;
+  text-align: center !important;
+
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px !important;
+  line-height: 1.45 !important;
+  text-transform: uppercase !important;
+}
+
+
+/* PEOPLE | COMMUNITY | OPPORTUNITIES */
+
+.charity::after {
+  content: "PEOPLE   |   COMMUNITY   |   OPPORTUNITIES";
+  position: absolute;
+
+  left: 50%;
+  bottom: 21px;
+
+  width: 100%;
+  transform: translateX(-50%);
+
+  color: #fff;
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  white-space: nowrap;
 }
 
 
 /* =========================================================
-   LANGUAGE SWITCH
+   STRONGER TOGETHER
    ========================================================= */
 
 .language {
+  position: relative !important;
+
   display: flex !important;
+  width: 250px !important;
+  height: 46px !important;
 
-  width: 190px !important;
-  height: 48px !important;
+  margin: 22px auto 13px !important;
 
-  margin: 15px auto 20px !important;
+  border: 1.5px solid rgba(91, 169, 222, .75) !important;
+  border-radius: 17px !important;
 
-  padding: 0 !important;
+  background: rgba(6, 29, 48, .70) !important;
 
-  border: 2px solid #4d7aa1 !important;
-  border-radius: 18px !important;
-
-  overflow: hidden !important;
-
-  background: rgba(10, 35, 57, 0.75) !important;
-
-  box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.18) !important;
+  overflow: visible !important;
 }
 
 
-.lang-btn {
-  flex: 1 !important;
+/* handwritten motto */
 
-  margin: 0 !important;
+.language::before {
+  content: "Stronger Together";
 
-  border: 0 !important;
-  border-radius: 0 !important;
+  position: absolute;
+  left: 50%;
+  top: -29px;
 
-  background: transparent !important;
+  transform: translateX(-50%) rotate(-2deg);
 
-  color: white !important;
+  width: 320px;
 
-  font-size: 17px !important;
-  font-weight: 600 !important;
+  color: var(--cfa-orange);
 
-  box-shadow: none !important;
-}
+  font-family:
+    "Brush Script MT",
+    "Segoe Script",
+    "Lucida Handwriting",
+    cursive !important;
 
+  font-size: 23px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1;
 
-.lang-btn.active {
-  color: #10263b !important;
+  text-align: center;
 
-  background:
-    linear-gradient(
-      135deg,
-      #ffb347 0%,
-      #ff8a22 55%,
-      #ff7417 100%
-    ) !important;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .25);
 
-  box-shadow:
-    0 0 20px rgba(255, 129, 27, 0.36) !important;
+  pointer-events: none;
 }
 
 
 /* =========================================================
-   HOME MENU
+   LANGUAGE BUTTONS
    ========================================================= */
 
-#homePage {
-  width: calc(100% - 28px) !important;
-  max-width: 760px !important;
+.lang-btn {
+  flex: 1 1 50% !important;
+  min-height: 43px !important;
+  height: 43px !important;
 
-  margin: 0 auto !important;
-  padding: 0 0 18px !important;
+  margin: 0 !important;
+  padding: 4px 18px !important;
+
+  border: 0 !important;
+  border-radius: 15px !important;
+
+  background: transparent !important;
+  color: #fff !important;
+
+  font-size: 17px !important;
+  font-weight: 800 !important;
 }
 
 
-/* ALL HOME BUTTONS */
+/* selected language */
+
+.lang-btn.active,
+.lang-btn.selected,
+#skLangBtn.active,
+#enLangBtn.active {
+  background:
+    linear-gradient(
+      110deg,
+      var(--cfa-orange-light),
+      var(--cfa-orange)
+    ) !important;
+
+  color: #10243a !important;
+}
+
+
+/* =========================================================
+   HOME PAGE
+   ========================================================= */
+
+#homePage {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 7px !important;
+
+  margin: 0 auto !important;
+  padding: 0 !important;
+}
+
+
+/* =========================================================
+   HOME CARDS
+   ========================================================= */
 
 #homePage .menu-btn {
   position: relative !important;
@@ -237,366 +378,471 @@ body {
   align-items: center !important;
 
   width: 100% !important;
-  min-height: 82px !important;
+  min-height: 65px !important;
+  height: 65px !important;
 
-  margin: 0 0 12px !important;
-  padding: 15px 55px 15px 84px !important;
+  margin: 0 !important;
+
+  padding:
+    7px
+    44px
+    7px
+    66px !important;
 
   overflow: hidden !important;
 
-  text-align: left !important;
+  color: #fff !important;
 
-  color: white !important;
+  border:
+    1.3px solid
+    rgba(102, 173, 220, .42) !important;
 
-  border: 1px solid var(--cfa-border) !important;
-  border-radius: var(--cfa-radius) !important;
-
-  font-size: 22px !important;
-  font-weight: 750 !important;
-
-  line-height: 1.1 !important;
-
-  text-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.34) !important;
+  border-radius: 18px !important;
 
   box-shadow:
-    0 9px 24px rgba(0, 0, 0, 0.17),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    inset 0 0 22px rgba(70, 146, 196, .10),
+    0 5px 14px rgba(0, 0, 0, .16) !important;
 
-  transition:
-    transform 0.16s ease,
-    filter 0.16s ease !important;
+  text-align: left !important;
+
+  font-size: 18px !important;
+  line-height: 1.08 !important;
+  font-weight: 800 !important;
+
+  text-shadow: 0 2px 5px rgba(0, 0, 0, .28) !important;
 }
 
 
-#homePage .menu-btn:active {
-  transform: scale(0.985) !important;
-  filter: brightness(1.08) !important;
-}
-
-
-/* ARROW */
+/* right arrow */
 
 #homePage .menu-btn::after {
-  content: "›" !important;
+  content: "›";
 
-  position: absolute !important;
+  position: absolute;
+  right: 16px;
+  top: 50%;
 
-  right: 20px !important;
-  top: 50% !important;
+  transform: translateY(-52%);
 
-  transform: translateY(-53%) !important;
+  color: #fff;
 
-  color: white !important;
+  font-family: Arial, sans-serif;
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 300;
 
-  font-size: 44px !important;
-  font-family: Arial, sans-serif !important;
-  font-weight: 300 !important;
-
-  line-height: 1 !important;
-
-  opacity: 0.96 !important;
+  text-shadow: 0 2px 5px rgba(0, 0, 0, .25);
 }
 
 
 /* =========================================================
-   ICONS
-   CSS ONLY - NO JAVASCRIPT
+   SVG ICON SYSTEM
    ========================================================= */
 
 #homePage .menu-btn::before {
-  position: absolute !important;
+  content: "";
 
-  left: 22px !important;
-  top: 50% !important;
+  position: absolute;
 
-  transform: translateY(-50%) !important;
+  left: 18px;
+  top: 50%;
 
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  width: 34px;
+  height: 34px;
 
-  width: 44px !important;
-  height: 44px !important;
+  transform: translateY(-50%);
 
-  font-size: 34px !important;
-  line-height: 1 !important;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
 
-  background: none !important;
-}
-
-
-/* calendar */
-
-#eventsBtn::before {
-  content: "▣" !important;
-
-  color: white !important;
-
-  font-size: 42px !important;
-}
-
-
-/* ticket */
-
-#bookingsBtn::before {
-  content: "◇" !important;
-
-  color: white !important;
-
-  font-size: 48px !important;
-
-  transform:
-    translateY(-50%)
-    rotate(-42deg) !important;
-}
-
-
-/* Fatra */
-
-#fatraBtn::before {
-  content: "♨" !important;
-
-  color: #ff9a35 !important;
-
-  font-size: 38px !important;
-}
-
-
-/* face painting */
-
-#faceBtn::before {
-  content: "✿" !important;
-
-  color: #ff7c85 !important;
-
-  font-size: 38px !important;
-}
-
-
-/* about */
-
-#aboutBtn::before {
-  content: "●●" !important;
-
-  color: white !important;
-
-  font-size: 21px !important;
-  letter-spacing: -4px !important;
-}
-
-
-/* contact */
-
-#contactBtn::before {
-  content: "✉" !important;
-
-  color: white !important;
-
-  font-size: 39px !important;
+  z-index: 2;
 }
 
 
 /* =========================================================
-   INDIVIDUAL CARDS
+   EVENTS
    ========================================================= */
-
-
-/* EVENTS */
 
 #eventsBtn,
 #homePage .events {
   background:
     radial-gradient(
-      circle at 72% 45%,
-      rgba(255, 177, 62, 0.40),
-      transparent 27%
+      circle at 78% 45%,
+      rgba(255, 183, 76, .22),
+      transparent 31%
     ),
     linear-gradient(
-      110deg,
-      #e35c0b 0%,
-      #f27a12 45%,
-      #c94c0a 72%,
-      #17334d 100%
+      100deg,
+      #f36808 0%,
+      #ff8617 48%,
+      #503126 100%
     ) !important;
 
-  border-color: #ff922c !important;
+  border-color: rgba(255, 157, 50, .88) !important;
+}
 
-  box-shadow:
-    0 9px 26px rgba(231, 95, 13, 0.25),
-    inset 0 1px 0 rgba(255, 255, 255, 0.13) !important;
+#eventsBtn::before,
+#homePage .events::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='8' y='14' width='48' height='42' rx='5'/%3E%3Cpath d='M8 26h48M20 7v14M44 7v14'/%3E%3Cpath d='M20 36h2M31 36h2M42 36h2M20 46h2M31 46h2M42 46h2'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 
-/* BOOKINGS */
+/* =========================================================
+   BOOKINGS
+   ========================================================= */
 
 #bookingsBtn,
 #homePage .bookings {
   background:
+    radial-gradient(
+      circle at 78% 45%,
+      rgba(40, 106, 151, .24),
+      transparent 34%
+    ),
     linear-gradient(
-      110deg,
-      #173c5e 0%,
-      #12304d 50%,
-      #0b2238 100%
+      100deg,
+      #123f61,
+      #082942
     ) !important;
 }
 
+#bookingsBtn::before,
+#homePage .bookings::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='white' stroke-width='5' stroke-linejoin='round'%3E%3Cpath d='M10 25L25 10l29 29-15 15L10 25z'/%3E%3Cpath d='M31 20l13 13' stroke-dasharray='3 5'/%3E%3C/g%3E%3C/svg%3E");
+}
 
-/* FATRA */
+
+/* =========================================================
+   FATRA POTRAVINY
+   Grocery / shopping icon - NOT restaurant
+   ========================================================= */
 
 #fatraBtn,
 #homePage .fatra {
   background:
     radial-gradient(
-      circle at 82% 50%,
-      rgba(255, 130, 37, 0.24),
-      transparent 32%
+      circle at 76% 48%,
+      rgba(255, 130, 38, .20),
+      transparent 34%
     ),
     linear-gradient(
-      105deg,
-      #4c281a 0%,
-      #66301a 45%,
-      #172b3c 100%
+      100deg,
+      #71331d,
+      #2b2c2c
     ) !important;
 
-  border-color: rgba(231, 125, 67, 0.38) !important;
+  border-color: rgba(207, 109, 52, .55) !important;
+}
+
+#fatraBtn::before,
+#homePage .fatra::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23ff9b38' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11h8l6 29h28l7-21H18'/%3E%3Ccircle cx='27' cy='51' r='4'/%3E%3Ccircle cx='47' cy='51' r='4'/%3E%3Cpath d='M24 27h27M29 19v20M40 19v20'/%3E%3C/g%3E%3C/svg%3E");
 }
 
 
-/* FACE PAINTING */
+/* =========================================================
+   FACE PAINTING
+   ========================================================= */
 
 #faceBtn,
 #homePage .face {
   background:
     radial-gradient(
-      circle at 85% 50%,
-      rgba(255, 124, 133, 0.27),
-      transparent 32%
+      circle at 80% 50%,
+      rgba(230, 81, 105, .24),
+      transparent 34%
     ),
     linear-gradient(
-      105deg,
-      #8d1d2c 0%,
-      #6f1725 52%,
-      #32182a 100%
+      100deg,
+      #b21e38,
+      #64172b
     ) !important;
 
-  border-color: rgba(255, 108, 120, 0.44) !important;
+  border-color: rgba(236, 80, 111, .60) !important;
+}
+
+#faceBtn::before,
+#homePage .face::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M33 8C18 8 7 18 7 32c0 13 10 24 23 24h5c5 0 7-4 5-8-2-4 1-8 6-8h5c5 0 7-4 7-9C58 18 47 8 33 8z' fill='none' stroke='%23ff8798' stroke-width='5' stroke-linejoin='round'/%3E%3Ccircle cx='20' cy='28' r='4' fill='%23ff8798'/%3E%3Ccircle cx='29' cy='19' r='4' fill='%23ff8798'/%3E%3Ccircle cx='41' cy='20' r='4' fill='%23ff8798'/%3E%3Ccircle cx='48' cy='29' r='4' fill='%23ff8798'/%3E%3C/svg%3E");
 }
 
 
-/* ABOUT */
+/* =========================================================
+   ABOUT
+   ========================================================= */
 
 #aboutBtn,
 #homePage .about {
   background:
     radial-gradient(
-      circle at 72% 50%,
-      rgba(255, 142, 39, 0.22),
-      transparent 27%
+      circle at 77% 48%,
+      rgba(255, 135, 46, .15),
+      transparent 31%
     ),
     linear-gradient(
-      105deg,
-      #173a58 0%,
-      #102e48 52%,
-      #192a37 100%
+      100deg,
+      #123f61,
+      #092c47
     ) !important;
 }
 
+#aboutBtn::before,
+#homePage .about::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='white'%3E%3Ccircle cx='32' cy='18' r='9'/%3E%3Ccircle cx='14' cy='24' r='7'/%3E%3Ccircle cx='50' cy='24' r='7'/%3E%3Cpath d='M17 55V44c0-9 6-15 15-15s15 6 15 15v11H17z'/%3E%3Cpath d='M3 54V44c0-7 4-12 11-12 4 0 7 2 9 5-4 4-6 9-6 15v2H3zM47 54v-2c0-6-2-11-6-15 2-3 5-5 9-5 7 0 11 5 11 12v10H47z'/%3E%3C/g%3E%3C/svg%3E");
+}
 
-/* CONTACT */
+
+/* =========================================================
+   CONTACT
+   ========================================================= */
 
 #contactBtn,
 #homePage .contact {
   background:
+    radial-gradient(
+      circle at 80% 48%,
+      rgba(60, 126, 169, .20),
+      transparent 34%
+    ),
     linear-gradient(
-      105deg,
-      #183d5d 0%,
-      #12324f 48%,
-      #0c263d 100%
+      100deg,
+      #123f61,
+      #092c47
     ) !important;
 }
 
+#contactBtn::before,
+#homePage .contact::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='white' stroke-width='5' stroke-linejoin='round'%3E%3Crect x='7' y='14' width='50' height='36' rx='3'/%3E%3Cpath d='M9 18l23 18 23-18M9 47l17-15M55 47L38 32'/%3E%3C/g%3E%3C/svg%3E");
+}
+
 
 /* =========================================================
-   OTHER APP PAGES
-   Keep functionality untouched, only visual polish
+   REMOVE OLD CSS ICONS IF PRESENT
+   The original emoji remains part of the current button text.
+   Keep our SVG visually separated from it.
    ========================================================= */
 
-.card,
-.booking-card,
-.event-card,
-.option-card,
-.reservation-card {
-  border-color: rgba(118, 166, 205, 0.28) !important;
-
-  box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.12) !important;
-}
-
-
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-
-input,
-select,
-textarea {
-  border-radius: 12px;
+#homePage .menu-btn {
+  background-clip: padding-box !important;
 }
 
 
 /* =========================================================
-   MOBILE
+   FOOTER
+   ========================================================= */
+
+footer {
+  position: relative !important;
+
+  margin: 11px auto 0 !important;
+  padding: 0 10px 38px !important;
+
+  color: var(--cfa-soft) !important;
+  text-align: center !important;
+
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+
+/* orange Community For All heading */
+
+footer::before {
+  content: "Community For All";
+
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: var(--cfa-orange);
+
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+
+/* bottom motto */
+
+footer::after {
+  content: "──────   ♥   ──────\A SMALL ACTIONS  MAKE A BIG DIFFERENCE";
+
+  position: absolute;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  color: var(--cfa-orange);
+
+  white-space: pre-line;
+
+  font-size: 9px;
+  line-height: 1.8;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+
+/* =========================================================
+   MOBILE - GALAXY / NORMAL PHONE
    ========================================================= */
 
 @media (max-width: 600px) {
 
+  .container {
+    padding:
+      10px
+      16px
+      10px !important;
+  }
+
+
+  /* top controls */
+
+  .topbar {
+    margin-bottom: 5px !important;
+  }
+
+  .donate-top-btn,
+  .cart-top-btn,
+  .user-btn {
+    min-height: 38px !important;
+  }
+
+  .donate-top-btn {
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+  }
+
+  .cart-top-btn {
+    min-width: 46px !important;
+    font-size: 19px !important;
+  }
+
+  .user-btn {
+    padding: 6px 11px !important;
+    font-size: 15px !important;
+  }
+
+
+  /* title */
+
   .logo {
-    font-size: 36px !important;
+    margin-top: 5px !important;
+
+    font-size: 32px !important;
+    line-height: .95 !important;
   }
 
   .charity {
-    font-size: 12px !important;
-    letter-spacing: 2.2px !important;
+    margin-top: 7px !important;
+    padding-bottom: 38px !important;
+
+    font-size: 9px !important;
+    letter-spacing: 2.4px !important;
   }
+
+  .charity::after {
+    bottom: 19px;
+
+    font-size: 8px;
+    letter-spacing: 1.35px;
+  }
+
+
+  /* motto + languages */
 
   .language {
-    width: 180px !important;
-    height: 46px !important;
+    width: 210px !important;
+    height: 40px !important;
+
+    margin-top: 18px !important;
+    margin-bottom: 10px !important;
+
+    border-radius: 15px !important;
   }
 
+  .language::before {
+    top: -24px;
+    width: 280px;
+    font-size: 20px;
+  }
+
+  .lang-btn {
+    min-height: 37px !important;
+    height: 37px !important;
+
+    padding: 3px 15px !important;
+
+    border-radius: 13px !important;
+
+    font-size: 15px !important;
+  }
+
+
+  /* menu */
+
   #homePage {
-    width: calc(100% - 26px) !important;
+    gap: 6px !important;
   }
 
   #homePage .menu-btn {
-    min-height: 76px !important;
+    min-height: 58px !important;
+    height: 58px !important;
 
     padding:
-      13px
-      48px
-      13px
-      75px !important;
+      5px
+      38px
+      5px
+      58px !important;
 
-    margin-bottom: 10px !important;
+    border-radius: 16px !important;
 
-    border-radius: 17px !important;
-
-    font-size: 20px !important;
+    font-size: 16px !important;
+    line-height: 1.05 !important;
   }
 
   #homePage .menu-btn::before {
-    left: 18px !important;
+    left: 15px;
 
-    width: 42px !important;
-    height: 42px !important;
+    width: 30px;
+    height: 30px;
   }
 
   #homePage .menu-btn::after {
-    right: 17px !important;
+    right: 13px;
+    font-size: 32px;
+  }
 
-    font-size: 39px !important;
+
+  /* footer */
+
+  footer {
+    margin-top: 8px !important;
+    padding-bottom: 32px !important;
+
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+
+  footer::before {
+    margin-bottom: 2px;
+    font-size: 13px;
+  }
+
+  footer::after {
+    font-size: 7.5px;
+    line-height: 1.7;
+    letter-spacing: 1.35px;
   }
 }
 
@@ -607,24 +853,89 @@ textarea {
 
 @media (max-width: 390px) {
 
+  .container {
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+  }
+
   .logo {
-    font-size: 32px !important;
+    font-size: 29px !important;
   }
 
   .charity {
-    font-size: 10px !important;
-    letter-spacing: 1.8px !important;
+    font-size: 8px !important;
+    letter-spacing: 2px !important;
+  }
+
+  .charity::after {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+
+  .language {
+    width: 195px !important;
   }
 
   #homePage .menu-btn {
-    min-height: 70px !important;
+    min-height: 54px !important;
+    height: 54px !important;
 
-    padding-left: 68px !important;
+    padding-left: 54px !important;
 
-    font-size: 18px !important;
+    font-size: 15px !important;
   }
 
   #homePage .menu-btn::before {
-    left: 16px !important;
+    left: 14px;
+
+    width: 27px;
+    height: 27px;
+  }
+}
+
+
+/* =========================================================
+   SHORT PHONE SCREENS
+   Compress HOME vertically so the full landing page fits.
+   Does NOT disable scrolling on the rest of the app.
+   ========================================================= */
+
+@media (max-width: 600px) and (max-height: 850px) {
+
+  .container {
+    padding-top: 7px !important;
+  }
+
+  .topbar {
+    margin-bottom: 2px !important;
+  }
+
+  .logo {
+    margin-top: 2px !important;
+    font-size: 29px !important;
+  }
+
+  .charity {
+    margin-top: 4px !important;
+    padding-bottom: 34px !important;
+  }
+
+  .language {
+    margin-top: 15px !important;
+    margin-bottom: 7px !important;
+  }
+
+  #homePage {
+    gap: 5px !important;
+  }
+
+  #homePage .menu-btn {
+    min-height: 51px !important;
+    height: 51px !important;
+  }
+
+  footer {
+    margin-top: 5px !important;
+    padding-bottom: 29px !important;
   }
 }
