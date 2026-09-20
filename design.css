@@ -963,15 +963,6 @@ footer {
   padding-bottom: 35px !important;
 }
 
-footer::before {
-  content: "Community For All" !important;
-  display: block !important;
-  color: #ff7a18 !important;
-  font-size: 14px !important;
-  font-weight: 900 !important;
-  margin-bottom: 3px !important;
-}
-
 
 /* ===== BOTTOM MOTTO ===== */
 
