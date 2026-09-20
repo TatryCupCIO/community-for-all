@@ -972,7 +972,7 @@ footer {
 }
 
 .footer::after {
-  content: "━━━━━━  ♥  ━━━━━━\A SMALL ACTIONS MAKE A BIG DIFFERENCE";
+  content: "♥\A SMALL ACTIONS MAKE A BIG DIFFERENCE";
   display: block !important;
   white-space: pre-line !important;
   text-align: center !important;
@@ -982,4 +982,8 @@ footer {
   line-height: 2.2 !important;
   letter-spacing: 1.8px !important;
   margin-top: 8px !important;
+
+  background:
+    linear-gradient(#ff7a18, #ff7a18) calc(50% - 75px) 7px / 60px 2px no-repeat,
+    linear-gradient(#ff7a18, #ff7a18) calc(50% + 75px) 7px / 60px 2px no-repeat !important;
 }
