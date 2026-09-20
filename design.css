@@ -696,3 +696,262 @@ footer::after{
     left:11px !important;
   }
 }
+/* =========================================================
+   CFA HOME SCREEN - SIZE & LAYOUT FIX
+   ========================================================= */
+
+/* ---------- HLAVNÁ OBRAZOVKA ---------- */
+
+#homePage{
+  width:calc(100% - 28px) !important;
+  max-width:680px !important;
+  margin:0 auto !important;
+  padding:0 !important;
+}
+
+
+/* ---------- COMMUNITY FOR ALL ---------- */
+
+.logo{
+  margin:8px auto 4px !important;
+
+  font-size:34px !important;
+  line-height:.95 !important;
+  font-weight:800 !important;
+
+  letter-spacing:-1px !important;
+}
+
+.charity{
+  margin:6px auto 8px !important;
+
+  font-size:9px !important;
+  line-height:1.15 !important;
+  letter-spacing:2.4px !important;
+}
+
+
+/* ---------- PEOPLE | COMMUNITY | OPPORTUNITIES ---------- */
+
+#homePage::before{
+  margin:8px auto 3px !important;
+
+  font-size:8.5px !important;
+  line-height:1 !important;
+  letter-spacing:2px !important;
+}
+
+
+/* ---------- STRONGER TOGETHER ---------- */
+
+#homePage::after{
+  display:block !important;
+
+  margin:0 auto 7px !important;
+
+  font-family:'Caveat',cursive !important;
+  font-size:31px !important;
+  font-weight:500 !important;
+  line-height:.9 !important;
+
+  color:#ff7900 !important;
+
+  transform:rotate(-2deg) !important;
+}
+
+
+/* ---------- SK / EN ---------- */
+
+.language{
+  width:180px !important;
+  height:38px !important;
+
+  margin:5px auto 10px !important;
+
+  border-radius:999px !important;
+}
+
+.lang-btn{
+  height:36px !important;
+  min-height:36px !important;
+
+  padding:0 !important;
+
+  font-size:14px !important;
+  line-height:36px !important;
+}
+
+
+/* =========================================================
+   MENU KARTY
+   ========================================================= */
+
+#homePage .menu-btn{
+  position:relative !important;
+
+  width:100% !important;
+
+  height:68px !important;
+  min-height:68px !important;
+
+  margin:0 0 7px !important;
+
+  padding:
+    8px
+    42px
+    8px
+    72px !important;
+
+  border-radius:15px !important;
+
+  display:flex !important;
+  align-items:center !important;
+
+  font-size:17px !important;
+  line-height:1.08 !important;
+  font-weight:700 !important;
+
+  overflow:hidden !important;
+}
+
+
+/* PODUJATIA */
+
+#homePage .menu-btn.events{
+  height:72px !important;
+  min-height:72px !important;
+}
+
+
+/* =========================================================
+   IKONY
+   ========================================================= */
+
+#homePage .menu-btn::before{
+  left:18px !important;
+
+  width:36px !important;
+  height:36px !important;
+
+  font-size:28px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+}
+
+
+/* ---------- ŠÍPKY ---------- */
+
+#homePage .menu-btn::after{
+  right:16px !important;
+
+  font-size:34px !important;
+  font-weight:200 !important;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer{
+  width:calc(100% - 40px) !important;
+  max-width:620px !important;
+
+  margin:13px auto 0 !important;
+
+  padding:12px 4px 8px !important;
+
+  font-size:10px !important;
+  line-height:1.35 !important;
+
+  text-align:center !important;
+}
+
+footer::before{
+  width:90px !important;
+  height:2px !important;
+}
+
+footer::after{
+  margin-top:8px !important;
+
+  font-size:7px !important;
+  letter-spacing:1.5px !important;
+}
+
+
+/* =========================================================
+   GALAXY / MOBILE
+   ========================================================= */
+
+@media(max-width:700px){
+
+  #homePage{
+    width:calc(100% - 28px) !important;
+  }
+
+  #homePage .menu-btn{
+    height:66px !important;
+    min-height:66px !important;
+  }
+
+  #homePage .menu-btn.events{
+    height:70px !important;
+    min-height:70px !important;
+  }
+}
+
+
+/* =========================================================
+   AK JE VÝŠKA DISPLEJA MENŠIA
+   ========================================================= */
+
+@media(max-height:850px){
+
+  .logo{
+    margin-top:4px !important;
+    font-size:31px !important;
+  }
+
+  .charity{
+    margin:4px auto 5px !important;
+  }
+
+  #homePage::before{
+    margin-top:5px !important;
+  }
+
+  #homePage::after{
+    font-size:28px !important;
+    margin-bottom:5px !important;
+  }
+
+  .language{
+    height:34px !important;
+    margin-bottom:7px !important;
+  }
+
+  .lang-btn{
+    height:32px !important;
+    min-height:32px !important;
+    line-height:32px !important;
+  }
+
+  #homePage .menu-btn{
+    height:60px !important;
+    min-height:60px !important;
+    margin-bottom:6px !important;
+  }
+
+  #homePage .menu-btn.events{
+    height:64px !important;
+    min-height:64px !important;
+  }
+
+  footer{
+    margin-top:8px !important;
+    padding-top:9px !important;
+  }
+}
