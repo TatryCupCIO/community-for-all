@@ -1120,3 +1120,10 @@ body {
     linear-gradient(90deg, rgba(177,31,63,.78), rgba(110,20,50,.38)),
     url('FacePainting.jpeg') center / cover no-repeat !important;
 }
+/* ===== O NAS FOTO ===== */
+
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg, rgba(7,56,87,.82), rgba(7,56,87,.38)),
+    url('Onas.jpg') center / cover no-repeat !important;
+}
