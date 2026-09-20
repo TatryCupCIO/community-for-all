@@ -939,3 +939,45 @@ footer::after {
     padding-bottom: 29px !important;
   }
 }
+/* ===== FINAL HOME FIX ===== */
+
+/* Keď sa otvorí rezervácia, košík, kontakt atď.,
+   úvodné menu musí zmiznúť */
+#homePage[style*="display: none"] {
+  display: none !important;
+}
+
+/* Stronger Together vyššie medzi text a SK/EN */
+.language {
+  margin-top: 27px !important;
+}
+
+.language::before {
+  top: -34px !important;
+}
+
+/* Spodná časť úvodnej stránky */
+footer {
+  display: block !important;
+  margin-top: 8px !important;
+  padding-bottom: 35px !important;
+}
+
+footer::before {
+  content: "Community For All" !important;
+  display: block !important;
+  color: #ff7a18 !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  margin-bottom: 3px !important;
+}
+
+footer::after {
+  content: "──────   ♥   ──────\A SMALL ACTIONS  MAKE A BIG DIFFERENCE" !important;
+  display: block !important;
+  white-space: pre-line !important;
+  color: #ff7a18 !important;
+  font-size: 8px !important;
+  line-height: 1.8 !important;
+  letter-spacing: 1.4px !important;
+}
