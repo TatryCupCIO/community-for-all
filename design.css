@@ -975,22 +975,20 @@ footer::before {
 
 /* ===== BOTTOM MOTTO ===== */
 
-footer {
+.footer {
   position: relative !important;
-  padding-bottom: 62px !important;
+  padding-bottom: 58px !important;
 }
 
-footer::after {
-  content: "━━━━━━   ♥   ━━━━━━\A SMALL ACTIONS  MAKE A BIG DIFFERENCE" !important;
+.footer::after {
+  content: "━━━━━━   ♥   ━━━━━━\A SMALL ACTIONS MAKE A BIG DIFFERENCE";
   display: block !important;
   white-space: pre-line !important;
   text-align: center !important;
-
   color: #ff7a18 !important;
   font-size: 10px !important;
   font-weight: 800 !important;
   line-height: 2.2 !important;
   letter-spacing: 1.8px !important;
-
-  margin-top: 12px !important;
+  margin-top: 14px !important;
 }
