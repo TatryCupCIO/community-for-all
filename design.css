@@ -1287,3 +1287,20 @@ body {
 #homePage button:nth-of-type(5)::before {
   display: none !important;
 }
+/* ===== O NAS FOTO – FINAL POSITION ===== */
+
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(
+      90deg,
+      #0b4263 0%,
+      #0b4263 38%,
+      rgba(11,66,99,.25) 43%,
+      rgba(11,66,99,0) 48%,
+      rgba(11,66,99,0) 72%,
+      rgba(11,66,99,.25) 77%,
+      #0b4263 82%,
+      #0b4263 100%
+    ),
+    url('Onas.jpg') 70% center / 34% 100% no-repeat !important;
+}
