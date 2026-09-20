@@ -985,24 +985,20 @@ footer::after {
 
 footer {
   position: relative !important;
-  padding-bottom: 52px !important;
+  padding-bottom: 62px !important;
 }
 
 footer::after {
-  content: "──────   ♥   ──────\A SMALL ACTIONS MAKE A BIG DIFFERENCE" !important;
-  position: absolute !important;
-  left: 50% !important;
-  bottom: 4px !important;
-  transform: translateX(-50%) !important;
-  width: 100% !important;
-
+  content: "━━━━━━   ♥   ━━━━━━\A SMALL ACTIONS  MAKE A BIG DIFFERENCE" !important;
   display: block !important;
   white-space: pre-line !important;
   text-align: center !important;
 
   color: #ff7a18 !important;
-  font-size: 8px !important;
-  font-weight: 700 !important;
-  line-height: 2 !important;
-  letter-spacing: 1.5px !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  line-height: 2.2 !important;
+  letter-spacing: 1.8px !important;
+
+  margin-top: 12px !important;
 }
