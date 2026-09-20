@@ -1074,3 +1074,32 @@ body {
   background-size: cover !important;
   background-position: center !important;
 }
+#eventsBtn {
+  background:
+    linear-gradient(90deg, rgba(255,122,26,.88), rgba(91,48,25,.50)),
+    url('Podujatia.jpg') center / cover no-repeat !important;
+}
+
+#bookingsBtn {
+  background:
+    linear-gradient(90deg, rgba(8,55,84,.90), rgba(8,55,84,.48)),
+    url('Mojerezarvacie.jpg') center / cover no-repeat !important;
+}
+
+#fatraBtn {
+  background:
+    linear-gradient(90deg, rgba(104,52,25,.88), rgba(48,35,29,.48)),
+    url('Fatra.jpg') center / cover no-repeat !important;
+}
+
+#faceBtn {
+  background:
+    linear-gradient(90deg, rgba(177,31,63,.88), rgba(112,23,49,.48)),
+    url('Facepainting.jpg') center / cover no-repeat !important;
+}
+
+#aboutBtn {
+  background:
+    linear-gradient(90deg, rgba(7,56,87,.90), rgba(7,56,87,.48)),
+    url('Onas.jpg') center / cover no-repeat !important;
+}
