@@ -1,1 +1,331 @@
+/* =========================================================
+   COMMUNITY FOR ALL
+   NEW VISUAL DESIGN
+   Mení iba vzhľad. Funkcie aplikácie zostávajú nedotknuté.
+   ========================================================= */
 
+:root {
+  --cfa-bg: #07131f;
+  --cfa-bg-2: #0b1b2b;
+  --cfa-card: #102338;
+  --cfa-card-2: #0d1c2c;
+  --cfa-orange: #ff7a00;
+  --cfa-orange-light: #ff9d2e;
+  --cfa-red: #e74735;
+  --cfa-white: #ffffff;
+  --cfa-text: #f5f7fa;
+  --cfa-muted: #aab5c2;
+  --cfa-border: rgba(255,255,255,.14);
+  --cfa-radius: 18px;
+}
+
+/* CELÁ APLIKÁCIA */
+
+html,
+body {
+  background:
+    radial-gradient(circle at 85% 5%, rgba(255,122,0,.13), transparent 24rem),
+    linear-gradient(180deg, #081522 0%, #07131f 55%, #06111c 100%) !important;
+  color: var(--cfa-text) !important;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* HLAVNÝ OBSAH */
+
+main,
+.container,
+.page,
+.content,
+#app {
+  position: relative;
+}
+
+/* NADPISY */
+
+h1,
+h2,
+h3 {
+  color: var(--cfa-white);
+  letter-spacing: -.02em;
+}
+
+h1 {
+  font-weight: 900;
+}
+
+h2,
+h3 {
+  font-weight: 800;
+}
+
+/* COMMUNITY FOR ALL */
+
+.brand-title,
+.logo-title,
+.site-title {
+  color: var(--cfa-white) !important;
+  font-weight: 900 !important;
+}
+
+.brand-title span,
+.logo-title span,
+.site-title span {
+  color: var(--cfa-orange) !important;
+}
+
+/* TLAČIDLÁ */
+
+button,
+.btn {
+  border-radius: 15px;
+  font-weight: 800;
+  transition:
+    transform .15s ease,
+    box-shadow .15s ease,
+    border-color .15s ease;
+}
+
+button:active,
+.btn:active {
+  transform: scale(.98);
+}
+
+/* VŠEOBECNÉ KARTY */
+
+.card,
+.panel,
+.box,
+.event-card,
+.booking-card,
+.option-row {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(18,42,65,.97),
+      rgba(8,25,40,.97)
+    ) !important;
+
+  border: 1px solid var(--cfa-border) !important;
+  border-radius: var(--cfa-radius) !important;
+
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/* HLAVNÉ MENU */
+
+.home-menu,
+.menu,
+.main-menu {
+  display: grid;
+  gap: 14px;
+}
+
+/* veľké menu tlačidlá */
+
+.home-menu button,
+.home-menu .btn,
+.menu button,
+.menu .btn,
+.main-menu button,
+.main-menu .btn {
+  position: relative;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(17,39,60,.98),
+      rgba(7,24,38,.98)
+    ) !important;
+
+  color: white !important;
+
+  border: 1px solid rgba(255,255,255,.16) !important;
+
+  border-radius: 18px !important;
+
+  min-height: 78px;
+
+  box-shadow:
+    0 10px 28px rgba(0,0,0,.20);
+
+  text-align: left;
+}
+
+/* prvá hlavná položka / podujatia */
+
+.home-menu button:first-child,
+.home-menu .btn:first-child,
+.menu button:first-child,
+.menu .btn:first-child,
+.main-menu button:first-child,
+.main-menu .btn:first-child {
+  background:
+    linear-gradient(
+      135deg,
+      #d95e00 0%,
+      #ff7a00 48%,
+      #a94300 100%
+    ) !important;
+
+  border-color: #ff8a20 !important;
+
+  box-shadow:
+    0 12px 32px rgba(255,122,0,.22);
+}
+
+/* oranžový akcent */
+
+a {
+  color: var(--cfa-orange-light);
+}
+
+/* SK / EN */
+
+.lang-btn,
+.language-btn {
+  background: rgba(7,20,32,.82) !important;
+  color: white !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+}
+
+.lang-btn.active,
+.language-btn.active {
+  color: var(--cfa-orange-light) !important;
+  border-color: var(--cfa-orange) !important;
+  box-shadow:
+    0 0 0 1px rgba(255,122,0,.2),
+    0 0 22px rgba(255,122,0,.13);
+}
+
+/* KOŠÍK */
+
+.cart,
+.cart-box,
+#cartContent {
+  color: var(--cfa-text);
+}
+
+.cart-item {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(16,38,59,.98),
+      rgba(8,25,40,.98)
+    ) !important;
+
+  border: 1px solid rgba(255,255,255,.13) !important;
+  border-radius: 16px !important;
+}
+
+/* FORMULÁRE */
+
+input,
+select,
+textarea {
+  background: rgba(5,18,30,.92) !important;
+  color: white !important;
+  border: 1px solid rgba(255,255,255,.20) !important;
+  border-radius: 13px !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none !important;
+  border-color: var(--cfa-orange) !important;
+  box-shadow: 0 0 0 3px rgba(255,122,0,.12) !important;
+}
+
+/* CHECKBOX */
+
+input[type="checkbox"] {
+  accent-color: var(--cfa-orange);
+}
+
+/* CENY */
+
+.option-price,
+.price,
+.total {
+  color: var(--cfa-orange-light) !important;
+}
+
+/* AVAILABLE */
+
+.extension-availability {
+  font-weight: 800 !important;
+}
+
+/* ODSTRÁNIŤ */
+
+.remove-btn,
+.delete-btn,
+button.danger {
+  background: linear-gradient(135deg,#a91f1f,#d32d26) !important;
+  color: white !important;
+  border: 1px solid rgba(255,100,90,.35) !important;
+}
+
+/* SUPPORT */
+
+.support-btn {
+  background: rgba(8,20,32,.9) !important;
+  color: white !important;
+  border: 1px solid rgba(231,71,53,.8) !important;
+  box-shadow: 0 8px 22px rgba(0,0,0,.18);
+}
+
+/* FOOTER */
+
+footer,
+.footer {
+  color: var(--cfa-muted) !important;
+  border-top-color: rgba(255,255,255,.08) !important;
+}
+
+/* ORANŽOVÝ DETAIL V SPODNEJ ČASTI */
+
+footer::before,
+.footer::before {
+  content: "";
+  display: block;
+  width: 72px;
+  height: 2px;
+  margin: 20px auto;
+  background: var(--cfa-orange);
+  border-radius: 10px;
+}
+
+/* MOBIL */
+
+@media (max-width: 700px) {
+
+  body {
+    background:
+      radial-gradient(circle at 88% 4%, rgba(255,122,0,.14), transparent 18rem),
+      linear-gradient(180deg,#081522,#07131f 55%,#06111c) !important;
+  }
+
+  .card,
+  .panel,
+  .box,
+  .event-card,
+  .booking-card,
+  .option-row {
+    border-radius: 17px !important;
+  }
+
+  .home-menu button,
+  .home-menu .btn,
+  .menu button,
+  .menu .btn,
+  .main-menu button,
+  .main-menu .btn {
+    min-height: 74px;
+  }
+}
