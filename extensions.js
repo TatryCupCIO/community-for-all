@@ -1521,3 +1521,182 @@ localName = function(o) {
 
   return extOriginalLocalName(o);
 };
+// ============================================================
+// MY BOOKINGS – HIDE + HIDDEN BOOKINGS DROPDOWN
+// ============================================================
+
+async function extHideBooking(bookingId) {
+  const { error } = await supabaseClient
+    .from('bookings')
+    .update({
+      hidden_by_user: true,
+      hidden_by_user_at: new Date().toISOString()
+    })
+    .eq('id', bookingId)
+    .eq('user_id', currentUser.id);
+
+  if (error) {
+    alert(T(
+      'Rezerváciu sa nepodarilo skryť.',
+      'The booking could not be hidden.'
+    ));
+    return;
+  }
+
+  await showBookings();
+}
+
+async function extRestoreBooking(bookingId) {
+  const { error } = await supabaseClient
+    .from('bookings')
+    .update({
+      hidden_by_user: false,
+      hidden_by_user_at: null
+    })
+    .eq('id', bookingId)
+    .eq('user_id', currentUser.id);
+
+  if (error) {
+    alert(T(
+      'Rezerváciu sa nepodarilo obnoviť.',
+      'The booking could not be restored.'
+    ));
+    return;
+  }
+
+  await showBookings();
+}
+
+showBookings = async function() {
+  if (!requireLogin()) return;
+
+  go('bookingsPage');
+
+  const box = el('bookingsContent');
+  box.innerHTML =
+    `<div class="loading">${T('Načítavam rezervácie...','Loading bookings...')}</div>`;
+
+  const { data, error } = await supabaseClient
+    .from('bookings')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  box.innerHTML = '';
+
+  if (error) {
+    box.innerHTML =
+      `<div class="card">${T(
+        'Rezervácie sa nepodarilo načítať.',
+        'Bookings could not be loaded.'
+      )}</div>`;
+    return;
+  }
+
+  if (!data?.length) {
+    box.innerHTML =
+      `<div class="card">${T(
+        'Zatiaľ nemáte žiadne rezervácie.',
+        'You do not have any bookings yet.'
+      )}</div>`;
+    return;
+  }
+
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const visible = data.filter(b =>
+    !b.hidden_by_user &&
+    new Date(b.created_at) >= sixMonthsAgo
+  );
+
+  const hidden = data.filter(b =>
+    b.hidden_by_user ||
+    new Date(b.created_at) < sixMonthsAgo
+  );
+
+  async function renderBooking(b, target, isHidden) {
+    const { data: items } = await supabaseClient
+      .from('booking_items')
+      .select('*,event_options(option_code,is_accommodation,free_with_accommodation)')
+      .eq('booking_id', b.id);
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
+        <div>
+          <b>${T('Rezervácia ','Booking ')}${escapeHtml(b.booking_number || b.id)}</b>
+          <div><span class="status-pill">${escapeHtml(b.status)}</span></div>
+        </div>
+      </div>
+    `;
+
+    (items || []).forEach(i => {
+      const row = document.createElement('div');
+      row.className = 'cart-item';
+      row.innerHTML =
+        `<b>${i.quantity}× ${escapeHtml(i.item_name)}</b> — ${money(i.line_total)}${guestCartHtml(i)}`;
+      card.appendChild(row);
+    });
+
+    const total = document.createElement('div');
+    total.className = 'cart-total';
+    total.textContent = T('Spolu: ','Total: ') + money(b.total_amount);
+    card.appendChild(total);
+
+    const btn = document.createElement('button');
+    btn.className = 'remove-btn';
+    btn.style.marginTop = '10px';
+
+    if (isHidden) {
+      btn.textContent = T('Obnoviť','Restore');
+      btn.onclick = () => extRestoreBooking(b.id);
+    } else {
+      btn.textContent = T('Skryť','Hide');
+      btn.onclick = () => extHideBooking(b.id);
+    }
+
+    card.appendChild(btn);
+    target.appendChild(card);
+  }
+
+  if (visible.length) {
+    for (const b of visible) {
+      await renderBooking(b, box, false);
+    }
+  } else {
+    const empty = document.createElement('div');
+    empty.className = 'card';
+    empty.textContent = T(
+      'Nemáte žiadne aktuálne rezervácie.',
+      'You have no current bookings.'
+    );
+    box.appendChild(empty);
+  }
+
+  if (hidden.length) {
+    const details = document.createElement('details');
+    details.className = 'card';
+
+    const summary = document.createElement('summary');
+    summary.style.cursor = 'pointer';
+    summary.style.fontWeight = '800';
+    summary.textContent =
+      T('Staršie a skryté rezervácie','Older and hidden bookings') +
+      ` (${hidden.length})`;
+
+    details.appendChild(summary);
+
+    const hiddenBox = document.createElement('div');
+    hiddenBox.style.marginTop = '12px';
+    details.appendChild(hiddenBox);
+
+    box.appendChild(details);
+
+    for (const b of hidden) {
+      await renderBooking(b, hiddenBox, true);
+    }
+  }
+};
