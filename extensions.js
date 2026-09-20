@@ -1747,3 +1747,32 @@ extRestoreBooking = async function(bookingId) {
 
   await showBookings();
 };
+// ============================================================
+// HOME MENU – REMOVE DUPLICATE EMOJIS
+// ============================================================
+
+function extCleanHomeMenuIcons() {
+  setText('eventsBtn', 'Podujatia', 'Events');
+  setText('bookingsBtn', 'Moje rezervácie', 'My Bookings');
+  setText(
+    'fatraBtn',
+    'Fatra Potraviny Rugby – Objednávka',
+    'Fatra Potraviny Rugby – Grocery Order'
+  );
+  setText(
+    'faceBtn',
+    'Tinuška – Maľovanie na tvár',
+    'Tinuška – Face Painting'
+  );
+  setText('aboutBtn', 'O nás', 'About Us');
+  setText('contactBtn', 'Kontakt', 'Contact');
+}
+
+const extMenuLanguageFix = setLanguage;
+
+setLanguage = function(lang) {
+  extMenuLanguageFix(lang);
+  extCleanHomeMenuIcons();
+};
+
+extCleanHomeMenuIcons();
