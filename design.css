@@ -1101,13 +1101,6 @@ body {
 }
 /* ===== PODUJATIA FOTO ===== */
 
-#eventsBtn {
-  background:
-    linear-gradient(90deg, rgba(255,122,26,.82), rgba(91,48,25,.42)),
-    url('Podujatia.jpg') center / cover no-repeat !important;
-}
-/* ===== PODUJATIA FOTO ===== */
-
 #homePage button:first-of-type {
   background:
     linear-gradient(90deg, rgba(255,122,26,.82), rgba(70,35,20,.42)),
