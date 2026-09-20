@@ -972,15 +972,7 @@ footer::before {
   margin-bottom: 3px !important;
 }
 
-footer::after {
-  content: "──────   ♥   ──────\A SMALL ACTIONS  MAKE A BIG DIFFERENCE" !important;
-  display: block !important;
-  white-space: pre-line !important;
-  color: #ff7a18 !important;
-  font-size: 8px !important;
-  line-height: 1.8 !important;
-  letter-spacing: 1.4px !important;
-}
+
 /* ===== BOTTOM MOTTO ===== */
 
 footer {
