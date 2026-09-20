@@ -1304,3 +1304,20 @@ body {
     ),
     url('Onas.jpg') 70% center / 34% 100% no-repeat !important;
 }
+/* ===== O NAS – JEMNE ZAPUSTENIE FOTO ===== */
+
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(
+      90deg,
+      #0b4263 0%,
+      #0b4263 43%,
+      rgba(11,66,99,.75) 47%,
+      rgba(11,66,99,.20) 52%,
+      rgba(11,66,99,.20) 73%,
+      rgba(11,66,99,.75) 78%,
+      #0b4263 83%,
+      #0b4263 100%
+    ),
+    url('Onas.jpg') 70% center / 34% 100% no-repeat !important;
+}
