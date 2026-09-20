@@ -1700,3 +1700,50 @@ showBookings = async function() {
     }
   }
 };
+// ============================================================
+// MY BOOKINGS – HIDE / RESTORE DATABASE FIX
+// ============================================================
+
+extHideBooking = async function(bookingId) {
+  const { error } = await supabaseClient.rpc(
+    'set_my_booking_hidden',
+    {
+      p_booking_id: bookingId,
+      p_hidden: true
+    }
+  );
+
+  if (error) {
+    alert(
+      T(
+        'Rezerváciu sa nepodarilo skryť: ',
+        'The booking could not be hidden: '
+      ) + error.message
+    );
+    return;
+  }
+
+  await showBookings();
+};
+
+extRestoreBooking = async function(bookingId) {
+  const { error } = await supabaseClient.rpc(
+    'set_my_booking_hidden',
+    {
+      p_booking_id: bookingId,
+      p_hidden: false
+    }
+  );
+
+  if (error) {
+    alert(
+      T(
+        'Rezerváciu sa nepodarilo obnoviť: ',
+        'The booking could not be restored: '
+      ) + error.message
+    );
+    return;
+  }
+
+  await showBookings();
+};
