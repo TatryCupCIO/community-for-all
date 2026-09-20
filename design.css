@@ -981,3 +981,28 @@ footer::after {
   line-height: 1.8 !important;
   letter-spacing: 1.4px !important;
 }
+/* ===== BOTTOM MOTTO ===== */
+
+footer {
+  position: relative !important;
+  padding-bottom: 52px !important;
+}
+
+footer::after {
+  content: "──────   ♥   ──────\A SMALL ACTIONS MAKE A BIG DIFFERENCE" !important;
+  position: absolute !important;
+  left: 50% !important;
+  bottom: 4px !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+
+  display: block !important;
+  white-space: pre-line !important;
+  text-align: center !important;
+
+  color: #ff7a18 !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  line-height: 2 !important;
+  letter-spacing: 1.5px !important;
+}
