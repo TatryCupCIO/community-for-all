@@ -1235,3 +1235,32 @@ body {
   background-repeat: no-repeat !important;
   background-color: #123f61 !important;
 }
+/* =========================================================
+   O NAS – FOTO PANEL
+   ========================================================= */
+
+#aboutBtn {
+  background:
+    linear-gradient(
+      90deg,
+      #123f61 0%,
+      #123f61 35%,
+      rgba(18,63,97,.15) 43%,
+      rgba(18,63,97,.08) 76%,
+      #123f61 86%,
+      #123f61 100%
+    ),
+    url('Onas.jpg') center / auto 100% no-repeat !important;
+
+  background-color: #123f61 !important;
+}
+
+/* odstráni pôvodnú ikonu rodiny */
+#aboutBtn::before {
+  display: none !important;
+}
+
+/* text sa posunie na miesto po ikone */
+#aboutBtn {
+  padding-left: 28px !important;
+}
