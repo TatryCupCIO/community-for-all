@@ -1327,3 +1327,9 @@ body {
   background:
     url('Podujatia.png') center center / cover no-repeat !important;
 }
+/* ===== MOJE REZERVÁCIE – NOVÁ FINÁLNA FOTKA ===== */
+
+#homePage button:nth-of-type(2) {
+  background:
+    url('Mojerezervacie.png') center center / cover no-repeat !important;
+}
