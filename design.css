@@ -1264,3 +1264,26 @@ body {
 #aboutBtn {
   padding-left: 28px !important;
 }
+/* ===== O NAS – NOVY FOTO PANEL ===== */
+
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(
+      90deg,
+      #123f61 0%,
+      #123f61 34%,
+      rgba(18,63,97,.18) 42%,
+      rgba(18,63,97,.08) 76%,
+      #123f61 86%,
+      #123f61 100%
+    ),
+    url('Onas.jpg') center / auto 100% no-repeat !important;
+
+  background-color: #123f61 !important;
+  padding-left: 28px !important;
+}
+
+/* odstráni ikonu rodiny */
+#homePage button:nth-of-type(5)::before {
+  display: none !important;
+}
