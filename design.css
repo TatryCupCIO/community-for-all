@@ -1333,3 +1333,9 @@ body {
   background:
     url('Mojerezervacie.png') center center / cover no-repeat !important;
 }
+/* ===== FATRA POTRAVINY RUGBY – NOVÁ FINÁLNA FOTKA ===== */
+
+#homePage button:nth-of-type(3) {
+  background:
+    url('Fatra.png') center center / cover no-repeat !important;
+}
