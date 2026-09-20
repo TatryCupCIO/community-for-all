@@ -1103,3 +1103,13 @@ body {
     linear-gradient(90deg, rgba(7,56,87,.90), rgba(7,56,87,.48)),
     url('Onas.jpg') center / cover no-repeat !important;
 }
+/* ===== LOGO ===== */
+
+.logo::before {
+  content: "";
+  display: block;
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 5px;
+  background: url('Logo.png') center / contain no-repeat;
+}
