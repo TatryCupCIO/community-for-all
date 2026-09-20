@@ -1113,3 +1113,10 @@ body {
     linear-gradient(90deg, rgba(104,52,25,.82), rgba(55,31,22,.45)),
     url('Fatra.jpg') center / cover no-repeat !important;
 }
+/* ===== TINUSKA FACEPAINTING FOTO ===== */
+
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg, rgba(177,31,63,.78), rgba(110,20,50,.38)),
+    url('FacePainting.jpeg') center / cover no-repeat !important;
+}
