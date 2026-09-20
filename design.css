@@ -1321,3 +1321,9 @@ body {
     ),
     url('Onas.jpg') 70% center / 34% 100% no-repeat !important;
 }
+/* ===== PODUJATIA – NOVÁ FINÁLNA FOTKA ===== */
+
+#homePage button:first-of-type {
+  background:
+    url('Podujatia.png') center center / cover no-repeat !important;
+}
