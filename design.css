@@ -1127,3 +1127,10 @@ body {
     linear-gradient(90deg, rgba(7,56,87,.82), rgba(7,56,87,.38)),
     url('Onas.jpg') center / cover no-repeat !important;
 }
+/* ===== MOJE REZERVACIE FOTO ===== */
+
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg, rgba(8,55,84,.84), rgba(8,55,84,.38)),
+    url('Mojerezarvacie.jpg') center / cover no-repeat !important;
+}
