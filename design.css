@@ -1363,3 +1363,99 @@ body {
   background:
     url('Kontakt.png') center center / cover no-repeat !important;
 }
+/* =========================================================
+   FINAL HOME SCREEN POLISH
+   Better menu readability + shorter footer
+   ========================================================= */
+
+/* Stronger contrast over menu photos */
+#homePage button:first-of-type {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.42) 0%, rgba(0,0,0,.18) 55%, rgba(0,0,0,.08) 100%),
+    url('Podujatia.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.48) 0%, rgba(0,0,0,.20) 55%, rgba(0,0,0,.08) 100%),
+    url('Mojerezervacie.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.48) 0%, rgba(0,0,0,.20) 60%, rgba(0,0,0,.10) 100%),
+    url('Fatra.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.20) 60%, rgba(0,0,0,.08) 100%),
+    url('Tinuskafacepainting.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.48) 0%, rgba(0,0,0,.16) 60%, rgba(0,0,0,.08) 100%),
+    url('Onas.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(6) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.48) 0%, rgba(0,0,0,.18) 60%, rgba(0,0,0,.08) 100%),
+    url('Kontakt.png') center center / cover no-repeat !important;
+}
+
+/* Clear menu text */
+#eventsBtn,
+#bookingsBtn,
+#fatraBtn,
+#faceBtn,
+#aboutBtn,
+#contactBtn {
+  font-weight: 900 !important;
+  text-shadow:
+    0 2px 3px rgba(0,0,0,1),
+    0 0 8px rgba(0,0,0,.9) !important;
+}
+
+/* Remove unnecessary empty space under footer */
+.footer {
+  margin-top: 10px !important;
+  padding-bottom: 8px !important;
+}
+
+.footer::after {
+  margin-top: 5px !important;
+  line-height: 1.7 !important;
+}
+
+/* Phone home-screen compaction only */
+@media (max-width: 600px) {
+
+  .language {
+    margin-top: 16px !important;
+    margin-bottom: 7px !important;
+  }
+
+  .language::before {
+    top: -25px !important;
+  }
+
+  #homePage {
+    gap: 5px !important;
+  }
+
+  #homePage .menu-btn {
+    height: 54px !important;
+    min-height: 54px !important;
+  }
+
+  #fatraBtn {
+    font-size: 15px !important;
+  }
+
+  .footer {
+    margin-top: 7px !important;
+    padding-bottom: 5px !important;
+  }
+}
