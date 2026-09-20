@@ -1339,3 +1339,9 @@ body {
   background:
     url('Fatra.png') center center / cover no-repeat !important;
 }
+/* ===== TINUŠKA – NOVÁ FINÁLNA FOTKA ===== */
+
+#homePage button:nth-of-type(4) {
+  background:
+    url('Tinuskafacepainting.png') center center / cover no-repeat !important;
+}
