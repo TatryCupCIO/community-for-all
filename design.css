@@ -1357,3 +1357,9 @@ body {
   background:
     url('Kontakt.png') center center / cover no-repeat !important;
 }
+/* ===== KONTAKT – NOVÁ FINÁLNA FOTKA ===== */
+
+#homePage button:nth-of-type(6) {
+  background:
+    url('Kontakt.png') center center / cover no-repeat !important;
+}
