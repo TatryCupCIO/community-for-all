@@ -1,7 +1,630 @@
-/* COMMUNITY FOR ALL - SAFE DESIGN RESET */
+/* =========================================================
+   COMMUNITY FOR ALL
+   HOME DESIGN
+   ONLY VISUAL STYLING
+   ========================================================= */
 
-/*
-  Tento súbor je zámerne prázdny.
-  Pôvodný vzhľad a funkčnosť zostávajú v index.html.
-  Tu momentálne nič neprepisujeme.
-*/
+:root {
+  --cfa-navy: #0d2034;
+  --cfa-navy-2: #12304c;
+  --cfa-navy-3: #173b5b;
+
+  --cfa-orange: #ff7a1a;
+  --cfa-orange-light: #ff9b38;
+  --cfa-orange-dark: #d95810;
+
+  --cfa-white: #ffffff;
+  --cfa-soft: #dce7f1;
+  --cfa-border: rgba(132, 184, 224, 0.34);
+
+  --cfa-radius: 18px;
+}
+
+
+/* =========================================================
+   PAGE
+   ========================================================= */
+
+html {
+  background: #0d2034;
+}
+
+body {
+  background:
+    radial-gradient(
+      circle at 82% 15%,
+      rgba(255, 133, 38, 0.22) 0,
+      rgba(255, 133, 38, 0.08) 18%,
+      transparent 38%
+    ),
+    linear-gradient(
+      180deg,
+      #112b45 0%,
+      #0e263e 35%,
+      #0b1f33 70%,
+      #0d2942 100%
+    ) !important;
+
+  color: var(--cfa-white) !important;
+}
+
+
+/* =========================================================
+   TOP AREA
+   ========================================================= */
+
+.topbar,
+.header-actions,
+.top-actions {
+  position: relative;
+  z-index: 5;
+}
+
+
+/* SUPPORT BUTTON */
+
+.support-btn,
+.donate-btn,
+#supportBtn {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 91, 27, 0.14),
+      rgba(255, 145, 42, 0.24)
+    ) !important;
+
+  color: #fff !important;
+
+  border: 2px solid #ff6a27 !important;
+  border-radius: 999px !important;
+
+  box-shadow:
+    0 0 18px rgba(255, 107, 31, 0.16) !important;
+
+  font-weight: 700 !important;
+}
+
+
+/* CART + PROFILE */
+
+.cart-btn,
+.profile-btn,
+#cartBtn,
+#profileBtn {
+  background:
+    linear-gradient(
+      145deg,
+      rgba(25, 65, 99, 0.88),
+      rgba(11, 36, 58, 0.92)
+    ) !important;
+
+  color: white !important;
+
+  border: 1px solid rgba(130, 186, 229, 0.45) !important;
+
+  border-radius: 16px !important;
+
+  box-shadow:
+    0 7px 22px rgba(0, 0, 0, 0.16) !important;
+}
+
+
+/* =========================================================
+   MAIN BRAND
+   ========================================================= */
+
+.logo {
+  color: white !important;
+
+  font-size: clamp(30px, 8vw, 48px) !important;
+  line-height: 0.94 !important;
+
+  font-weight: 800 !important;
+  letter-spacing: -1px !important;
+
+  text-shadow:
+    0 3px 12px rgba(0, 0, 0, 0.28) !important;
+
+  margin-top: 14px !important;
+  margin-bottom: 9px !important;
+}
+
+
+/* Try to make last highlighted part orange
+   where existing HTML allows it */
+
+.logo span:last-child,
+.logo .cfa-all {
+  color: var(--cfa-orange-light) !important;
+}
+
+
+.charity {
+  color: #e8eef4 !important;
+
+  font-size: 13px !important;
+  font-weight: 500 !important;
+
+  letter-spacing: 3px !important;
+  line-height: 1.45 !important;
+
+  text-align: center !important;
+
+  margin-bottom: 14px !important;
+}
+
+
+/* =========================================================
+   LANGUAGE SWITCH
+   ========================================================= */
+
+.language {
+  display: flex !important;
+
+  width: 190px !important;
+  height: 48px !important;
+
+  margin: 15px auto 20px !important;
+
+  padding: 0 !important;
+
+  border: 2px solid #4d7aa1 !important;
+  border-radius: 18px !important;
+
+  overflow: hidden !important;
+
+  background: rgba(10, 35, 57, 0.75) !important;
+
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.18) !important;
+}
+
+
+.lang-btn {
+  flex: 1 !important;
+
+  margin: 0 !important;
+
+  border: 0 !important;
+  border-radius: 0 !important;
+
+  background: transparent !important;
+
+  color: white !important;
+
+  font-size: 17px !important;
+  font-weight: 600 !important;
+
+  box-shadow: none !important;
+}
+
+
+.lang-btn.active {
+  color: #10263b !important;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffb347 0%,
+      #ff8a22 55%,
+      #ff7417 100%
+    ) !important;
+
+  box-shadow:
+    0 0 20px rgba(255, 129, 27, 0.36) !important;
+}
+
+
+/* =========================================================
+   HOME MENU
+   ========================================================= */
+
+#homePage {
+  width: calc(100% - 28px) !important;
+  max-width: 760px !important;
+
+  margin: 0 auto !important;
+  padding: 0 0 18px !important;
+}
+
+
+/* ALL HOME BUTTONS */
+
+#homePage .menu-btn {
+  position: relative !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  width: 100% !important;
+  min-height: 82px !important;
+
+  margin: 0 0 12px !important;
+  padding: 15px 55px 15px 84px !important;
+
+  overflow: hidden !important;
+
+  text-align: left !important;
+
+  color: white !important;
+
+  border: 1px solid var(--cfa-border) !important;
+  border-radius: var(--cfa-radius) !important;
+
+  font-size: 22px !important;
+  font-weight: 750 !important;
+
+  line-height: 1.1 !important;
+
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.34) !important;
+
+  box-shadow:
+    0 9px 24px rgba(0, 0, 0, 0.17),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+
+  transition:
+    transform 0.16s ease,
+    filter 0.16s ease !important;
+}
+
+
+#homePage .menu-btn:active {
+  transform: scale(0.985) !important;
+  filter: brightness(1.08) !important;
+}
+
+
+/* ARROW */
+
+#homePage .menu-btn::after {
+  content: "›" !important;
+
+  position: absolute !important;
+
+  right: 20px !important;
+  top: 50% !important;
+
+  transform: translateY(-53%) !important;
+
+  color: white !important;
+
+  font-size: 44px !important;
+  font-family: Arial, sans-serif !important;
+  font-weight: 300 !important;
+
+  line-height: 1 !important;
+
+  opacity: 0.96 !important;
+}
+
+
+/* =========================================================
+   ICONS
+   CSS ONLY - NO JAVASCRIPT
+   ========================================================= */
+
+#homePage .menu-btn::before {
+  position: absolute !important;
+
+  left: 22px !important;
+  top: 50% !important;
+
+  transform: translateY(-50%) !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  width: 44px !important;
+  height: 44px !important;
+
+  font-size: 34px !important;
+  line-height: 1 !important;
+
+  background: none !important;
+}
+
+
+/* calendar */
+
+#eventsBtn::before {
+  content: "▣" !important;
+
+  color: white !important;
+
+  font-size: 42px !important;
+}
+
+
+/* ticket */
+
+#bookingsBtn::before {
+  content: "◇" !important;
+
+  color: white !important;
+
+  font-size: 48px !important;
+
+  transform:
+    translateY(-50%)
+    rotate(-42deg) !important;
+}
+
+
+/* Fatra */
+
+#fatraBtn::before {
+  content: "♨" !important;
+
+  color: #ff9a35 !important;
+
+  font-size: 38px !important;
+}
+
+
+/* face painting */
+
+#faceBtn::before {
+  content: "✿" !important;
+
+  color: #ff7c85 !important;
+
+  font-size: 38px !important;
+}
+
+
+/* about */
+
+#aboutBtn::before {
+  content: "●●" !important;
+
+  color: white !important;
+
+  font-size: 21px !important;
+  letter-spacing: -4px !important;
+}
+
+
+/* contact */
+
+#contactBtn::before {
+  content: "✉" !important;
+
+  color: white !important;
+
+  font-size: 39px !important;
+}
+
+
+/* =========================================================
+   INDIVIDUAL CARDS
+   ========================================================= */
+
+
+/* EVENTS */
+
+#eventsBtn,
+#homePage .events {
+  background:
+    radial-gradient(
+      circle at 72% 45%,
+      rgba(255, 177, 62, 0.40),
+      transparent 27%
+    ),
+    linear-gradient(
+      110deg,
+      #e35c0b 0%,
+      #f27a12 45%,
+      #c94c0a 72%,
+      #17334d 100%
+    ) !important;
+
+  border-color: #ff922c !important;
+
+  box-shadow:
+    0 9px 26px rgba(231, 95, 13, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13) !important;
+}
+
+
+/* BOOKINGS */
+
+#bookingsBtn,
+#homePage .bookings {
+  background:
+    linear-gradient(
+      110deg,
+      #173c5e 0%,
+      #12304d 50%,
+      #0b2238 100%
+    ) !important;
+}
+
+
+/* FATRA */
+
+#fatraBtn,
+#homePage .fatra {
+  background:
+    radial-gradient(
+      circle at 82% 50%,
+      rgba(255, 130, 37, 0.24),
+      transparent 32%
+    ),
+    linear-gradient(
+      105deg,
+      #4c281a 0%,
+      #66301a 45%,
+      #172b3c 100%
+    ) !important;
+
+  border-color: rgba(231, 125, 67, 0.38) !important;
+}
+
+
+/* FACE PAINTING */
+
+#faceBtn,
+#homePage .face {
+  background:
+    radial-gradient(
+      circle at 85% 50%,
+      rgba(255, 124, 133, 0.27),
+      transparent 32%
+    ),
+    linear-gradient(
+      105deg,
+      #8d1d2c 0%,
+      #6f1725 52%,
+      #32182a 100%
+    ) !important;
+
+  border-color: rgba(255, 108, 120, 0.44) !important;
+}
+
+
+/* ABOUT */
+
+#aboutBtn,
+#homePage .about {
+  background:
+    radial-gradient(
+      circle at 72% 50%,
+      rgba(255, 142, 39, 0.22),
+      transparent 27%
+    ),
+    linear-gradient(
+      105deg,
+      #173a58 0%,
+      #102e48 52%,
+      #192a37 100%
+    ) !important;
+}
+
+
+/* CONTACT */
+
+#contactBtn,
+#homePage .contact {
+  background:
+    linear-gradient(
+      105deg,
+      #183d5d 0%,
+      #12324f 48%,
+      #0c263d 100%
+    ) !important;
+}
+
+
+/* =========================================================
+   OTHER APP PAGES
+   Keep functionality untouched, only visual polish
+   ========================================================= */
+
+.card,
+.booking-card,
+.event-card,
+.option-card,
+.reservation-card {
+  border-color: rgba(118, 166, 205, 0.28) !important;
+
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.12) !important;
+}
+
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+
+input,
+select,
+textarea {
+  border-radius: 12px;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .logo {
+    font-size: 36px !important;
+  }
+
+  .charity {
+    font-size: 12px !important;
+    letter-spacing: 2.2px !important;
+  }
+
+  .language {
+    width: 180px !important;
+    height: 46px !important;
+  }
+
+  #homePage {
+    width: calc(100% - 26px) !important;
+  }
+
+  #homePage .menu-btn {
+    min-height: 76px !important;
+
+    padding:
+      13px
+      48px
+      13px
+      75px !important;
+
+    margin-bottom: 10px !important;
+
+    border-radius: 17px !important;
+
+    font-size: 20px !important;
+  }
+
+  #homePage .menu-btn::before {
+    left: 18px !important;
+
+    width: 42px !important;
+    height: 42px !important;
+  }
+
+  #homePage .menu-btn::after {
+    right: 17px !important;
+
+    font-size: 39px !important;
+  }
+}
+
+
+/* =========================================================
+   SMALLER MOBILE
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .logo {
+    font-size: 32px !important;
+  }
+
+  .charity {
+    font-size: 10px !important;
+    letter-spacing: 1.8px !important;
+  }
+
+  #homePage .menu-btn {
+    min-height: 70px !important;
+
+    padding-left: 68px !important;
+
+    font-size: 18px !important;
+  }
+
+  #homePage .menu-btn::before {
+    left: 16px !important;
+  }
+}
