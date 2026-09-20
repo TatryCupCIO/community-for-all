@@ -1154,3 +1154,731 @@ footer{
     min-height:76px !important;
   }
 }
+/* =========================================================
+   COMMUNITY FOR ALL
+   PREMIUM HOME DESIGN V3
+   ========================================================= */
+
+
+/* ---------- HOME WIDTH ---------- */
+
+#homePage{
+  width:min(calc(100% - 28px), 680px) !important;
+  margin:0 auto !important;
+  padding:0 !important;
+}
+
+
+/* ---------- MAIN BACKGROUND ---------- */
+
+html,
+body{
+  background:
+    radial-gradient(
+      circle at 82% 15%,
+      rgba(255,118,0,.09),
+      transparent 22%
+    ),
+    linear-gradient(
+      180deg,
+      #071521 0%,
+      #06131e 45%,
+      #04101a 100%
+    ) !important;
+}
+
+
+/* =========================================================
+   MAIN LOGO / TITLE
+   ========================================================= */
+
+.logo{
+  color:#f7f7f7 !important;
+  background:none !important;
+
+  font-size:clamp(34px,8.5vw,46px) !important;
+  font-weight:800 !important;
+
+  line-height:.96 !important;
+  letter-spacing:-1.5px !important;
+
+  max-width:430px !important;
+  margin:
+    clamp(26px,4vh,42px)
+    auto
+    12px !important;
+
+  text-align:center !important;
+
+  -webkit-text-fill-color:initial !important;
+}
+
+
+/* make final word visually orange when JS enhancement loads */
+
+.logo .cfa-all{
+  color:#ff7900 !important;
+}
+
+
+/* ---------- CHARITY NAME ---------- */
+
+.charity{
+  color:#d8dde3 !important;
+
+  font-size:clamp(10px,2.8vw,13px) !important;
+  font-weight:500 !important;
+
+  letter-spacing:3px !important;
+  line-height:1.45 !important;
+
+  text-align:center !important;
+
+  margin:0 auto 18px !important;
+}
+
+
+/* =========================================================
+   PEOPLE COMMUNITY OPPORTUNITIES
+   ========================================================= */
+
+#homePage::before{
+  content:"PEOPLE   |   COMMUNITY   |   OPPORTUNITIES";
+
+  display:block;
+
+  color:#d9dde2;
+
+  font-size:clamp(9px,2.6vw,12px);
+  font-weight:500;
+
+  letter-spacing:clamp(2px,.8vw,4px);
+
+  text-align:center;
+
+  margin:
+    clamp(12px,2vh,20px)
+    auto
+    8px;
+
+  opacity:.92;
+}
+
+
+/* =========================================================
+   STRONGER TOGETHER
+   ========================================================= */
+
+#homePage::after{
+  content:"Stronger Together";
+
+  display:block;
+
+  color:#ff7900;
+
+  font-family:
+    "Segoe Script",
+    "Brush Script MT",
+    "Lucida Handwriting",
+    cursive;
+
+  font-size:clamp(28px,8vw,42px);
+
+  font-weight:400;
+
+  line-height:1;
+
+  text-align:center;
+
+  transform:rotate(-3deg);
+
+  margin:
+    3px
+    auto
+    clamp(22px,3vh,32px);
+
+  text-shadow:
+    0 0 18px rgba(255,121,0,.10);
+}
+
+
+/* =========================================================
+   LANGUAGE SWITCH
+   ========================================================= */
+
+.language{
+  width:min(255px,72%) !important;
+
+  margin:
+    0 auto
+    clamp(20px,3vh,30px) !important;
+
+  padding:0 !important;
+
+  display:flex !important;
+
+  border:
+    1px solid
+    rgba(129,156,177,.35) !important;
+
+  border-radius:999px !important;
+
+  overflow:hidden !important;
+
+  background:#071725 !important;
+
+  box-shadow:
+    inset 0 0 14px rgba(0,0,0,.24) !important;
+}
+
+
+.lang-btn{
+  flex:1 !important;
+
+  height:48px !important;
+
+  margin:0 !important;
+
+  border:0 !important;
+  border-radius:0 !important;
+
+  background:transparent !important;
+
+  color:#f5f5f5 !important;
+
+  font-size:17px !important;
+  font-weight:700 !important;
+
+  box-shadow:none !important;
+}
+
+
+.lang-btn.active{
+  color:#ff8a18 !important;
+
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255,117,0,.14),
+      rgba(255,117,0,.03)
+    ) !important;
+
+  box-shadow:
+    inset 0 0 0 1px #ff7900 !important;
+}
+
+
+/* =========================================================
+   MENU CARDS
+   ========================================================= */
+
+#homePage .menu-btn{
+  position:relative !important;
+
+  width:100% !important;
+
+  min-height:78px !important;
+  height:auto !important;
+
+  margin:0 0 11px !important;
+
+  padding:
+    14px
+    52px
+    14px
+    82px !important;
+
+  display:flex !important;
+  align-items:center !important;
+
+  border-radius:17px !important;
+
+  border:
+    1px solid
+    rgba(111,143,165,.34) !important;
+
+  background:
+    linear-gradient(
+      105deg,
+      #122b3e 0%,
+      #071a29 72%,
+      #071521 100%
+    ) !important;
+
+  color:#f7f7f7 !important;
+
+  font-size:clamp(18px,4.8vw,23px) !important;
+  font-weight:750 !important;
+
+  line-height:1.12 !important;
+
+  text-align:left !important;
+
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.035) !important;
+
+  overflow:hidden !important;
+
+  isolation:isolate !important;
+}
+
+
+/* subtle light on right */
+
+#homePage .menu-btn span{
+  position:relative;
+  z-index:2;
+}
+
+
+/* =========================================================
+   EVENTS
+   ========================================================= */
+
+#homePage .menu-btn.events{
+  min-height:86px !important;
+
+  background:
+    radial-gradient(
+      circle at 78% 48%,
+      rgba(255,187,77,.24),
+      transparent 34%
+    ),
+    linear-gradient(
+      105deg,
+      #c84b00 0%,
+      #f47b00 48%,
+      #743006 100%
+    ) !important;
+
+  border-color:#ff8110 !important;
+
+  box-shadow:
+    0 8px 24px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,219,169,.16) !important;
+}
+
+
+/* =========================================================
+   BOOKINGS
+   ========================================================= */
+
+#homePage .menu-btn.bookings{
+  background:
+    linear-gradient(
+      105deg,
+      #17354c 0%,
+      #0a2132 58%,
+      #071725 100%
+    ) !important;
+}
+
+
+/* =========================================================
+   FATRA
+   ========================================================= */
+
+#homePage .menu-btn.fatra{
+  background:
+    radial-gradient(
+      circle at 88% 50%,
+      rgba(255,135,26,.16),
+      transparent 32%
+    ),
+    linear-gradient(
+      105deg,
+      #25251f 0%,
+      #171d20 54%,
+      #11191f 100%
+    ) !important;
+
+  border-color:
+    rgba(255,136,31,.28) !important;
+}
+
+
+/* =========================================================
+   FACE PAINTING
+   ========================================================= */
+
+#homePage .menu-btn.face{
+  background:
+    radial-gradient(
+      circle at 88% 50%,
+      rgba(239,84,81,.18),
+      transparent 35%
+    ),
+    linear-gradient(
+      105deg,
+      #4b1019 0%,
+      #321219 55%,
+      #19151b 100%
+    ) !important;
+
+  border-color:
+    rgba(239,84,81,.34) !important;
+}
+
+
+/* =========================================================
+   ABOUT
+   ========================================================= */
+
+#homePage .menu-btn.about{
+  background:
+    radial-gradient(
+      circle at 88% 50%,
+      rgba(255,145,38,.17),
+      transparent 34%
+    ),
+    linear-gradient(
+      105deg,
+      #193247 0%,
+      #102433 58%,
+      #161b1d 100%
+    ) !important;
+}
+
+
+/* =========================================================
+   CONTACT
+   ========================================================= */
+
+#homePage .menu-btn.contact{
+  background:
+    linear-gradient(
+      105deg,
+      #17354b 0%,
+      #0b2334 60%,
+      #071824 100%
+    ) !important;
+}
+
+
+/* =========================================================
+   ICON AREA
+   ========================================================= */
+
+#homePage .menu-btn::before{
+  position:absolute !important;
+
+  left:22px !important;
+  top:50% !important;
+
+  transform:
+    translateY(-50%) !important;
+
+  width:40px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  font-size:28px !important;
+
+  line-height:1 !important;
+
+  z-index:3 !important;
+
+  filter:none !important;
+}
+
+
+/* =========================================================
+   RIGHT ARROW
+   ========================================================= */
+
+#homePage .menu-btn::after{
+  content:"›" !important;
+
+  position:absolute !important;
+
+  right:18px !important;
+  top:50% !important;
+
+  transform:
+    translateY(-52%) !important;
+
+  color:#ffffff !important;
+
+  font-family:Arial,sans-serif !important;
+
+  font-size:43px !important;
+  font-weight:200 !important;
+
+  line-height:1 !important;
+
+  opacity:.96 !important;
+
+  z-index:5 !important;
+}
+
+
+/* =========================================================
+   REMOVE VISUAL EMOJI FEEL
+   ========================================================= */
+
+#homePage .menu-btn{
+  text-shadow:none !important;
+}
+
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer{
+  position:relative !important;
+
+  width:min(calc(100% - 30px),650px) !important;
+
+  margin:
+    clamp(38px,5vh,55px)
+    auto
+    0 !important;
+
+  padding:
+    48px
+    10px
+    42px !important;
+
+  text-align:center !important;
+
+  border:0 !important;
+
+  background:transparent !important;
+
+  color:#aeb9c4 !important;
+}
+
+
+/* orange line */
+
+footer::before{
+  content:"";
+
+  position:absolute;
+
+  top:0;
+  left:50%;
+
+  transform:translateX(-50%);
+
+  width:135px;
+  height:3px;
+
+  border-radius:10px;
+
+  background:#ff7900;
+
+  box-shadow:
+    0 0 10px rgba(255,121,0,.15);
+}
+
+
+/* footer motto */
+
+footer::after{
+  content:"♥  SMALL ACTIONS  MAKE A BIG DIFFERENCE";
+
+  display:block;
+
+  margin-top:28px;
+
+  color:#c8d0d7;
+
+  font-size:clamp(9px,2.7vw,12px);
+
+  font-weight:600;
+
+  letter-spacing:2.5px;
+
+  line-height:1.8;
+
+  white-space:normal;
+}
+
+
+/* =========================================================
+   FOOTER HEART
+   ========================================================= */
+
+footer::after{
+  color:#ff7900;
+}
+
+
+/* =========================================================
+   DECORATIVE TREES / MOUNTAIN FEEL
+   WITHOUT IMAGE FILES YET
+   ========================================================= */
+
+body::after{
+  content:"";
+
+  position:fixed;
+
+  left:0;
+  right:0;
+  bottom:0;
+
+  height:190px;
+
+  pointer-events:none;
+
+  z-index:-1;
+
+  opacity:.28;
+
+  background:
+    linear-gradient(
+      155deg,
+      transparent 0 52%,
+      rgba(14,39,54,.42) 52% 55%,
+      transparent 55%
+    ),
+    linear-gradient(
+      205deg,
+      transparent 0 56%,
+      rgba(14,39,54,.35) 56% 59%,
+      transparent 59%
+    );
+}
+
+
+/* =========================================================
+   TOP BUTTONS
+   ========================================================= */
+
+#supportBtn,
+.support-btn{
+  border-radius:999px !important;
+
+  background:
+    rgba(92,8,25,.20) !important;
+
+  border:
+    1px solid
+    rgba(255,65,77,.70) !important;
+
+  color:#f6f6f6 !important;
+
+  box-shadow:none !important;
+}
+
+
+/* =========================================================
+   RESPONSIVE - STANDARD PHONES
+   ========================================================= */
+
+@media(max-width:700px){
+
+  #homePage{
+    width:calc(100% - 28px) !important;
+  }
+
+  #homePage .menu-btn{
+    min-height:72px !important;
+
+    padding:
+      12px
+      48px
+      12px
+      72px !important;
+
+    border-radius:16px !important;
+  }
+
+  #homePage .menu-btn.events{
+    min-height:80px !important;
+  }
+
+  #homePage .menu-btn::before{
+    left:18px !important;
+    width:36px !important;
+    font-size:26px !important;
+  }
+
+  #homePage .menu-btn::after{
+    right:16px !important;
+    font-size:39px !important;
+  }
+}
+
+
+/* =========================================================
+   SMALL PHONES
+   ========================================================= */
+
+@media(max-width:390px){
+
+  #homePage{
+    width:calc(100% - 22px) !important;
+  }
+
+  #homePage .menu-btn{
+    min-height:66px !important;
+
+    margin-bottom:8px !important;
+
+    padding:
+      10px
+      43px
+      10px
+      64px !important;
+
+    font-size:17px !important;
+  }
+
+  #homePage .menu-btn.events{
+    min-height:72px !important;
+  }
+
+  #homePage .menu-btn::before{
+    left:15px !important;
+    font-size:23px !important;
+  }
+
+  #homePage .menu-btn::after{
+    right:13px !important;
+    font-size:35px !important;
+  }
+
+  .language{
+    width:220px !important;
+  }
+
+  .lang-btn{
+    height:44px !important;
+  }
+}
+
+
+/* =========================================================
+   SHORT SCREENS
+   ========================================================= */
+
+@media(max-height:760px){
+
+  .logo{
+    margin-top:18px !important;
+  }
+
+  #homePage::before{
+    margin-top:8px;
+  }
+
+  #homePage::after{
+    margin-bottom:18px;
+  }
+
+  #homePage .menu-btn{
+    min-height:62px !important;
+    margin-bottom:7px !important;
+  }
+
+  #homePage .menu-btn.events{
+    min-height:68px !important;
+  }
+}
