@@ -968,11 +968,11 @@ footer {
 
 .footer {
   position: relative !important;
-  padding-bottom: 58px !important;
+  padding-bottom: 82px !important;
 }
 
 .footer::after {
-  content: "━━━━━━   ♥   ━━━━━━\A SMALL ACTIONS MAKE A BIG DIFFERENCE";
+  content: "━━━━━━  ♥  ━━━━━━\A SMALL ACTIONS MAKE A BIG DIFFERENCE";
   display: block !important;
   white-space: pre-line !important;
   text-align: center !important;
@@ -981,5 +981,5 @@ footer {
   font-weight: 800 !important;
   line-height: 2.2 !important;
   letter-spacing: 1.8px !important;
-  margin-top: 14px !important;
+  margin-top: 8px !important;
 }
