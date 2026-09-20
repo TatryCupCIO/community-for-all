@@ -1139,5 +1139,5 @@ body {
 #homePage button:nth-of-type(6) {
   background:
     linear-gradient(90deg, rgba(7,56,87,.72), rgba(7,56,87,.25)),
-    url('Kontaktujtenas.jpg') center / 100% 100% no-repeat !important;
+    url('Kontaktujtenas.jpg') center / cover no-repeat !important;
 }
