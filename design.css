@@ -1131,6 +1131,6 @@ body {
 
 #homePage button:nth-of-type(2) {
   background:
-    linear-gradient(90deg, rgba(8,55,84,.84), rgba(8,55,84,.38)),
-    url('Mojerezarvacie.jpg') center / cover no-repeat !important;
+    linear-gradient(90deg, rgba(8,55,84,.72), rgba(8,55,84,.25)),
+    url('Mojerezarvacie.jpg') center / 100% 100% no-repeat !important;
 }
