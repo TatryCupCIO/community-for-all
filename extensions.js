@@ -1386,3 +1386,114 @@ setLanguage = function(lang) {
 
   }, 0);
 };
+// ============================================================
+// CART + BOOKINGS - FORCE FULL SK / EN TRANSLATION
+// ============================================================
+
+function extTranslatedItemName(item) {
+  const code = item?.event_options?.option_code || '';
+
+  if (code && optionNames[code]) {
+    return optionNames[code][currentLanguage === 'sk' ? 0 : 1];
+  }
+
+  return item?.item_name || '';
+}
+
+
+// CART
+const extOriginalShowCartPage = showCartPage;
+
+showCartPage = async function() {
+  await extOriginalShowCartPage();
+
+  const cart = await getActiveCart();
+  if (!cart) return;
+
+  const items = await getCartItems(cart.id);
+
+  const renderedItems =
+    document.querySelectorAll('#cartPageContent .cart-item');
+
+  renderedItems.forEach((row, index) => {
+    const item = items[index];
+    if (!item) return;
+
+    const title = row.querySelector('b');
+    if (!title) return;
+
+    title.textContent =
+      `${item.quantity}× ${extTranslatedItemName(item)}`;
+  });
+};
+
+
+// BOOKINGS
+const extOriginalShowBookings = showBookings;
+
+showBookings = async function() {
+  await extOriginalShowBookings();
+
+  if (!currentUser) return;
+
+  const { data: bookings } = await supabaseClient
+    .from('bookings')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false });
+
+  const cards =
+    document.querySelectorAll('#bookingsContent .card');
+
+  for (let bIndex = 0; bIndex < (bookings || []).length; bIndex++) {
+
+    const booking = bookings[bIndex];
+    const card = cards[bIndex];
+
+    if (!booking || !card) continue;
+
+    const { data: items } = await supabaseClient
+      .from('booking_items')
+      .select('*,event_options(option_code,is_accommodation,free_with_accommodation)')
+      .eq('booking_id', booking.id)
+      .order('created_at');
+
+    const renderedItems =
+      card.querySelectorAll('.cart-item');
+
+    renderedItems.forEach((row, itemIndex) => {
+      const item = items?.[itemIndex];
+      if (!item) return;
+
+      const title = row.querySelector('b');
+      if (!title) return;
+
+      title.textContent =
+        `${item.quantity}× ${extTranslatedItemName(item)}`;
+    });
+  }
+};
+
+
+// Re-render current cart/bookings immediately after SK / EN switch
+const extLanguageTranslationFix = setLanguage;
+
+setLanguage = function(lang) {
+  extLanguageTranslationFix(lang);
+
+  setTimeout(() => {
+    if (
+      document.getElementById('cartPage')?.style.display === 'block' &&
+      currentUser
+    ) {
+      showCartPage();
+    }
+
+    if (
+      document.getElementById('bookingsPage')?.style.display === 'block' &&
+      currentUser
+    ) {
+      showBookings();
+    }
+  }, 50);
+};
