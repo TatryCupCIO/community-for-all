@@ -1106,3 +1106,10 @@ body {
     linear-gradient(90deg, rgba(255,122,26,.82), rgba(70,35,20,.42)),
     url('Podujatia.jpg') center 34% / 100% auto no-repeat !important;
 }
+/* ===== FATRA FOTO ===== */
+
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg, rgba(104,52,25,.82), rgba(55,31,22,.45)),
+    url('Fatra.jpg') center / cover no-repeat !important;
+}
