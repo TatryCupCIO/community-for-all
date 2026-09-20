@@ -1176,3 +1176,20 @@ body {
   background-position: center center !important;
   background-repeat: no-repeat !important;
 }
+/* =========================================================
+   HOME MENU – STRONGER TEXT
+   ========================================================= */
+
+#eventsBtn,
+#bookingsBtn,
+#fatraBtn,
+#faceBtn,
+#aboutBtn,
+#contactBtn {
+  font-size: 20px !important;
+  font-weight: 900 !important;
+  line-height: 1.1 !important;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.95),
+    0 0 7px rgba(0,0,0,.75) !important;
+}
