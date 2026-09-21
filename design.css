@@ -2765,3 +2765,32 @@ body {
     font-weight:900 !important;
     color:#fff !important;
 }
+/* ===== CHAT FINAL POSITION + MINT COLOUR ===== */
+
+#homePage #communityChatBtn.community-chat-btn{
+    top:92px !important;
+    right:22px !important;
+
+    width:56px !important;
+    height:56px !important;
+    min-width:56px !important;
+    min-height:56px !important;
+    max-width:56px !important;
+
+    background:#63DCC6 !important;
+    background-image:none !important;
+
+    border:2px solid #ffffff !important;
+    border-radius:50% !important;
+
+    box-shadow:
+        0 4px 14px rgba(0,0,0,.38),
+        0 0 12px rgba(99,220,198,.35) !important;
+}
+
+#homePage #communityChatBtn > span:first-child::after{
+    content:"CHAT" !important;
+    font-size:14px !important;
+    font-weight:900 !important;
+    color:#ffffff !important;
+}
