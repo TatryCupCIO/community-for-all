@@ -595,3 +595,92 @@ if (communityChatPhotoInput) {
     event.target.value = '';
   });
 }
+/* ===== COMMUNITY CHAT – DELETE OWN MESSAGE / PHOTO ===== */
+
+async function deleteOwnCommunityChatMessage(message) {
+  if (!currentUser || message.user_id !== currentUser.id) return;
+
+  const question =
+    message.media_type === 'image'
+      ? T(
+          'Naozaj chcete vymazať túto fotografiu?',
+          'Do you really want to delete this photo?'
+        )
+      : T(
+          'Naozaj chcete vymazať túto správu?',
+          'Do you really want to delete this message?'
+        );
+
+  if (!confirm(question)) return;
+
+  /* Ak je to fotografia, najprv odstráň súbor zo Storage */
+  if (message.media_type === 'image' && message.media_url) {
+    const { error: storageError } =
+      await supabaseClient.storage
+        .from('chat-media')
+        .remove([message.media_url]);
+
+    if (storageError) {
+      alert(
+        T(
+          'Fotografiu sa nepodarilo vymazať.',
+          'The photo could not be deleted.'
+        )
+      );
+      return;
+    }
+  }
+
+  /* Odstráň správu z databázy */
+  const { error } =
+    await supabaseClient
+      .from('chat_messages')
+      .delete()
+      .eq('id', message.id)
+      .eq('user_id', currentUser.id);
+
+  if (error) {
+    alert(
+      T(
+        'Správu sa nepodarilo vymazať.',
+        'The message could not be deleted.'
+      )
+    );
+    return;
+  }
+
+  const item =
+    document.getElementById('chat-message-' + message.id);
+
+  if (item) item.remove();
+}
+
+
+/* Pridá kôš iba k vlastným správam a fotografiám */
+
+const communityChatRenderWithPhotos = renderCommunityChatMessage;
+
+renderCommunityChatMessage = function(message) {
+  communityChatRenderWithPhotos(message);
+
+  if (!currentUser || message.user_id !== currentUser.id) return;
+
+  const item =
+    document.getElementById('chat-message-' + message.id);
+
+  if (!item || item.querySelector('.chat-delete-btn')) return;
+
+  const deleteButton = document.createElement('button');
+
+  deleteButton.type = 'button';
+  deleteButton.className = 'chat-delete-btn';
+  deleteButton.innerHTML = '🗑️';
+  deleteButton.title = T('Vymazať', 'Delete');
+
+  deleteButton.addEventListener('click', event => {
+    event.stopPropagation();
+    deleteOwnCommunityChatMessage(message);
+  });
+
+  item.appendChild(deleteButton);
+};
