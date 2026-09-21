@@ -2639,3 +2639,38 @@ body {
   background:#ff2f45;
   border:2px solid #fff;
 }
+/* ===== HOME CHAT BUTTON ===== */
+
+#homePage .community-chat-btn{
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  width:118px;
+  height:42px;
+  margin:0 0 10px auto;
+  padding:0 15px;
+  border:1px solid rgba(255,255,255,.35);
+  border-radius:22px;
+  background:#f47a20;
+  color:#fff;
+  font-size:15px;
+  font-weight:900;
+  box-shadow:0 5px 16px rgba(0,0,0,.28);
+}
+
+#homePage .community-chat-btn:active{
+  transform:scale(.97);
+}
+
+#communityChatBtn .chat-unread-dot{
+  position:absolute;
+  top:-3px;
+  right:-3px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:#ff304f;
+  border:2px solid #fff;
+}
