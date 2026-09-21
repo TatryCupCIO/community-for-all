@@ -837,3 +837,68 @@ sendCommunityChatMessage = async function() {
     clearPendingCommunityChatPhoto();
   }
 };
+/* ===== CHAT PHOTO – MOBILE COMPATIBILITY FIX ===== */
+
+compressCommunityChatPhoto = async function(file) {
+  const objectUrl = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('IMAGE_LOAD_FAILED'));
+
+      img.src = objectUrl;
+    });
+
+    const maxSide = 1600;
+    let width = image.naturalWidth || image.width;
+    let height = image.naturalHeight || image.height;
+
+    if (!width || !height) {
+      throw new Error('INVALID_IMAGE_SIZE');
+    }
+
+    if (width > maxSide || height > maxSide) {
+      const scale = maxSide / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('CANVAS_NOT_AVAILABLE');
+    }
+
+    ctx.drawImage(image, 0, 0, width, height);
+
+    let quality = 0.85;
+
+    let blob = await new Promise(resolve => {
+      canvas.toBlob(resolve, 'image/jpeg', quality);
+    });
+
+    while (blob && blob.size > 500 * 1024 && quality > 0.50) {
+      quality -= 0.05;
+
+      blob = await new Promise(resolve => {
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      });
+    }
+
+    if (!blob) {
+      throw new Error('PHOTO_COMPRESSION_FAILED');
+    }
+
+    return blob;
+
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+};
