@@ -2435,3 +2435,33 @@ body {
     line-height: 1.05 !important;
   }
 }
+/* ===== MOJE REZERVÁCIE – FINÁLNE ZAROVNANIE ===== */
+
+@media (max-width: 600px) {
+  #homePage button:nth-of-type(2)::after {
+    left: 58px !important;
+    right: auto !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+
+    content: "Moje\A rezervácie" !important;
+    white-space: pre-line !important;
+
+    font-size: 16px !important;
+    line-height: 1.05 !important;
+    font-weight: 900 !important;
+    text-align: left !important;
+
+    color: #fff !important;
+    text-shadow:
+      0 2px 4px rgba(0,0,0,1),
+      0 0 8px rgba(0,0,0,.9) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  #homePage button:nth-of-type(2)::after {
+    left: 54px !important;
+    font-size: 15px !important;
+  }
+}
