@@ -2938,3 +2938,175 @@ body {
     ),
     url('Kontakt.png') center / cover no-repeat !important;
 }
+/* =========================================================
+   FINAL HOME MENU – FIX AFTER CHAT
+   ========================================================= */
+
+/* PODUJATIA */
+#homePage #eventsBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(27, 5, 1, 1) 0%,
+      rgba(49, 10, 1, .99) 11%,
+      rgba(65, 17, 2, .82) 21%,
+      rgba(45, 13, 2, .42) 29%,
+      rgba(0, 0, 0, .05) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .05) 61%,
+      rgba(45, 13, 2, .42) 71%,
+      rgba(65, 17, 2, .82) 79%,
+      rgba(49, 10, 1, .99) 89%,
+      rgba(27, 5, 1, 1) 100%
+    ),
+    url('Podujatia.png') center / cover no-repeat !important;
+}
+
+/* MOJE REZERVÁCIE */
+#homePage #bookingsBtn {
+  position: relative !important;
+
+  background:
+    linear-gradient(90deg,
+      rgba(0, 5, 13, 1) 0%,
+      rgba(0, 12, 25, .99) 11%,
+      rgba(0, 22, 40, .80) 21%,
+      rgba(0, 15, 29, .38) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(0, 15, 29, .38) 71%,
+      rgba(0, 22, 40, .80) 79%,
+      rgba(0, 12, 25, .99) 89%,
+      rgba(0, 5, 13, 1) 100%
+    ),
+    url('Mojerezervacie.png') center / cover no-repeat !important;
+
+  font-size: 0 !important;
+  white-space: normal !important;
+}
+
+/* MOJE REZERVÁCIE – text na 2 riadky */
+#homePage #bookingsBtn::after {
+  content: "Moje\A rezervácie" !important;
+
+  position: absolute !important;
+  left: 58px !important;
+  right: auto !important;
+  top: 50% !important;
+
+  transform: translateY(-50%) !important;
+
+  white-space: pre-line !important;
+
+  font-size: 16px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  text-align: left !important;
+
+  color: #fff !important;
+
+  text-shadow:
+    0 2px 4px rgba(0,0,0,1),
+    0 0 8px rgba(0,0,0,.9) !important;
+}
+
+/* FATRA */
+#homePage #fatraBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(22, 5, 1, 1) 0%,
+      rgba(39, 8, 1, 1) 12%,
+      rgba(55, 13, 1, .96) 21%,
+      rgba(49, 14, 2, .64) 29%,
+      rgba(25, 7, 1, .20) 36%,
+      rgba(0, 0, 0, 0) 45%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(25, 7, 1, .20) 64%,
+      rgba(49, 14, 2, .64) 71%,
+      rgba(55, 13, 1, .96) 79%,
+      rgba(39, 8, 1, 1) 88%,
+      rgba(22, 5, 1, 1) 100%
+    ),
+    url('Fatra.png') center / cover no-repeat !important;
+}
+
+/* TINUŠKA */
+#homePage #faceBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(22, 2, 7, 1) 0%,
+      rgba(39, 3, 12, 1) 12%,
+      rgba(55, 5, 18, .97) 21%,
+      rgba(48, 5, 17, .65) 29%,
+      rgba(24, 3, 9, .20) 36%,
+      rgba(0, 0, 0, 0) 45%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(24, 3, 9, .20) 64%,
+      rgba(48, 5, 17, .65) 71%,
+      rgba(55, 5, 18, .97) 79%,
+      rgba(39, 3, 12, 1) 88%,
+      rgba(22, 2, 7, 1) 100%
+    ),
+    url('Tinuskafacepainting.png') center / cover no-repeat !important;
+}
+
+/* O NÁS */
+#homePage #aboutBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 5, 12, 1) 0%,
+      rgba(0, 12, 23, .99) 11%,
+      rgba(0, 23, 38, .80) 21%,
+      rgba(0, 16, 27, .38) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(0, 16, 27, .38) 71%,
+      rgba(0, 23, 38, .80) 79%,
+      rgba(0, 12, 23, .99) 89%,
+      rgba(0, 5, 12, 1) 100%
+    ),
+    url('Onas.png') center / cover no-repeat !important;
+}
+
+/* KONTAKT */
+#homePage #contactBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(22, 7, 1, 1) 0%,
+      rgba(39, 12, 1, .99) 11%,
+      rgba(54, 19, 2, .82) 21%,
+      rgba(39, 17, 3, .40) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(39, 17, 3, .40) 71%,
+      rgba(54, 19, 2, .82) 79%,
+      rgba(39, 12, 1, .99) 89%,
+      rgba(22, 7, 1, 1) 100%
+    ),
+    url('Kontakt.png') center / cover no-repeat !important;
+}
+
+/* Všetkých 6 názvov – finálna výraznosť */
+#homePage #eventsBtn,
+#homePage #bookingsBtn,
+#homePage #fatraBtn,
+#homePage #faceBtn,
+#homePage #aboutBtn,
+#homePage #contactBtn {
+  color: #fff !important;
+  font-weight: 900 !important;
+
+  text-shadow:
+    0 2px 3px rgba(0,0,0,1),
+    0 0 7px rgba(0,0,0,.95) !important;
+}
+
+/* malý mobil */
+@media (max-width:390px) {
+  #homePage #bookingsBtn::after {
+    left:54px !important;
+    font-size:15px !important;
+  }
+}
