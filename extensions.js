@@ -1800,3 +1800,35 @@ setLanguage = function(lang) {
 };
 
 finalHomeMenuText();
+// ============================================================
+// FINAL FIX – HOME MENU LABELS SK / EN
+// ============================================================
+
+function finalFixHomeMenuLabels() {
+  setText('eventsBtn', 'Podujatia', 'Events');
+  setText('bookingsBtn', 'Moje rezervácie', 'My Bookings');
+
+  setText(
+    'fatraBtn',
+    'Fatra Potraviny Rugby\nObjednávka',
+    'Fatra Potraviny Rugby\nGrocery Order'
+  );
+
+  setText(
+    'faceBtn',
+    'Tinuška\nMaľovanie na tvár',
+    'Tinuška\nFace Painting'
+  );
+
+  setText('aboutBtn', 'O nás', 'About Us');
+  setText('contactBtn', 'Kontakt', 'Contact');
+}
+
+const finalFixedSetLanguage = setLanguage;
+
+setLanguage = function(lang) {
+  finalFixedSetLanguage(lang);
+  finalFixHomeMenuLabels();
+};
+
+finalFixHomeMenuLabels();
