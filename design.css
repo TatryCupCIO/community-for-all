@@ -3155,3 +3155,54 @@ body {
         max-height: 80px !important;
     }
 }
+/* ===== COMMUNITY CHAT – PHOTOS ===== */
+
+.chat-photo-holder {
+    margin-top: 7px;
+}
+
+.chat-photo {
+    display: block;
+    width: auto;
+    max-width: 100%;
+    max-height: 320px;
+    border-radius: 12px;
+    object-fit: contain;
+    cursor: pointer;
+}
+
+/* Fotografia na celú obrazovku */
+#chatPhotoViewer {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    background: rgba(0, 0, 0, 0.96);
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+#chatPhotoViewerImage {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+#chatPhotoViewerClose {
+    position: fixed;
+    top: 12px;
+    right: 15px;
+    z-index: 20001;
+    width: 46px;
+    height: 46px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.65);
+    color: white;
+    font-size: 34px;
+    line-height: 42px;
+    cursor: pointer;
+}
