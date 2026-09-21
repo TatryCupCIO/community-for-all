@@ -1751,5 +1751,49 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
   }
 });
   </script>
+  <script>
+/* ===== PASSWORD SHOW / HIDE ===== */
+
+function addPasswordEye(inputId) {
+  const input = document.getElementById(inputId);
+
+  if (!input || input.dataset.eyeAdded === 'true') return;
+
+  input.dataset.eyeAdded = 'true';
+
+  const wrapper = document.createElement('div');
+  wrapper.style.cssText = 'position:relative;width:100%;';
+
+  input.parentNode.insertBefore(wrapper, input);
+  wrapper.appendChild(input);
+
+  input.style.paddingRight = '48px';
+
+  const eye = document.createElement('button');
+  eye.type = 'button';
+  eye.textContent = '👁️';
+  eye.setAttribute('aria-label', 'Show or hide password');
+
+  eye.style.cssText =
+    'position:absolute;right:8px;top:50%;transform:translateY(-50%);' +
+    'border:0;background:transparent;color:white;font-size:20px;' +
+    'padding:6px;cursor:pointer;';
+
+  eye.addEventListener('click', () => {
+    input.type = input.type === 'password' ? 'text' : 'password';
+    eye.textContent = input.type === 'password' ? '👁️' : '🙈';
+  });
+
+  wrapper.appendChild(eye);
+}
+
+[
+  'loginPassword',
+  'registerPassword',
+  'registerPassword2',
+  'newPassword',
+  'newPassword2'
+].forEach(addPasswordEye);
+  </script>
 </body>
 </html>
