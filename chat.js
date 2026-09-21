@@ -684,3 +684,28 @@ renderCommunityChatMessage = function(message) {
 
   item.appendChild(deleteButton);
 };
+/* ===== CHAT – 30 DAY INFORMATION ===== */
+
+function addCommunityChatRetentionInfo() {
+  const compose = document.querySelector('#chatPage .chat-compose');
+  if (!compose || document.getElementById('chatRetentionInfo')) return;
+
+  const info = document.createElement('button');
+  info.id = 'chatRetentionInfo';
+  info.type = 'button';
+  info.className = 'chat-retention-info';
+  info.textContent = 'ⓘ';
+
+  info.addEventListener('click', () => {
+    alert(
+      T(
+        'Správy a fotografie v chate sa automaticky vymažú po 30 dňoch.',
+        'Chat messages and photos are automatically deleted after 30 days.'
+      )
+    );
+  });
+
+  compose.appendChild(info);
+}
+
+addCommunityChatRetentionInfo();
