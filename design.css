@@ -1642,3 +1642,94 @@ body {
     font-size:25px !important;
   }
 }
+/* ===== FINAL HOME MENU V2 ===== */
+
+/* Tmavšie fotografie */
+#eventsBtn {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.38), rgba(0,0,0,.32)),
+    url('Podujatia.png') center / cover no-repeat !important;
+}
+
+#bookingsBtn {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.38), rgba(0,0,0,.32)),
+    url('Mojerezervacie.png') center / cover no-repeat !important;
+}
+
+#fatraBtn {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.76), rgba(0,0,0,.46), rgba(0,0,0,.36)),
+    url('Fatra.png') center / cover no-repeat !important;
+}
+
+#faceBtn {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.74), rgba(0,0,0,.42), rgba(0,0,0,.34)),
+    url('Tinuskafacepainting.png') center / cover no-repeat !important;
+}
+
+#aboutBtn {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.38), rgba(0,0,0,.32)),
+    url('Onas.png') center / cover no-repeat !important;
+}
+
+#contactBtn {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.38), rgba(0,0,0,.32)),
+    url('Kontakt.png') center / cover no-repeat !important;
+}
+
+/* Výrazný biely text */
+#homePage .menu-btn {
+  color:#fff !important;
+  font-weight:900 !important;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,1),
+    0 0 8px rgba(0,0,0,.9) !important;
+  white-space:pre-line !important;
+}
+
+/* O nás – čistá biela komunitná ikonka */
+#aboutBtn {
+  padding-left:66px !important;
+}
+
+#aboutBtn::before,
+#homePage button:nth-of-type(5)::before {
+  display:block !important;
+  content:"" !important;
+  position:absolute !important;
+  left:18px !important;
+  top:50% !important;
+  transform:translateY(-50%) !important;
+  width:38px !important;
+  height:30px !important;
+  background-color:#fff !important;
+  background-image:none !important;
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 48'%3E%3Ccircle cx='32' cy='10' r='7'/%3E%3Ccircle cx='13' cy='15' r='6'/%3E%3Ccircle cx='51' cy='15' r='6'/%3E%3Cpath d='M20 42V32c0-9 5-14 12-14s12 5 12 14v10H20zM2 42V34c0-8 4-12 11-12 4 0 7 2 9 5-3 4-4 9-4 15H2zM46 42c0-6-1-11-4-15 2-3 5-5 9-5 7 0 11 4 11 12v8H46z'/%3E%3C/svg%3E")
+    center / contain no-repeat !important;
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 48'%3E%3Ccircle cx='32' cy='10' r='7'/%3E%3Ccircle cx='13' cy='15' r='6'/%3E%3Ccircle cx='51' cy='15' r='6'/%3E%3Cpath d='M20 42V32c0-9 5-14 12-14s12 5 12 14v10H20zM2 42V34c0-8 4-12 11-12 4 0 7 2 9 5-3 4-4 9-4 15H2zM46 42c0-6-1-11-4-15 2-3 5-5 9-5 7 0 11 4 11 12v8H46z'/%3E%3C/svg%3E")
+    center / contain no-repeat !important;
+}
+
+@media (max-width:600px) {
+  #aboutBtn {
+    padding-left:58px !important;
+  }
+
+  #aboutBtn::before,
+  #homePage button:nth-of-type(5)::before {
+    left:16px !important;
+    width:34px !important;
+    height:27px !important;
+  }
+
+  #fatraBtn,
+  #faceBtn {
+    line-height:1.05 !important;
+  }
+}
