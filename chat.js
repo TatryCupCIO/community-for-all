@@ -340,3 +340,24 @@ async function chatAuthDiagnostic() {
 }
 
 chatAuthDiagnostic();
+// ===== CHAT DATABASE ERROR DIAGNOSTIC =====
+async function chatDatabaseDiagnostic() {
+  if (!currentUser) return;
+
+  const readTest = await supabaseClient
+    .from('chat_messages')
+    .select('*')
+    .limit(1);
+
+  if (readTest.error) {
+    alert(
+      'CHAT DATABASE ERROR\n\n' +
+      'Code: ' + (readTest.error.code || 'NONE') + '\n' +
+      'Message: ' + (readTest.error.message || 'NONE') + '\n' +
+      'Details: ' + (readTest.error.details || 'NONE') + '\n' +
+      'Hint: ' + (readTest.error.hint || 'NONE')
+    );
+  } else {
+    alert('CHAT DATABASE READ: OK');
+  }
+}
