@@ -1459,3 +1459,109 @@ body {
     padding-bottom: 5px !important;
   }
 }
+/* =========================================================
+   FINAL HOME COMPACT + STRONGER MENU CONTRAST
+   ========================================================= */
+
+/* Ešte tmavšie fotografie pre výraznejšie názvy */
+#homePage button:first-of-type {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.58) 0%, rgba(0,0,0,.28) 60%, rgba(0,0,0,.12) 100%),
+    url('Podujatia.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.60) 0%, rgba(0,0,0,.30) 60%, rgba(0,0,0,.12) 100%),
+    url('Mojerezervacie.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.62) 0%, rgba(0,0,0,.32) 65%, rgba(0,0,0,.14) 100%),
+    url('Fatra.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.60) 0%, rgba(0,0,0,.30) 65%, rgba(0,0,0,.12) 100%),
+    url('Tinuskafacepainting.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.60) 0%, rgba(0,0,0,.27) 65%, rgba(0,0,0,.12) 100%),
+    url('Onas.png') center center / cover no-repeat !important;
+}
+
+#homePage button:nth-of-type(6) {
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.60) 0%, rgba(0,0,0,.28) 65%, rgba(0,0,0,.12) 100%),
+    url('Kontakt.png') center center / cover no-repeat !important;
+}
+
+/* Názvy zostanú maximálne čitateľné */
+#eventsBtn,
+#bookingsBtn,
+#fatraBtn,
+#faceBtn,
+#aboutBtn,
+#contactBtn {
+  font-weight: 900 !important;
+  text-shadow:
+    0 2px 4px #000,
+    0 0 8px rgba(0,0,0,.95) !important;
+}
+
+/* Kompaktnejšia domovská obrazovka bez zmenšovania 6 kariet */
+@media (max-width: 600px) {
+
+  .container {
+    padding-top: 6px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .topbar {
+    margin-bottom: 1px !important;
+  }
+
+  .logo {
+    margin-top: 1px !important;
+    margin-bottom: 1px !important;
+  }
+
+  .logo::before {
+    width: 62px !important;
+    height: 62px !important;
+    margin-bottom: 2px !important;
+  }
+
+  .charity {
+    margin-top: 3px !important;
+    padding-bottom: 32px !important;
+  }
+
+  .charity::after {
+    bottom: 17px !important;
+  }
+
+  .language {
+    margin-top: 13px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .language::before {
+    top: -24px !important;
+  }
+
+  .footer {
+    margin-top: 5px !important;
+    padding-bottom: 3px !important;
+    line-height: 1.45 !important;
+  }
+
+  .footer::after {
+    margin-top: 3px !important;
+    line-height: 1.5 !important;
+  }
+}
