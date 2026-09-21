@@ -902,23 +902,3 @@ compressCommunityChatPhoto = async function(file) {
     URL.revokeObjectURL(objectUrl);
   }
 };
-/* ===== CHAT PHOTO SELECTION DIAGNOSTIC ===== */
-
-document.addEventListener('change', function (event) {
-  const input = event.target;
-
-  if (!input || input.id !== 'chatPhotoInput') return;
-
-  const file = input.files && input.files[0];
-
-  if (!file) {
-    alert('PHOTO TEST: Telefón neodovzdal vybranú fotku.');
-    return;
-  }
-
-  alert(
-    'PHOTO TEST OK\n' +
-    'Typ: ' + (file.type || 'unknown') + '\n' +
-    'Veľkosť: ' + Math.round(file.size / 1024) + ' KB'
-  );
-}, true);
