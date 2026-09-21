@@ -2465,3 +2465,177 @@ body {
     font-size: 15px !important;
   }
 }
+/* ===== COMMUNITY CHAT ===== */
+
+#chatPage{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  background:#06111d;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+}
+
+.chat-header{
+  min-height:72px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  background:#081b2c;
+  border-bottom:1px solid rgba(255,126,25,.45);
+}
+
+.chat-back{
+  border:0;
+  background:none;
+  color:#ff7a18;
+  font-size:38px;
+  cursor:pointer;
+}
+
+.chat-title{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  font-size:21px;
+  font-weight:900;
+}
+
+.chat-notifications{
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+
+.chat-notifications small{
+  font-size:11px;
+  opacity:.85;
+}
+
+.chat-toggle{
+  width:45px;
+  height:24px;
+  padding:2px;
+  border:0;
+  border-radius:20px;
+  cursor:pointer;
+  background:#c73535;
+}
+
+.chat-toggle span{
+  display:block;
+  width:20px;
+  height:20px;
+  border-radius:50%;
+  background:#fff;
+  transition:.2s;
+}
+
+.chat-toggle.on{
+  background:#27a85c;
+}
+
+.chat-toggle.on span{
+  transform:translateX(21px);
+}
+
+.chat-messages{
+  flex:1;
+  overflow-y:auto;
+  padding:16px 12px 100px;
+}
+
+.chat-compose{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  padding:10px;
+  background:#081b2c;
+  border-top:1px solid rgba(255,126,25,.35);
+}
+
+#chatMessageInput{
+  flex:1;
+  resize:none;
+  max-height:110px;
+  padding:11px 13px;
+  border:1px solid #31536e;
+  border-radius:18px;
+  background:#10283a;
+  color:#fff;
+  font-size:15px;
+  outline:none;
+}
+
+.chat-photo-btn,
+.chat-send-btn{
+  width:43px;
+  height:43px;
+  flex:0 0 43px;
+  border:0;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:20px;
+}
+
+.chat-photo-btn{
+  background:#18354b;
+  color:#fff;
+}
+
+.chat-send-btn{
+  background:#ff7417;
+  color:#fff;
+}
+
+/* jednotlivá správa */
+.chat-message{
+  max-width:82%;
+  margin:8px 0;
+  padding:9px 12px;
+  border-radius:16px;
+  background:#173149;
+}
+
+.chat-message.mine{
+  margin-left:auto;
+  background:#74330d;
+}
+
+.chat-message-name{
+  font-size:12px;
+  font-weight:800;
+  color:#ff9a4d;
+}
+
+.chat-message-time{
+  margin-top:4px;
+  font-size:10px;
+  opacity:.65;
+}
+
+.chat-message img{
+  display:block;
+  max-width:100%;
+  margin-top:7px;
+  border-radius:12px;
+}
+
+/* bodka = nové správy */
+.chat-unread-dot{
+  position:absolute;
+  top:2px;
+  right:2px;
+  width:12px;
+  height:12px;
+  border-radius:50%;
+  background:#ff2f45;
+  border:2px solid #fff;
+}
