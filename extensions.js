@@ -1776,3 +1776,27 @@ setLanguage = function(lang) {
 };
 
 extCleanHomeMenuIcons();
+/* ===== FINAL HOME MENU TEXT ===== */
+
+function finalHomeMenuText() {
+  setText(
+    'fatraBtn',
+    'Fatra Potraviny Rugby\nObjednávka',
+    'Fatra Potraviny Rugby\nGrocery Order'
+  );
+
+  setText(
+    'faceBtn',
+    'Tinuška\nMaľovanie na tvár',
+    'Tinuška\nFace Painting'
+  );
+}
+
+const finalHomeLanguage = setLanguage;
+
+setLanguage = function(lang) {
+  finalHomeLanguage(lang);
+  finalHomeMenuText();
+};
+
+finalHomeMenuText();
