@@ -327,3 +327,16 @@ function playCommunityChatSound() {
     oscillator.stop(ctx.currentTime + 0.35);
   } catch (e) {}
     }
+// ===== CHAT AUTH DIAGNOSTIC =====
+async function chatAuthDiagnostic() {
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  alert(
+    'CHAT AUTH\n\n' +
+    'currentUser: ' + (currentUser?.id || 'NONE') + '\n' +
+    'Supabase session: ' + (data?.session?.user?.id || 'NONE') + '\n' +
+    'Error: ' + (error?.message || 'NONE')
+  );
+}
+
+chatAuthDiagnostic();
