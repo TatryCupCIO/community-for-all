@@ -1795,5 +1795,42 @@ function addPasswordEye(inputId) {
   'newPassword2'
 ].forEach(addPasswordEye);
   </script>
+  <script>
+/* ===== PASSWORD RECOVERY URL FIX ===== */
+
+(function () {
+  const hash = window.location.hash || '';
+  const search = window.location.search || '';
+
+  const isPasswordRecovery =
+    hash.includes('type=recovery') ||
+    search.includes('type=recovery');
+
+  if (!isPasswordRecovery) return;
+
+  let attempts = 0;
+
+  const openPasswordReset = setInterval(() => {
+    attempts++;
+
+    if (
+      typeof showResetPassword === 'function' &&
+      document.getElementById('resetPage')
+    ) {
+      clearInterval(openPasswordReset);
+
+      setTimeout(() => {
+        showResetPassword();
+
+        document.getElementById('newPassword')?.focus();
+      }, 300);
+    }
+
+    if (attempts >= 20) {
+      clearInterval(openPasswordReset);
+    }
+  }, 100);
+})();
+  </script>
 </body>
 </html>
