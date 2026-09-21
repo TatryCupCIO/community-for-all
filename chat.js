@@ -1228,3 +1228,74 @@ setInterval(() => {
     refreshSeenDisplayFix();
   }
 }, 2000);
+/* ===== CHAT – CLICKABLE SEEN LIST ===== */
+
+const refreshSeenDisplayWithNames = refreshSeenDisplayFix;
+
+refreshSeenDisplayFix = async function () {
+  if (!currentUser || !communityChatOpen) return;
+
+  const ownItems = [
+    ...document.querySelectorAll('#chatMessages .chat-message.mine')
+  ];
+
+  if (!ownItems.length) return;
+
+  const messageIds = ownItems
+    .map(item => Number(item.id.replace('chat-message-', '')))
+    .filter(Boolean);
+
+  const { data, error } = await supabaseClient
+    .from('chat_message_reads')
+    .select('message_id,user_name')
+    .in('message_id', messageIds);
+
+  if (error) return;
+
+  const reads = {};
+
+  (data || []).forEach(row => {
+    if (!reads[row.message_id]) reads[row.message_id] = [];
+
+    if (
+      row.user_name &&
+      !reads[row.message_id].includes(row.user_name)
+    ) {
+      reads[row.message_id].push(row.user_name);
+    }
+  });
+
+  ownItems.forEach(item => {
+    const messageId =
+      Number(item.id.replace('chat-message-', ''));
+
+    const names = reads[messageId] || [];
+
+    let receipt = item.querySelector('.chat-read-receipt');
+
+    if (!receipt) {
+      receipt = document.createElement('div');
+      receipt.className = 'chat-read-receipt';
+      item.appendChild(receipt);
+    }
+
+    if (!names.length) {
+      receipt.style.display = 'none';
+      return;
+    }
+
+    receipt.style.display = 'block';
+    receipt.style.cursor = 'pointer';
+    receipt.textContent =
+      '👁️ ' + T('Videné: ', 'Seen: ') + names.length;
+
+    receipt.onclick = event => {
+      event.stopPropagation();
+
+      alert(
+        T('Videli:\n', 'Seen by:\n') +
+        names.join('\n')
+      );
+    };
+  });
+};
