@@ -3206,3 +3206,31 @@ body {
     line-height: 42px;
     cursor: pointer;
 }
+/* ===== CHAT – DELETE OWN MESSAGE ===== */
+
+.chat-message {
+    position: relative;
+}
+
+.chat-delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 6px;
+    width: 25px;
+    height: 25px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 14px;
+    line-height: 25px;
+    cursor: pointer;
+    opacity: 0.65;
+}
+
+.chat-delete-btn:hover {
+    opacity: 1;
+}
+
+.chat-message.mine {
+    padding-right: 34px;
+}
