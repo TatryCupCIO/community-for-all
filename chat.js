@@ -362,3 +362,44 @@ async function chatDatabaseDiagnostic() {
   }
 }
 // chatDatabaseDiagnostic();
+/* ===== CHAT SCROLL + SMALL SCREEN FIX ===== */
+
+#chatPage {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    overflow: hidden !important;
+}
+
+#chatPage .chat-header {
+    flex: 0 0 auto !important;
+}
+
+#chatPage .chat-messages {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-y: contain !important;
+    touch-action: pan-y !important;
+
+    padding-bottom: 190px !important;
+}
+
+#chatPage .chat-compose {
+    flex: 0 0 auto !important;
+    z-index: 10 !important;
+}
+
+@media (max-height: 700px) {
+    #chatPage .chat-messages {
+        padding-bottom: 175px !important;
+    }
+
+    #chatPage .chat-compose textarea {
+        max-height: 110px !important;
+    }
+}
