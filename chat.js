@@ -902,3 +902,256 @@ compressCommunityChatPhoto = async function(file) {
     URL.revokeObjectURL(objectUrl);
   }
 };
+/* ===== CHAT – NAVIGATION, UNREAD & READ RECEIPTS ===== */
+
+let communityChatReadsChannel = null;
+
+/* SYSTEM / BROWSER BACK */
+
+const chatBaseOpen = openCommunityChat;
+const chatBaseClose = closeCommunityChat;
+
+openCommunityChat = async function () {
+  if (!currentUser) {
+    return chatBaseOpen();
+  }
+
+  if (!communityChatOpen) {
+    history.pushState(
+      { communityChat: true },
+      '',
+      location.href
+    );
+  }
+
+  await chatBaseOpen();
+
+  if (!communityChatOpen) return;
+
+  await markAllCommunityChatMessagesRead();
+  await markCommunityChatSeen();
+  await refreshCommunityChatUnreadDot();
+  await refreshCommunityChatReadReceipts();
+};
+
+closeCommunityChat = function () {
+  if (communityChatOpen && history.state?.communityChat) {
+    history.back();
+  } else {
+    chatBaseClose();
+  }
+};
+
+window.addEventListener('popstate', () => {
+  if (communityChatOpen) {
+    chatBaseClose();
+  }
+});
+
+
+/* INDIVIDUAL UNREAD DOT */
+
+async function refreshCommunityChatUnreadDot() {
+  const dot = document.getElementById('communityChatUnreadDot');
+
+  if (!dot) return;
+
+  if (!currentUser) {
+    dot.style.display = 'none';
+    return;
+  }
+
+  const { data: settings, error: settingsError } =
+    await supabaseClient
+      .from('chat_user_settings')
+      .select('last_seen_at')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+
+  if (settingsError) return;
+
+  const lastSeen =
+    settings?.last_seen_at ||
+    '1970-01-01T00:00:00.000Z';
+
+  const { count, error } =
+    await supabaseClient
+      .from('chat_messages')
+      .select('id', { count: 'exact', head: true })
+      .neq('user_id', currentUser.id)
+      .gt('created_at', lastSeen);
+
+  if (error) return;
+
+  dot.style.display = count > 0 ? 'block' : 'none';
+}
+
+
+/* STORE READ RECEIPTS */
+
+async function markAllCommunityChatMessagesRead() {
+  if (!currentUser || !communityChatOpen) return;
+
+  const since = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  const { data: messages, error } =
+    await supabaseClient
+      .from('chat_messages')
+      .select('id,user_id')
+      .neq('user_id', currentUser.id)
+      .gte('created_at', since);
+
+  if (error || !messages?.length) return;
+
+  const readAt = new Date().toISOString();
+
+  const rows = messages.map(message => ({
+    message_id: message.id,
+    user_id: currentUser.id,
+    user_name: getUsername(currentUser) || 'User',
+    read_at: readAt
+  }));
+
+  await supabaseClient
+    .from('chat_message_reads')
+    .upsert(rows, {
+      onConflict: 'message_id,user_id'
+    });
+}
+
+
+/* DISPLAY SEEN BY */
+
+async function refreshCommunityChatReadReceipts() {
+  if (!currentUser || !communityChatOpen) return;
+
+  const ownItems = document.querySelectorAll(
+    '#chatMessages .chat-message.mine'
+  );
+
+  for (const item of ownItems) {
+    const messageId =
+      Number(item.id.replace('chat-message-', ''));
+
+    if (!messageId) continue;
+
+    const { data, error } =
+      await supabaseClient
+        .from('chat_message_reads')
+        .select('user_name')
+        .eq('message_id', messageId);
+
+    if (error) continue;
+
+    let receipt =
+      item.querySelector('.chat-read-receipt');
+
+    if (!receipt) {
+      receipt = document.createElement('div');
+      receipt.className = 'chat-read-receipt';
+      item.appendChild(receipt);
+    }
+
+    const names = [...new Set(
+      (data || [])
+        .map(row => row.user_name)
+        .filter(Boolean)
+    )];
+
+    if (names.length) {
+      receipt.textContent =
+        T('Videné: ', 'Seen: ') + names.join(', ');
+      receipt.style.display = '';
+    } else {
+      receipt.textContent = '';
+      receipt.style.display = 'none';
+    }
+  }
+}
+
+
+/* REALTIME READ RECEIPTS */
+
+function subscribeCommunityChatReads() {
+  if (communityChatReadsChannel) return;
+
+  communityChatReadsChannel = supabaseClient
+    .channel('community-chat-reads-live')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'chat_message_reads'
+      },
+      () => {
+        if (communityChatOpen) {
+          refreshCommunityChatReadReceipts();
+        }
+      }
+    )
+    .subscribe();
+}
+
+
+/* REALTIME CHAT AVAILABLE BEFORE FIRST OPEN */
+
+async function startCommunityChatForLoggedUser() {
+  if (!currentUser) return;
+
+  await ensureChatSettings();
+
+  subscribeCommunityChat();
+  subscribeCommunityChatReads();
+
+  await refreshCommunityChatUnreadDot();
+}
+
+
+/* NEW MESSAGE WHILE CHAT IS OPEN */
+
+const chatRenderBeforeReadReceipts =
+  renderCommunityChatMessage;
+
+renderCommunityChatMessage = function (message) {
+  chatRenderBeforeReadReceipts(message);
+
+  if (
+    communityChatOpen &&
+    currentUser &&
+    message.user_id !== currentUser.id
+  ) {
+    setTimeout(async () => {
+      await markAllCommunityChatMessagesRead();
+      await markCommunityChatSeen();
+
+      const dot =
+        document.getElementById('communityChatUnreadDot');
+
+      if (dot) dot.style.display = 'none';
+    }, 100);
+  }
+};
+
+
+/* START / REFRESH */
+
+setTimeout(() => {
+  if (currentUser) {
+    startCommunityChatForLoggedUser();
+  }
+}, 1000);
+
+window.addEventListener('focus', () => {
+  if (currentUser) {
+    startCommunityChatForLoggedUser();
+  }
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && currentUser) {
+    startCommunityChatForLoggedUser();
+  }
+});
