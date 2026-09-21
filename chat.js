@@ -339,7 +339,7 @@ async function chatAuthDiagnostic() {
   );
 }
 
-chatAuthDiagnostic();
+// chatAuthDiagnostic();
 // ===== CHAT DATABASE ERROR DIAGNOSTIC =====
 async function chatDatabaseDiagnostic() {
   if (!currentUser) return;
@@ -361,4 +361,4 @@ async function chatDatabaseDiagnostic() {
     alert('CHAT DATABASE READ: OK');
   }
 }
-chatDatabaseDiagnostic();
+// chatDatabaseDiagnostic();
