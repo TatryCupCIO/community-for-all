@@ -362,3 +362,236 @@ async function chatDatabaseDiagnostic() {
   }
 }
 // chatDatabaseDiagnostic();
+/* ===== COMMUNITY CHAT – PHOTOS ===== */
+
+async function compressCommunityChatPhoto(file) {
+  const image = await createImageBitmap(file);
+
+  const maxSide = 1600;
+  let width = image.width;
+  let height = image.height;
+
+  if (width > maxSide || height > maxSide) {
+    const scale = maxSide / Math.max(width, height);
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(image, 0, 0, width, height);
+  image.close();
+
+  let quality = 0.85;
+  let blob = await new Promise(resolve =>
+    canvas.toBlob(resolve, 'image/jpeg', quality)
+  );
+
+  while (blob && blob.size > 500 * 1024 && quality > 0.65) {
+    quality -= 0.05;
+
+    blob = await new Promise(resolve =>
+      canvas.toBlob(resolve, 'image/jpeg', quality)
+    );
+  }
+
+  return blob;
+}
+
+
+async function sendCommunityChatPhoto(file) {
+  if (!currentUser || !file) return;
+
+  if (!file.type.startsWith('image/')) {
+    alert(T(
+      'Môžete odosielať iba fotografie.',
+      'You can only send photos.'
+    ));
+    return;
+  }
+
+  const { data: allowed, error: limitError } =
+    await supabaseClient.rpc('can_upload_chat_photo');
+
+  if (limitError || allowed !== true) {
+    alert(T(
+      'Dosiahli ste limit fotografií: maximálne 20 za 24 hodín a 50 za 30 dní.',
+      'You have reached the photo limit: maximum 20 per 24 hours and 50 per 30 days.'
+    ));
+    return;
+  }
+
+  let photo;
+
+  try {
+    photo = await compressCommunityChatPhoto(file);
+  } catch (error) {
+    alert(T(
+      'Fotografiu sa nepodarilo spracovať.',
+      'The photo could not be processed.'
+    ));
+    return;
+  }
+
+  if (!photo) return;
+
+  const path =
+    currentUser.id +
+    '/' +
+    Date.now() +
+    '-' +
+    Math.random().toString(36).slice(2) +
+    '.jpg';
+
+  const { error: uploadError } =
+    await supabaseClient.storage
+      .from('chat-media')
+      .upload(path, photo, {
+        contentType: 'image/jpeg',
+        upsert: false
+      });
+
+  if (uploadError) {
+    alert(T(
+      'Fotografiu sa nepodarilo nahrať.',
+      'The photo could not be uploaded.'
+    ));
+    return;
+  }
+
+  const { error: messageError } =
+    await supabaseClient
+      .from('chat_messages')
+      .insert({
+        user_id: currentUser.id,
+        user_name: getUsername(currentUser) || 'User',
+        message: null,
+        media_type: 'image',
+        media_url: path
+      });
+
+  if (messageError) {
+    await supabaseClient.storage
+      .from('chat-media')
+      .remove([path]);
+
+    alert(T(
+      'Fotografiu sa nepodarilo odoslať.',
+      'The photo could not be sent.'
+    ));
+  }
+}
+
+
+async function loadCommunityChatPhoto(message, container) {
+  if (!message.media_url || message.media_type !== 'image') return;
+
+  const { data, error } =
+    await supabaseClient.storage
+      .from('chat-media')
+      .createSignedUrl(message.media_url, 3600);
+
+  if (error || !data?.signedUrl) return;
+
+  const img = document.createElement('img');
+  img.src = data.signedUrl;
+  img.alt = T('Fotografia v chate', 'Chat photo');
+  img.loading = 'lazy';
+  img.className = 'chat-photo';
+
+  img.addEventListener('click', () => {
+    openCommunityChatPhoto(data.signedUrl);
+  });
+
+  container.appendChild(img);
+}
+
+
+function openCommunityChatPhoto(url) {
+  let viewer = document.getElementById('chatPhotoViewer');
+
+  if (!viewer) {
+    viewer = document.createElement('div');
+    viewer.id = 'chatPhotoViewer';
+
+    viewer.innerHTML =
+      '<button type="button" id="chatPhotoViewerClose">×</button>' +
+      '<img id="chatPhotoViewerImage" alt="">';
+
+    document.body.appendChild(viewer);
+
+    document
+      .getElementById('chatPhotoViewerClose')
+      .addEventListener('click', closeCommunityChatPhoto);
+
+    viewer.addEventListener('click', event => {
+      if (event.target === viewer) {
+        closeCommunityChatPhoto();
+      }
+    });
+  }
+
+  document.getElementById('chatPhotoViewerImage').src = url;
+  viewer.style.display = 'flex';
+}
+
+
+function closeCommunityChatPhoto() {
+  const viewer = document.getElementById('chatPhotoViewer');
+
+  if (viewer) {
+    viewer.style.display = 'none';
+  }
+}
+
+
+/* Rozšírenie existujúceho vykresľovania správ o fotografie */
+
+const communityChatOriginalRender = renderCommunityChatMessage;
+
+renderCommunityChatMessage = function(message) {
+  if (document.getElementById('chat-message-' + message.id)) return;
+
+  communityChatOriginalRender(message);
+
+  if (message.media_type === 'image' && message.media_url) {
+    const item =
+      document.getElementById('chat-message-' + message.id);
+
+    if (!item) return;
+
+    const time = item.querySelector('.chat-message-time');
+
+    const photoHolder = document.createElement('div');
+    photoHolder.className = 'chat-photo-holder';
+
+    if (time) {
+      item.insertBefore(photoHolder, time);
+    } else {
+      item.appendChild(photoHolder);
+    }
+
+    loadCommunityChatPhoto(message, photoHolder);
+  }
+};
+
+
+/* Napojenie tlačidla/výberu fotografie */
+
+const communityChatPhotoInput =
+  document.getElementById('chatPhotoInput');
+
+if (communityChatPhotoInput) {
+  communityChatPhotoInput.addEventListener('change', async event => {
+    const file = event.target.files?.[0];
+
+    if (file) {
+      await sendCommunityChatPhoto(file);
+    }
+
+    event.target.value = '';
+  });
+}
