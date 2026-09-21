@@ -1659,3 +1659,69 @@ showHome()
 <script src="extensions.js?v=20260919-1"></script>
 </body>
 </html>
+<!-- ===== COMMUNITY CHAT ===== -->
+<div id="chatPage" style="display:none;">
+
+  <div class="chat-header">
+    <button type="button" class="chat-back" onclick="closeCommunityChat()">‹</button>
+
+    <div class="chat-title">
+      <span>💬</span>
+      <strong>CHAT</strong>
+    </div>
+
+    <div class="chat-notifications">
+      <small id="chatNotificationLabel">Upozornenia</small>
+
+      <button
+        id="chatNotificationToggle"
+        type="button"
+        class="chat-toggle on"
+        onclick="toggleChatNotifications()"
+        aria-label="Notifications"
+      >
+        <span></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="chatMessages" class="chat-messages"></div>
+
+  <div class="chat-compose">
+
+    <input
+      id="chatPhotoInput"
+      type="file"
+      accept="image/*"
+      hidden
+    >
+
+    <button
+      type="button"
+      class="chat-photo-btn"
+      onclick="document.getElementById('chatPhotoInput').click()"
+      aria-label="Add photo"
+    >
+      📷
+    </button>
+
+    <textarea
+      id="chatMessageInput"
+      rows="1"
+      maxlength="1500"
+      placeholder="Napíšte správu..."
+    ></textarea>
+
+    <button
+      type="button"
+      id="chatSendBtn"
+      class="chat-send-btn"
+      onclick="sendCommunityChatMessage()"
+    >
+      ➤
+    </button>
+
+  </div>
+
+</div>
+<!-- ===== END COMMUNITY CHAT ===== -->
