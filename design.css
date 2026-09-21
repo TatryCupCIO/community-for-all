@@ -1888,3 +1888,128 @@ body {
     0 2px 3px rgba(0,0,0,1),
     0 0 7px rgba(0,0,0,.95) !important;
 }
+/* ===== FINAL DARK EDGE CARDS ===== */
+
+/* PODUJATIA – veľmi tmavá oranžovo-bordová po oboch stranách */
+#homePage button:first-of-type {
+  background:
+    linear-gradient(90deg,
+      rgba(45, 13, 2, .96) 0%,
+      rgba(72, 24, 3, .82) 15%,
+      rgba(20, 12, 7, .20) 34%,
+      rgba(10, 10, 10, .08) 50%,
+      rgba(20, 12, 7, .20) 66%,
+      rgba(72, 24, 3, .82) 85%,
+      rgba(45, 13, 2, .96) 100%
+    ),
+    url('Podujatia.png') center / cover no-repeat !important;
+}
+
+/* MOJE REZERVÁCIE – veľmi tmavá modrá */
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 12, 27, .97) 0%,
+      rgba(0, 27, 52, .84) 15%,
+      rgba(0, 19, 36, .22) 34%,
+      rgba(0, 10, 20, .08) 50%,
+      rgba(0, 19, 36, .22) 66%,
+      rgba(0, 27, 52, .84) 85%,
+      rgba(0, 12, 27, .97) 100%
+    ),
+    url('Mojerezervacie.png') center / cover no-repeat !important;
+}
+
+/* FATRA – tmavá bordovo-oranžová */
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg,
+      rgba(48, 13, 2, .97) 0%,
+      rgba(76, 24, 3, .85) 15%,
+      rgba(49, 17, 4, .23) 34%,
+      rgba(20, 8, 2, .08) 50%,
+      rgba(49, 17, 4, .23) 66%,
+      rgba(76, 24, 3, .85) 85%,
+      rgba(48, 13, 2, .97) 100%
+    ),
+    url('Fatra.png') center / cover no-repeat !important;
+}
+
+/* TINUŠKA – tmavá vínová, nie svetloružová */
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg,
+      rgba(54, 0, 25, .97) 0%,
+      rgba(87, 3, 42, .86) 15%,
+      rgba(65, 2, 31, .24) 34%,
+      rgba(25, 0, 12, .08) 50%,
+      rgba(65, 2, 31, .24) 66%,
+      rgba(87, 3, 42, .86) 85%,
+      rgba(54, 0, 25, .97) 100%
+    ),
+    url('Tinuskafacepainting.png') center / cover no-repeat !important;
+}
+
+/* O NÁS – tmavá modrá + zachovaný oranžový západ slnka */
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 15, 29, .97) 0%,
+      rgba(0, 28, 48, .84) 15%,
+      rgba(25, 16, 8, .20) 34%,
+      rgba(15, 8, 3, .06) 50%,
+      rgba(25, 16, 8, .20) 66%,
+      rgba(0, 28, 48, .84) 85%,
+      rgba(0, 15, 29, .97) 100%
+    ),
+    url('Onas.png') center / cover no-repeat !important;
+
+  /* rovnaké zarovnanie textu ako ostatné karty */
+  padding-left: 66px !important;
+}
+
+/* KONTAKT – tmavá hnedo-bordová */
+#homePage button:nth-of-type(6),
+#contactBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(42, 18, 2, .97) 0%,
+      rgba(70, 31, 4, .85) 15%,
+      rgba(47, 25, 7, .23) 34%,
+      rgba(20, 12, 5, .08) 50%,
+      rgba(47, 25, 7, .23) 66%,
+      rgba(70, 31, 4, .85) 85%,
+      rgba(42, 18, 2, .97) 100%
+    ),
+    url('Kontakt.png') center / cover no-repeat !important;
+}
+
+
+/* ===== O NÁS – ikonka a text presne zarovnať ===== */
+
+#aboutBtn::before,
+#homePage button:nth-of-type(5)::before {
+  display: block !important;
+  width: 36px !important;
+  height: 36px !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  background-size: contain !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* mobil – rovnaká os textu ako ostatné tlačidlá */
+@media (max-width: 600px) {
+  #homePage button:nth-of-type(5) {
+    padding-left: 58px !important;
+  }
+
+  #aboutBtn::before,
+  #homePage button:nth-of-type(5)::before {
+    width: 34px !important;
+    height: 34px !important;
+    left: 16px !important;
+  }
+}
