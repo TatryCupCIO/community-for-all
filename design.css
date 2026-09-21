@@ -2798,3 +2798,7 @@ body {
 #homePage #communityChatBtn.community-chat-btn{
     top:72px !important;
 }
+/* CHAT – POSUN O 4 MM VYŠŠIE */
+#homePage #communityChatBtn.community-chat-btn{
+    top:57px !important;
+}
