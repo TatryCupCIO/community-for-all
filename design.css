@@ -2194,3 +2194,178 @@ body {
     ),
     url('Kontakt.png') center / cover no-repeat !important;
 }
+/* =========================================================
+   FINAL CINEMATIC TUNING
+   Tatry + dark sky + sharper card centres
+   ========================================================= */
+
+/* POZADIE:
+   tmavá obloha a voda,
+   Tatry ostávajú čitateľnejšie,
+   iba jemné teplé prieniky */
+body {
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba(0, 5, 12, .91) 0%,
+      rgba(2, 7, 13, .89) 16%,
+      rgba(5, 9, 13, .86) 27%,
+      rgba(0, 7, 14, .82) 39%,
+      rgba(0, 8, 16, .84) 52%,
+      rgba(0, 7, 15, .91) 68%,
+      rgba(0, 5, 11, .97) 84%,
+      rgba(0, 3, 7, .995) 100%
+    ),
+    radial-gradient(
+      ellipse at 72% 19%,
+      rgba(255, 119, 15, .18) 0%,
+      rgba(255, 151, 30, .09) 12%,
+      rgba(0, 0, 0, 0) 28%
+    ),
+    radial-gradient(
+      ellipse at 55% 36%,
+      rgba(255, 126, 12, .09) 0%,
+      rgba(0, 0, 0, 0) 24%
+    ),
+    url('Pozadie.jpg') !important;
+
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+
+
+/* =========================================================
+   PODUJATIA – tmavé hnedé kraje, čistý stred
+   ========================================================= */
+#homePage button:first-of-type {
+  background:
+    linear-gradient(90deg,
+      rgba(27, 5, 1, 1) 0%,
+      rgba(49, 10, 1, .99) 11%,
+      rgba(65, 17, 2, .82) 21%,
+      rgba(45, 13, 2, .42) 29%,
+      rgba(0, 0, 0, .05) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .05) 61%,
+      rgba(45, 13, 2, .42) 71%,
+      rgba(65, 17, 2, .82) 79%,
+      rgba(49, 10, 1, .99) 89%,
+      rgba(27, 5, 1, 1) 100%
+    ),
+    url('Podujatia.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   MOJE REZERVÁCIE – tmavé navy kraje, čistý stred
+   ========================================================= */
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 5, 13, 1) 0%,
+      rgba(0, 12, 25, .99) 11%,
+      rgba(0, 22, 40, .80) 21%,
+      rgba(0, 15, 29, .38) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(0, 15, 29, .38) 71%,
+      rgba(0, 22, 40, .80) 79%,
+      rgba(0, 12, 25, .99) 89%,
+      rgba(0, 5, 13, 1) 100%
+    ),
+    url('Mojerezervacie.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   FATRA – výrazne tmavohnedé kraje
+   ========================================================= */
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg,
+      rgba(22, 5, 1, 1) 0%,
+      rgba(39, 8, 1, 1) 12%,
+      rgba(55, 13, 1, .96) 21%,
+      rgba(49, 14, 2, .64) 29%,
+      rgba(25, 7, 1, .20) 36%,
+      rgba(0, 0, 0, 0) 45%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(25, 7, 1, .20) 64%,
+      rgba(49, 14, 2, .64) 71%,
+      rgba(55, 13, 1, .96) 79%,
+      rgba(39, 8, 1, 1) 88%,
+      rgba(22, 5, 1, 1) 100%
+    ),
+    url('Fatra.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   TINUŠKA – hlboká vínová/bordová, NIE ružová
+   ========================================================= */
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg,
+      rgba(22, 2, 7, 1) 0%,
+      rgba(39, 3, 12, 1) 12%,
+      rgba(55, 5, 18, .97) 21%,
+      rgba(48, 5, 17, .65) 29%,
+      rgba(24, 3, 9, .20) 36%,
+      rgba(0, 0, 0, 0) 45%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(24, 3, 9, .20) 64%,
+      rgba(48, 5, 17, .65) 71%,
+      rgba(55, 5, 18, .97) 79%,
+      rgba(39, 3, 12, 1) 88%,
+      rgba(22, 2, 7, 1) 100%
+    ),
+    url('Tinuskafacepainting.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   O NÁS – tmavé navy kraje, fotografia čistá
+   ========================================================= */
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 5, 12, 1) 0%,
+      rgba(0, 12, 23, .99) 11%,
+      rgba(0, 23, 38, .80) 21%,
+      rgba(0, 16, 27, .38) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(0, 16, 27, .38) 71%,
+      rgba(0, 23, 38, .80) 79%,
+      rgba(0, 12, 23, .99) 89%,
+      rgba(0, 5, 12, 1) 100%
+    ),
+    url('Onas.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   KONTAKT – tmavohnedé kraje, čistý stred
+   ========================================================= */
+#homePage button:nth-of-type(6),
+#contactBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(22, 7, 1, 1) 0%,
+      rgba(39, 12, 1, .99) 11%,
+      rgba(54, 19, 2, .82) 21%,
+      rgba(39, 17, 3, .40) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(39, 17, 3, .40) 71%,
+      rgba(54, 19, 2, .82) 79%,
+      rgba(39, 12, 1, .99) 89%,
+      rgba(22, 7, 1, 1) 100%
+    ),
+    url('Kontakt.png') center / cover no-repeat !important;
+}
