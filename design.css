@@ -1733,3 +1733,79 @@ body {
     line-height:1.05 !important;
   }
 }
+/* ===== FINAL HOME IMAGE COLOUR TUNING ===== */
+
+/* Podujatia */
+#homePage button:first-of-type {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 12, 24, .62) 0%,
+      rgba(0, 12, 24, .30) 48%,
+      rgba(164, 63, 0, .28) 100%
+    ),
+    url('Podujatia.png') center center / cover no-repeat !important;
+}
+
+/* Moje rezervácie */
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 15, 30, .70) 0%,
+      rgba(0, 20, 38, .38) 52%,
+      rgba(0, 31, 58, .30) 100%
+    ),
+    url('Mojerezervacie.png') center center / cover no-repeat !important;
+}
+
+/* Fatra Potraviny Rugby */
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg,
+      rgba(28, 12, 0, .67) 0%,
+      rgba(42, 18, 0, .34) 52%,
+      rgba(118, 43, 0, .28) 100%
+    ),
+    url('Fatra.png') center center / cover no-repeat !important;
+}
+
+/* Tinuška */
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg,
+      rgba(38, 0, 20, .67) 0%,
+      rgba(42, 0, 24, .32) 52%,
+      rgba(100, 0, 48, .25) 100%
+    ),
+    url('Tinuskafacepainting.png') center center / cover no-repeat !important;
+}
+
+/* O nás */
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 15, 28, .72) 0%,
+      rgba(8, 18, 25, .34) 45%,
+      rgba(74, 26, 0, .18) 100%
+    ),
+    url('Onas.png') center center / cover no-repeat !important;
+}
+
+/* Kontakt */
+#homePage button:nth-of-type(6),
+#contactBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(26, 16, 0, .66) 0%,
+      rgba(30, 19, 4, .32) 50%,
+      rgba(107, 48, 0, .22) 100%
+    ),
+    url('Kontakt.png') center center / cover no-repeat !important;
+}
+
+/* Biely text ostane ostrý nad fotografiami */
+#homePage .menu-btn {
+  color: #fff !important;
+  text-shadow:
+    0 2px 4px rgba(0,0,0,.95),
+    0 0 8px rgba(0,0,0,.72) !important;
+}
