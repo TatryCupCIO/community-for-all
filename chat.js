@@ -1155,3 +1155,76 @@ document.addEventListener('visibilitychange', () => {
     startCommunityChatForLoggedUser();
   }
 });
+/* ===== CHAT – SEEN DISPLAY FIX ===== */
+
+async function refreshSeenDisplayFix() {
+  if (!currentUser || !communityChatOpen) return;
+
+  const ownItems = [
+    ...document.querySelectorAll('#chatMessages .chat-message.mine')
+  ];
+
+  if (!ownItems.length) return;
+
+  const messageIds = ownItems
+    .map(item => Number(item.id.replace('chat-message-', '')))
+    .filter(Boolean);
+
+  const { data, error } = await supabaseClient
+    .from('chat_message_reads')
+    .select('message_id,user_name')
+    .in('message_id', messageIds);
+
+  if (error) return;
+
+  const reads = {};
+
+  (data || []).forEach(row => {
+    if (!reads[row.message_id]) reads[row.message_id] = [];
+
+    if (
+      row.user_name &&
+      !reads[row.message_id].includes(row.user_name)
+    ) {
+      reads[row.message_id].push(row.user_name);
+    }
+  });
+
+  ownItems.forEach(item => {
+    const messageId =
+      Number(item.id.replace('chat-message-', ''));
+
+    const names = reads[messageId] || [];
+
+    let receipt =
+      item.querySelector('.chat-read-receipt');
+
+    if (!receipt) {
+      receipt = document.createElement('div');
+      receipt.className = 'chat-read-receipt';
+      item.appendChild(receipt);
+    }
+
+    if (names.length) {
+      receipt.textContent =
+        T('Videné: ', 'Seen: ') + names.join(', ');
+      receipt.style.display = 'block';
+    } else {
+      receipt.style.display = 'none';
+    }
+  });
+}
+
+const chatOpenBeforeSeenFix = openCommunityChat;
+
+openCommunityChat = async function () {
+  await chatOpenBeforeSeenFix();
+
+  setTimeout(refreshSeenDisplayFix, 300);
+};
+
+setInterval(() => {
+  if (communityChatOpen) {
+    refreshSeenDisplayFix();
+  }
+}, 2000);
