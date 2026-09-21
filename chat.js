@@ -709,3 +709,131 @@ function addCommunityChatRetentionInfo() {
 }
 
 addCommunityChatRetentionInfo();
+/* ===== CHAT PHOTO – CONFIRM BEFORE SEND ===== */
+
+let pendingCommunityChatPhoto = null;
+let pendingCommunityChatPreviewUrl = null;
+
+function showPendingCommunityChatPhoto(file) {
+  pendingCommunityChatPhoto = file;
+
+  if (pendingCommunityChatPreviewUrl) {
+    URL.revokeObjectURL(pendingCommunityChatPreviewUrl);
+  }
+
+  pendingCommunityChatPreviewUrl = URL.createObjectURL(file);
+
+  let preview = document.getElementById('chatPendingPhoto');
+
+  if (!preview) {
+    preview = document.createElement('div');
+    preview.id = 'chatPendingPhoto';
+    preview.style.cssText =
+      'position:relative;max-width:120px;margin:0 0 6px 0;';
+
+    preview.innerHTML =
+      '<img id="chatPendingPhotoImage" style="display:block;max-width:120px;max-height:100px;border-radius:10px;">' +
+      '<button type="button" id="chatPendingPhotoRemove" ' +
+      'style="position:absolute;right:-7px;top:-7px;width:25px;height:25px;' +
+      'border:0;border-radius:50%;background:#ff7417;color:white;font-size:18px;' +
+      'line-height:23px;padding:0;">×</button>';
+
+    const compose = document.querySelector('#chatPage .chat-compose');
+    const input = document.getElementById('chatMessageInput');
+
+    if (compose && input) {
+      compose.insertBefore(preview, input);
+    }
+
+    document
+      .getElementById('chatPendingPhotoRemove')
+      .addEventListener('click', clearPendingCommunityChatPhoto);
+  }
+
+  document.getElementById('chatPendingPhotoImage').src =
+    pendingCommunityChatPreviewUrl;
+
+  preview.style.display = 'block';
+}
+
+function clearPendingCommunityChatPhoto() {
+  pendingCommunityChatPhoto = null;
+
+  if (pendingCommunityChatPreviewUrl) {
+    URL.revokeObjectURL(pendingCommunityChatPreviewUrl);
+    pendingCommunityChatPreviewUrl = null;
+  }
+
+  const preview = document.getElementById('chatPendingPhoto');
+
+  if (preview) {
+    preview.style.display = 'none';
+  }
+
+  const input = document.getElementById('chatPhotoInput');
+
+  if (input) {
+    input.value = '';
+  }
+}
+
+
+/* Zastaví pôvodné okamžité odoslanie fotografie */
+
+if (communityChatPhotoInput) {
+  const replacementInput = communityChatPhotoInput.cloneNode(true);
+
+  communityChatPhotoInput.parentNode.replaceChild(
+    replacementInput,
+    communityChatPhotoInput
+  );
+
+  replacementInput.addEventListener('change', event => {
+    const file = event.target.files?.[0];
+
+    if (file) {
+      showPendingCommunityChatPhoto(file);
+    }
+  });
+
+  const photoButton = document.querySelector(
+    '#chatPage .chat-photo-btn'
+  );
+
+  if (photoButton) {
+    const newPhotoButton = photoButton.cloneNode(true);
+
+    photoButton.parentNode.replaceChild(
+      newPhotoButton,
+      photoButton
+    );
+
+    newPhotoButton.addEventListener('click', () => {
+      replacementInput.click();
+    });
+  }
+}
+
+
+/* Oranžová šípka odošle text aj pripravenú fotografiu */
+
+const originalSendCommunityChatMessage =
+  sendCommunityChatMessage;
+
+sendCommunityChatMessage = async function() {
+  const text =
+    document.getElementById('chatMessageInput')?.value.trim();
+
+  const photo = pendingCommunityChatPhoto;
+
+  if (!text && !photo) return;
+
+  if (text) {
+    await originalSendCommunityChatMessage();
+  }
+
+  if (photo) {
+    await sendCommunityChatPhoto(photo);
+    clearPendingCommunityChatPhoto();
+  }
+};
