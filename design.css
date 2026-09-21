@@ -1809,3 +1809,82 @@ body {
     0 2px 4px rgba(0,0,0,.95),
     0 0 8px rgba(0,0,0,.72) !important;
 }
+/* ===== DARK PROFESSIONAL HOME CARDS - FINAL OVERRIDE ===== */
+
+/* PODUJATIA */
+#homePage button:first-of-type {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 8, 15, .76) 0%,
+      rgba(0, 8, 15, .57) 48%,
+      rgba(38, 17, 4, .54) 100%
+    ),
+    url('Podujatia.png') center / cover no-repeat !important;
+}
+
+/* MOJE REZERVÁCIE */
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 10, 22, .78) 0%,
+      rgba(0, 13, 27, .59) 50%,
+      rgba(0, 18, 35, .55) 100%
+    ),
+    url('Mojerezervacie.png') center / cover no-repeat !important;
+}
+
+/* FATRA */
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg,
+      rgba(20, 8, 0, .78) 0%,
+      rgba(27, 10, 0, .58) 50%,
+      rgba(55, 20, 0, .55) 100%
+    ),
+    url('Fatra.png') center / cover no-repeat !important;
+}
+
+/* TINUŠKA */
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg,
+      rgba(35, 0, 18, .78) 0%,
+      rgba(42, 0, 23, .59) 50%,
+      rgba(60, 0, 31, .57) 100%
+    ),
+    url('Tinuskafacepainting.png') center / cover no-repeat !important;
+}
+
+/* O NÁS */
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 10, 20, .79) 0%,
+      rgba(12, 10, 8, .58) 48%,
+      rgba(43, 18, 2, .53) 100%
+    ),
+    url('Onas.png') center / cover no-repeat !important;
+
+  /* miesto pre ikonku troch ľudí */
+  padding-left: 100px !important;
+}
+
+/* KONTAKT */
+#homePage button:nth-of-type(6),
+#contactBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(20, 12, 0, .78) 0%,
+      rgba(26, 15, 2, .59) 50%,
+      rgba(55, 27, 2, .55) 100%
+    ),
+    url('Kontakt.png') center / cover no-repeat !important;
+}
+
+/* Text ešte čistejší a výraznejší */
+#homePage .menu-btn {
+  color: #fff !important;
+  text-shadow:
+    0 2px 3px rgba(0,0,0,1),
+    0 0 7px rgba(0,0,0,.95) !important;
+}
