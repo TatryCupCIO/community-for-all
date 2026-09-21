@@ -1737,5 +1737,19 @@ showHome()
 
 <script src="extensions.js?v=20260919-1"></script>
   <script src="chat.js?v=4"></script>
+  <script>
+/* ===== PASSWORD RECOVERY FIX ===== */
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    currentUser = session?.user || null;
+    updateUserButton();
+
+    setTimeout(() => {
+      showResetPassword();
+    }, 100);
+  }
+});
+  </script>
 </body>
 </html>
