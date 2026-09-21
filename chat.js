@@ -361,3 +361,4 @@ async function chatDatabaseDiagnostic() {
     alert('CHAT DATABASE READ: OK');
   }
 }
+chatDatabaseDiagnostic();
