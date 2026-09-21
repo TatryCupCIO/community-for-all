@@ -2033,3 +2033,164 @@ body {
   background-repeat: no-repeat !important;
   background-attachment: fixed !important;
 }
+/* =========================================================
+   FINAL DARK LOOK – BACKGROUND + 6 HOME CARDS
+   ========================================================= */
+
+/* HLAVNÉ POZADIE */
+body {
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba(0, 7, 15, .84) 0%,
+      rgba(0, 9, 19, .86) 30%,
+      rgba(0, 11, 22, .89) 58%,
+      rgba(0, 8, 17, .95) 82%,
+      rgba(0, 4, 9, .99) 100%
+    ),
+    url('Pozadie.jpg') !important;
+
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+
+
+/* =========================================================
+   1. PODUJATIA
+   tmavá bordovo-hnedá na OBOCH krajoch
+   ========================================================= */
+
+#homePage button:first-of-type {
+  background:
+    linear-gradient(90deg,
+      rgba(35, 8, 2, 1) 0%,
+      rgba(55, 13, 2, .98) 10%,
+      rgba(65, 18, 3, .80) 20%,
+      rgba(35, 12, 3, .35) 30%,
+      rgba(0, 0, 0, .05) 40%,
+      rgba(0, 0, 0, .02) 60%,
+      rgba(35, 12, 3, .35) 70%,
+      rgba(65, 18, 3, .80) 80%,
+      rgba(55, 13, 2, .98) 90%,
+      rgba(35, 8, 2, 1) 100%
+    ),
+    url('Podujatia.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   2. MOJE REZERVÁCIE
+   hlboká tmavomodrá
+   ========================================================= */
+
+#homePage button:nth-of-type(2) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 7, 17, 1) 0%,
+      rgba(0, 13, 29, .98) 10%,
+      rgba(0, 24, 46, .82) 20%,
+      rgba(0, 18, 35, .35) 30%,
+      rgba(0, 5, 12, .05) 40%,
+      rgba(0, 5, 12, .02) 60%,
+      rgba(0, 18, 35, .35) 70%,
+      rgba(0, 24, 46, .82) 80%,
+      rgba(0, 13, 29, .98) 90%,
+      rgba(0, 7, 17, 1) 100%
+    ),
+    url('Mojerezervacie.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   3. FATRA
+   tmavá bordovo-oranžová
+   ========================================================= */
+
+#homePage button:nth-of-type(3) {
+  background:
+    linear-gradient(90deg,
+      rgba(40, 8, 1, 1) 0%,
+      rgba(63, 14, 2, .98) 10%,
+      rgba(75, 20, 2, .82) 20%,
+      rgba(40, 13, 2, .35) 30%,
+      rgba(0, 0, 0, .04) 40%,
+      rgba(0, 0, 0, .02) 60%,
+      rgba(40, 13, 2, .35) 70%,
+      rgba(75, 20, 2, .82) 80%,
+      rgba(63, 14, 2, .98) 90%,
+      rgba(40, 8, 1, 1) 100%
+    ),
+    url('Fatra.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   4. TINUŠKA
+   BORDOVÁ – nie ružová
+   ========================================================= */
+
+#homePage button:nth-of-type(4) {
+  background:
+    linear-gradient(90deg,
+      rgba(38, 0, 15, 1) 0%,
+      rgba(58, 0, 24, .99) 10%,
+      rgba(78, 0, 32, .84) 20%,
+      rgba(55, 0, 25, .38) 30%,
+      rgba(15, 0, 7, .05) 40%,
+      rgba(15, 0, 7, .02) 60%,
+      rgba(55, 0, 25, .38) 70%,
+      rgba(78, 0, 32, .84) 80%,
+      rgba(58, 0, 24, .99) 90%,
+      rgba(38, 0, 15, 1) 100%
+    ),
+    url('Tinuskafacepainting.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   5. O NÁS
+   tmavomodré kraje, oranžový západ ostáva viditeľný
+   ========================================================= */
+
+#homePage button:nth-of-type(5) {
+  background:
+    linear-gradient(90deg,
+      rgba(0, 7, 16, 1) 0%,
+      rgba(0, 14, 27, .99) 10%,
+      rgba(0, 26, 45, .82) 20%,
+      rgba(5, 20, 29, .34) 30%,
+      rgba(0, 0, 0, .04) 40%,
+      rgba(0, 0, 0, .02) 60%,
+      rgba(5, 20, 29, .34) 70%,
+      rgba(0, 26, 45, .82) 80%,
+      rgba(0, 14, 27, .99) 90%,
+      rgba(0, 7, 16, 1) 100%
+    ),
+    url('Onas.png') center / cover no-repeat !important;
+}
+
+
+/* =========================================================
+   6. KONTAKT
+   tmavá hnedo-bordová
+   ========================================================= */
+
+#homePage button:nth-of-type(6),
+#contactBtn {
+  background:
+    linear-gradient(90deg,
+      rgba(31, 10, 1, 1) 0%,
+      rgba(50, 17, 2, .99) 10%,
+      rgba(66, 26, 4, .82) 20%,
+      rgba(40, 21, 5, .35) 30%,
+      rgba(0, 0, 0, .04) 40%,
+      rgba(0, 0, 0, .02) 60%,
+      rgba(40, 21, 5, .35) 70%,
+      rgba(66, 26, 4, .82) 80%,
+      rgba(50, 17, 2, .99) 90%,
+      rgba(31, 10, 1, 1) 100%
+    ),
+    url('Kontakt.png') center / cover no-repeat !important;
+}
