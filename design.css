@@ -2727,3 +2727,41 @@ body {
     background:#ff304f !important;
     border:2px solid #fff !important;
 }
+/* ===== CHAT BUTTON – POSITION + SIZE FIX ===== */
+
+#homePage #communityChatBtn.community-chat-btn{
+    position:absolute !important;
+    top:18px !important;
+    right:18px !important;
+    z-index:50 !important;
+
+    width:56px !important;
+    height:56px !important;
+    min-width:56px !important;
+    min-height:56px !important;
+    max-width:56px !important;
+
+    margin:0 !important;
+    padding:0 !important;
+
+    border-radius:50% !important;
+    border:2px solid rgba(255,255,255,.65) !important;
+
+    background:#ff7a20 !important;
+    background-image:none !important;
+
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+
+    color:#fff !important;
+    box-shadow:0 4px 12px rgba(0,0,0,.30) !important;
+}
+
+#homePage #communityChatBtn > span:first-child::after{
+    content:"CHAT" !important;
+    font-size:11px !important;
+    line-height:1 !important;
+    font-weight:900 !important;
+    color:#fff !important;
+}
