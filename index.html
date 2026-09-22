@@ -1832,5 +1832,38 @@ function addPasswordEye(inputId) {
   }, 100);
 })();
   </script>
+  <script>
+/* ===== PASSWORD RECOVERY FINAL FIX ===== */
+
+let passwordRecoveryActive = false;
+
+supabaseClient.auth.onAuthStateChange((event, session) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    passwordRecoveryActive = true;
+    currentUser = session?.user || null;
+    updateUserButton();
+
+    setTimeout(() => {
+      showResetPassword();
+      document.getElementById('newPassword')?.focus();
+    }, 500);
+  }
+});
+
+setTimeout(async () => {
+  const { data } = await supabaseClient.auth.getSession();
+
+  const recoveryInUrl =
+    location.hash.includes('type=recovery') ||
+    location.search.includes('type=recovery');
+
+  if (passwordRecoveryActive || recoveryInUrl) {
+    currentUser = data?.session?.user || currentUser;
+
+    showResetPassword();
+    document.getElementById('newPassword')?.focus();
+  }
+}, 1000);
+  </script>
 </body>
 </html>
