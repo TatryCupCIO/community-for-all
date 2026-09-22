@@ -2165,122 +2165,183 @@ function addPasswordEye(inputId) {
   /* ---------- RENDER USERS ---------- */
 
   function renderPrivateUsers() {
+  const list =
+    document.getElementById('privateUsersList');
 
-    const list =
-      document.getElementById('privateUsersList');
+  if (!list) return;
 
-    if (!list) return;
+  const query =
+    (
+      document.getElementById('privateUserSearch')?.value || ''
+    )
+    .trim()
+    .toLowerCase();
 
-    const query =
-      (
-        document.getElementById('privateUserSearch')?.value || ''
-      )
-      .trim()
-      .toLowerCase();
+  const priority = {
+    online: 0,
+    logged_in: 1,
+    offline: 2
+  };
 
-    const users =
-      window.privateUsers.filter(user =>
+  const users =
+    window.privateUsers
+      .filter(user =>
         (user.display_name || '')
           .toLowerCase()
           .includes(query)
-      );
+      )
+      .sort((a, b) => {
+        const statusA =
+          priority[a.presence_status] ?? 2;
 
-    list.innerHTML = '';
+        const statusB =
+          priority[b.presence_status] ?? 2;
 
-    if (!users.length) {
+        if (statusA !== statusB) {
+          return statusA - statusB;
+        }
 
-      const empty = document.createElement('div');
+        return (a.display_name || '')
+          .localeCompare(
+            b.display_name || '',
+            currentLanguage === 'sk'
+              ? 'sk'
+              : 'en'
+          );
+      });
 
-      empty.style.padding = '15px 0';
+  list.innerHTML = '';
 
-      empty.textContent =
-        currentLanguage === 'en'
-          ? 'No users found.'
-          : 'Nenašli sa žiadni používatelia.';
+  if (!users.length) {
+    const empty =
+      document.createElement('div');
 
-      list.appendChild(empty);
+    empty.style.padding = '15px 0';
 
-      return;
-    }
+    empty.textContent =
+      currentLanguage === 'en'
+        ? 'No users found.'
+        : 'Nenašli sa žiadni používatelia.';
 
+    list.appendChild(empty);
+    return;
+  }
 
-    users.forEach(user => {
+  users.forEach(user => {
+    const row =
+      document.createElement('button');
 
-      const row = document.createElement('button');
+    row.type = 'button';
 
-      row.type = 'button';
-
-      row.style.cssText = `
-        width:100%;
-        display:flex;
-        align-items:center;
-        gap:14px;
-        padding:12px;
-        margin:8px 0;
-        text-align:left;
-        border:1px solid #334155;
-        border-radius:12px;
-        background:#172033;
-        color:white;
-        cursor:pointer;
-      `;
+    row.style.cssText = `
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:12px;
+      margin:8px 0;
+      text-align:left;
+      border:1px solid #334155;
+      border-radius:12px;
+      background:#172033;
+      color:white;
+      cursor:pointer;
+    `;
 
 
       /* AVATAR */
 
-      const avatar = document.createElement('div');
+const avatar =
+  document.createElement('div');
 
-      avatar.style.cssText = `
-        width:52px;
-        height:52px;
-        min-width:52px;
-        border-radius:50%;
-        overflow:hidden;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        background:#334155;
-        font-size:27px;
-      `;
+avatar.style.cssText = `
+  width:52px;
+  height:52px;
+  min-width:52px;
+  border-radius:50%;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#334155;
+  font-size:27px;
+`;
 
-      if (user.avatar_url) {
+if (user.avatar_url) {
+  const img =
+    document.createElement('img');
 
-        const img = document.createElement('img');
+  img.src = user.avatar_url;
+  img.alt = '';
 
-        img.src = user.avatar_url;
-        img.alt = '';
+  img.style.cssText = `
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  `;
 
-        img.style.cssText = `
-          width:100%;
-          height:100%;
-          object-fit:cover;
-        `;
+  avatar.appendChild(img);
 
-        avatar.appendChild(img);
+} else {
+  avatar.textContent = '👤';
+}
 
-      } else {
+/* NAME + STATUS */
 
-        avatar.textContent = '👤';
+const details =
+  document.createElement('div');
 
-      }
+details.style.cssText = `
+  min-width:0;
+  flex:1;
+`;
 
+const name =
+  document.createElement('div');
 
-      /* NAME */
+name.style.fontWeight = '800';
+name.style.fontSize = '16px';
 
-      const name = document.createElement('div');
+name.textContent =
+  user.display_name || 'User';
 
-      name.style.fontWeight = '800';
-      name.style.fontSize = '16px';
+const status =
+  document.createElement('div');
 
-      name.textContent =
-        user.display_name || 'User';
+status.style.cssText = `
+  margin-top:3px;
+  font-size:12px;
+  font-weight:700;
+`;
 
+if (user.presence_status === 'online') {
+  status.textContent = 'Online';
+  status.style.color = '#22c55e';
 
-      row.append(
-        avatar,
-        name
-      );
+} else if (
+  user.presence_status === 'logged_in'
+) {
+  status.textContent =
+    currentLanguage === 'en'
+      ? 'Logged in'
+      : 'Prihlásený';
 
+  status.style.color = '#f59e0b';
+
+} else {
+  status.textContent = 'Offline';
+  status.style.color = '#ef4444';
+}
+
+details.append(
+  name,
+  status
+);
+
+row.append(
+  avatar,
+  details
+);
 
       /* NEXT STEP: OPEN PRIVATE CHAT */
 
