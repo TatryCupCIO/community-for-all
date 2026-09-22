@@ -1998,3 +1998,432 @@ function setPrivateMembersLanguage() {
 
 
 createPrivateMembersPanel();
+/* ===== PRIVATE CHAT – ADD MEMBERS ===== */
+
+function createPrivateMembersPanel() {
+  if (document.getElementById('privateMembersPanel')) return;
+
+  const panel = document.createElement('div');
+
+  panel.id = 'privateMembersPanel';
+
+  panel.style.cssText = `
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:9999;
+    background:rgba(0,0,0,.72);
+    padding:20px;
+    overflow:auto;
+  `;
+
+  panel.innerHTML = `
+    <div style="
+      max-width:520px;
+      margin:40px auto;
+      background:#172033;
+      color:white;
+      border-radius:16px;
+      padding:18px;
+    ">
+
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin-bottom:15px;
+      ">
+        <h3
+          id="privateMembersTitle"
+          style="margin:0;"
+        ></h3>
+
+        <button
+          type="button"
+          id="privateMembersClose"
+          style="
+            border:0;
+            background:transparent;
+            color:white;
+            font-size:26px;
+            cursor:pointer;
+          "
+        >×</button>
+      </div>
+
+      <input
+        id="privateMembersSearch"
+        type="search"
+        autocomplete="off"
+        style="
+          width:100%;
+          margin-bottom:14px;
+          padding:11px;
+          border-radius:10px;
+        "
+      >
+
+      <div id="privateMembersList"></div>
+
+      <button
+        type="button"
+        id="privateMembersAddBtn"
+        class="submit-btn"
+        style="
+          width:100%;
+          margin-top:15px;
+        "
+      ></button>
+
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  document
+    .getElementById('privateMembersClose')
+    .addEventListener(
+      'click',
+      closePrivateMembersPanel
+    );
+
+  document
+    .getElementById('privateMembersSearch')
+    .addEventListener(
+      'input',
+      renderPrivateMembersCandidates
+    );
+
+  document
+    .getElementById('privateMembersAddBtn')
+    .addEventListener(
+      'click',
+      addSelectedPrivateMembers
+    );
+}
+
+
+let privateMemberCandidates = [];
+
+
+openPrivateChatMembers = async function () {
+  if (!currentUser || !privateChatConversationId) return;
+
+  createPrivateMembersPanel();
+
+  setPrivateMembersLanguage();
+
+  const panel =
+    document.getElementById('privateMembersPanel');
+
+  panel.style.display = 'block';
+
+  document.getElementById(
+    'privateMembersSearch'
+  ).value = '';
+
+  await loadPrivateMembersCandidates();
+};
+
+
+function closePrivateMembersPanel() {
+  const panel =
+    document.getElementById('privateMembersPanel');
+
+  if (panel) {
+    panel.style.display = 'none';
+  }
+}
+
+
+async function loadPrivateMembersCandidates() {
+  const list =
+    document.getElementById('privateMembersList');
+
+  list.innerHTML =
+    '<div class="loading">' +
+    T(
+      'Načítavam používateľov...',
+      'Loading users...'
+    ) +
+    '</div>';
+
+  const { data: memberships, error: membershipError } =
+    await supabaseClient
+      .from('private_conversation_memberships')
+      .select('user_id')
+      .eq(
+        'conversation_id',
+        privateChatConversationId
+      )
+      .is('left_at', null);
+
+  if (membershipError) {
+    list.textContent =
+      T(
+        'Používateľov sa nepodarilo načítať.',
+        'Users could not be loaded.'
+      );
+    return;
+  }
+
+  const activeIds =
+    new Set(
+      (memberships || []).map(
+        member => member.user_id
+      )
+    );
+
+  const { data: users, error } =
+    await supabaseClient
+      .from('user_profiles')
+      .select(
+        'user_id,display_name,avatar_url'
+      )
+      .neq(
+        'user_id',
+        currentUser.id
+      )
+      .order(
+        'display_name',
+        { ascending: true }
+      );
+
+  if (error) {
+    list.textContent =
+      T(
+        'Používateľov sa nepodarilo načítať.',
+        'Users could not be loaded.'
+      );
+    return;
+  }
+
+  privateMemberCandidates =
+    (users || []).filter(
+      user => !activeIds.has(user.user_id)
+    );
+
+  renderPrivateMembersCandidates();
+}
+
+
+function renderPrivateMembersCandidates() {
+  const list =
+    document.getElementById('privateMembersList');
+
+  if (!list) return;
+
+  const query =
+    (
+      document.getElementById(
+        'privateMembersSearch'
+      )?.value || ''
+    )
+      .trim()
+      .toLowerCase();
+
+  const users =
+    privateMemberCandidates.filter(
+      user =>
+        (user.display_name || '')
+          .toLowerCase()
+          .includes(query)
+    );
+
+  list.innerHTML = '';
+
+  if (!users.length) {
+    list.textContent =
+      T(
+        'Žiadni ďalší používatelia.',
+        'No other users.'
+      );
+    return;
+  }
+
+  users.forEach(user => {
+    const label =
+      document.createElement('label');
+
+    label.style.cssText = `
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px;
+      margin:7px 0;
+      border:1px solid #334155;
+      border-radius:12px;
+      cursor:pointer;
+    `;
+
+    const checkbox =
+      document.createElement('input');
+
+    checkbox.type = 'checkbox';
+    checkbox.value = user.user_id;
+    checkbox.className =
+      'private-member-add-checkbox';
+
+    const avatar =
+      document.createElement('div');
+
+    avatar.style.cssText = `
+      width:42px;
+      height:42px;
+      min-width:42px;
+      border-radius:50%;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#334155;
+      font-size:22px;
+    `;
+
+    if (user.avatar_url) {
+      const img =
+        document.createElement('img');
+
+      img.src = user.avatar_url;
+      img.alt = '';
+
+      img.style.cssText =
+        'width:100%;height:100%;object-fit:cover;';
+
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = '👤';
+    }
+
+    const name =
+      document.createElement('div');
+
+    name.textContent =
+      user.display_name ||
+      T('Používateľ', 'User');
+
+    name.style.fontWeight = '700';
+
+    label.append(
+      checkbox,
+      avatar,
+      name
+    );
+
+    list.appendChild(label);
+  });
+}
+
+
+async function addSelectedPrivateMembers() {
+  if (!privateChatConversationId) return;
+
+  const selected = [
+    ...document.querySelectorAll(
+      '.private-member-add-checkbox:checked'
+    )
+  ].map(
+    checkbox => checkbox.value
+  );
+
+  if (!selected.length) {
+    alert(
+      T(
+        'Vyberte aspoň jedného používateľa.',
+        'Select at least one user.'
+      )
+    );
+    return;
+  }
+
+  const button =
+    document.getElementById(
+      'privateMembersAddBtn'
+    );
+
+  button.disabled = true;
+
+  for (const userId of selected) {
+    const { error } =
+      await supabaseClient.rpc(
+        'add_private_conversation_member',
+        {
+          p_conversation_id:
+            privateChatConversationId,
+
+          p_user_id:
+            userId
+        }
+      );
+
+    if (error) {
+      button.disabled = false;
+
+      alert(
+        T(
+          'Niektorého používateľa sa nepodarilo pridať.',
+          'One of the users could not be added.'
+        )
+      );
+
+      return;
+    }
+  }
+
+  button.disabled = false;
+
+  closePrivateMembersPanel();
+
+  alert(
+    T(
+      'Používatelia boli pridaní do diskusie. 😊',
+      'Users were added to the conversation. 😊'
+    )
+  );
+}
+
+
+function setPrivateMembersLanguage() {
+  const title =
+    document.getElementById(
+      'privateMembersTitle'
+    );
+
+  const search =
+    document.getElementById(
+      'privateMembersSearch'
+    );
+
+  const add =
+    document.getElementById(
+      'privateMembersAddBtn'
+    );
+
+  if (title) {
+    title.textContent =
+      T(
+        'Pridať do diskusie',
+        'Add to conversation'
+      );
+  }
+
+  if (search) {
+    search.placeholder =
+      T(
+        'Vyhľadať používateľa...',
+        'Search users...'
+      );
+  }
+
+  if (add) {
+    add.textContent =
+      T(
+        'Pridať vybraných',
+        'Add selected'
+      );
+  }
+}
+
+
+createPrivateMembersPanel();
