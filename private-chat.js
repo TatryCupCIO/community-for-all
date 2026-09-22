@@ -1998,3 +1998,396 @@ function setPrivateMembersLanguage() {
 
 
 createPrivateMembersPanel();
+/* ===== PRIVATE CHAT – REMOVE MEMBERS ===== */
+
+function createPrivateRemoveMembersPanel() {
+  if (document.getElementById('privateRemoveMembersPanel')) return;
+
+  const panel = document.createElement('div');
+
+  panel.id = 'privateRemoveMembersPanel';
+
+  panel.style.cssText = `
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:10000;
+    background:rgba(0,0,0,.72);
+    padding:20px;
+    overflow:auto;
+  `;
+
+  panel.innerHTML = `
+    <div style="
+      max-width:520px;
+      margin:40px auto;
+      background:#172033;
+      color:white;
+      border-radius:16px;
+      padding:18px;
+    ">
+      <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        margin-bottom:15px;
+      ">
+        <h3 id="privateRemoveMembersTitle" style="margin:0;"></h3>
+
+        <button
+          type="button"
+          id="privateRemoveMembersClose"
+          style="
+            border:0;
+            background:transparent;
+            color:white;
+            font-size:26px;
+            cursor:pointer;
+          "
+        >×</button>
+      </div>
+
+      <div id="privateRemoveMembersList"></div>
+
+      <button
+        type="button"
+        id="privateRemoveMembersBtn"
+        class="submit-btn"
+        style="width:100%;margin-top:15px;"
+      ></button>
+    </div>
+  `;
+
+  document.body.appendChild(panel);
+
+  document
+    .getElementById('privateRemoveMembersClose')
+    .addEventListener(
+      'click',
+      closePrivateRemoveMembersPanel
+    );
+
+  document
+    .getElementById('privateRemoveMembersBtn')
+    .addEventListener(
+      'click',
+      removeSelectedPrivateMembers
+    );
+}
+
+
+async function openPrivateRemoveMembersPanel() {
+  if (!currentUser || !privateChatConversationId) return;
+
+  createPrivateRemoveMembersPanel();
+  setPrivateRemoveMembersLanguage();
+
+  document.getElementById(
+    'privateRemoveMembersPanel'
+  ).style.display = 'block';
+
+  await loadPrivateMembersForRemoval();
+}
+
+
+function closePrivateRemoveMembersPanel() {
+  const panel =
+    document.getElementById('privateRemoveMembersPanel');
+
+  if (panel) {
+    panel.style.display = 'none';
+  }
+}
+
+
+async function loadPrivateMembersForRemoval() {
+  const list =
+    document.getElementById('privateRemoveMembersList');
+
+  list.innerHTML =
+    '<div class="loading">' +
+    T(
+      'Načítavam členov...',
+      'Loading members...'
+    ) +
+    '</div>';
+
+  const { data: memberships, error } =
+    await supabaseClient
+      .from('private_conversation_memberships')
+      .select('user_id')
+      .eq(
+        'conversation_id',
+        privateChatConversationId
+      )
+      .is('left_at', null)
+      .neq(
+        'user_id',
+        currentUser.id
+      );
+
+  if (error) {
+    list.textContent =
+      T(
+        'Členov sa nepodarilo načítať.',
+        'Members could not be loaded.'
+      );
+    return;
+  }
+
+  const ids =
+    (memberships || []).map(
+      member => member.user_id
+    );
+
+  if (!ids.length) {
+    list.textContent =
+      T(
+        'V diskusii nie je nikto ďalší.',
+        'There is nobody else in this conversation.'
+      );
+    return;
+  }
+
+  const { data: users, error: usersError } =
+    await supabaseClient
+      .from('user_profiles')
+      .select(
+        'user_id,display_name,avatar_url'
+      )
+      .in('user_id', ids)
+      .order(
+        'display_name',
+        { ascending: true }
+      );
+
+  if (usersError) {
+    list.textContent =
+      T(
+        'Členov sa nepodarilo načítať.',
+        'Members could not be loaded.'
+      );
+    return;
+  }
+
+  list.innerHTML = '';
+
+  (users || []).forEach(user => {
+    const label =
+      document.createElement('label');
+
+    label.style.cssText = `
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:10px;
+      margin:7px 0;
+      border:1px solid #334155;
+      border-radius:12px;
+      cursor:pointer;
+    `;
+
+    const checkbox =
+      document.createElement('input');
+
+    checkbox.type = 'checkbox';
+    checkbox.value = user.user_id;
+    checkbox.className =
+      'private-member-remove-checkbox';
+
+    const avatar =
+      document.createElement('div');
+
+    avatar.style.cssText = `
+      width:42px;
+      height:42px;
+      min-width:42px;
+      border-radius:50%;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:#334155;
+      font-size:22px;
+    `;
+
+    if (user.avatar_url) {
+      const img =
+        document.createElement('img');
+
+      img.src = user.avatar_url;
+      img.alt = '';
+
+      img.style.cssText =
+        'width:100%;height:100%;object-fit:cover;';
+
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = '👤';
+    }
+
+    const name =
+      document.createElement('div');
+
+    name.textContent =
+      user.display_name ||
+      T('Používateľ', 'User');
+
+    name.style.fontWeight = '700';
+
+    label.append(
+      checkbox,
+      avatar,
+      name
+    );
+
+    list.appendChild(label);
+  });
+}
+
+
+async function removeSelectedPrivateMembers() {
+  if (!privateChatConversationId) return;
+
+  const selected = [
+    ...document.querySelectorAll(
+      '.private-member-remove-checkbox:checked'
+    )
+  ].map(
+    checkbox => checkbox.value
+  );
+
+  if (!selected.length) {
+    alert(
+      T(
+        'Vyberte aspoň jedného používateľa.',
+        'Select at least one user.'
+      )
+    );
+    return;
+  }
+
+  const confirmed =
+    confirm(
+      T(
+        'Ukončiť ich účasť v tejto diskusii?',
+        'End their participation in this conversation?'
+      )
+    );
+
+  if (!confirmed) return;
+
+  const button =
+    document.getElementById(
+      'privateRemoveMembersBtn'
+    );
+
+  button.disabled = true;
+
+  const { error } =
+    await supabaseClient.rpc(
+      'remove_private_conversation_members',
+      {
+        p_conversation_id:
+          privateChatConversationId,
+
+        p_user_ids:
+          selected
+      }
+    );
+
+  button.disabled = false;
+
+  if (error) {
+    alert(
+      T(
+        'Používateľov sa nepodarilo odobrať.',
+        'The users could not be removed.'
+      )
+    );
+    return;
+  }
+
+  closePrivateRemoveMembersPanel();
+}
+
+
+function setPrivateRemoveMembersLanguage() {
+  const title =
+    document.getElementById(
+      'privateRemoveMembersTitle'
+    );
+
+  const button =
+    document.getElementById(
+      'privateRemoveMembersBtn'
+    );
+
+  if (title) {
+    title.textContent =
+      T(
+        'Ukončiť účasť v diskusii',
+        'End participation'
+      );
+  }
+
+  if (button) {
+    button.textContent =
+      T(
+        'Odobrať vybraných',
+        'Remove selected'
+      );
+  }
+}
+
+
+/* Dlhé podržanie 👥 = odobratie účastníkov */
+
+const privateMembersMainButton =
+  document.getElementById(
+    'privateChatMembersBtn'
+  );
+
+if (privateMembersMainButton) {
+  let privateMembersHoldTimer = null;
+  let privateMembersLongPress = false;
+
+  privateMembersMainButton.addEventListener(
+    'touchstart',
+    () => {
+      privateMembersLongPress = false;
+
+      privateMembersHoldTimer =
+        setTimeout(() => {
+          privateMembersLongPress = true;
+          openPrivateRemoveMembersPanel();
+        }, 650);
+    },
+    { passive: true }
+  );
+
+  privateMembersMainButton.addEventListener(
+    'touchend',
+    event => {
+      clearTimeout(
+        privateMembersHoldTimer
+      );
+
+      if (privateMembersLongPress) {
+        event.preventDefault();
+      }
+    }
+  );
+
+  privateMembersMainButton.addEventListener(
+    'contextmenu',
+    event => {
+      event.preventDefault();
+      openPrivateRemoveMembersPanel();
+    }
+  );
+}
+
+
+createPrivateRemoveMembersPanel();
