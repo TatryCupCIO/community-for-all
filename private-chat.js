@@ -406,7 +406,15 @@ async function openPrivateChatWithUser(
     user;
 
   privateChatOpen =
-    true;
+  true;
+
+await supabaseClient
+  .from('user_profiles')
+  .update({
+    presence_status: 'online',
+    last_active_at: new Date().toISOString()
+  })
+  .eq('user_id', currentUser.id);
 
   if (
     typeof hidePages ===
