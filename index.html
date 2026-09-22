@@ -5795,3 +5795,168 @@ window.addEventListener('load', fixMyBookingsLanguage);
 
 setTimeout(fixMyBookingsLanguage, 300);
 </script>
+<script>
+/* ===== COMMUNITY FOR ALL – STEP BY STEP BACK NAVIGATION ===== */
+
+(function () {
+
+  let appBackStack = [];
+  let handlingBack = false;
+
+  function getVisibleAppPage() {
+    const pages = [
+      'privateChatPage',
+      'privateUsersPage',
+      'chatPage',
+      'myBookingsPage',
+      'bookingPage',
+      'eventsPage',
+      'eventDetailPage',
+      'profilePage',
+      'contactPage',
+      'aboutPage'
+    ];
+
+    for (const id of pages) {
+      const page = document.getElementById(id);
+
+      if (
+        page &&
+        getComputedStyle(page).display !== 'none'
+      ) {
+        return id;
+      }
+    }
+
+    return 'HOME';
+  }
+
+
+  function rememberCurrentPage() {
+    if (handlingBack) return;
+
+    const page = getVisibleAppPage();
+
+    const last =
+      appBackStack[
+        appBackStack.length - 1
+      ];
+
+    if (page !== last) {
+      appBackStack.push(page);
+    }
+  }
+
+
+  function showAppPage(pageId) {
+    handlingBack = true;
+
+    if (typeof hidePages === 'function') {
+      hidePages();
+    }
+
+    if (pageId === 'HOME') {
+      if (typeof showHome === 'function') {
+        showHome();
+      } else {
+        const home =
+          document.getElementById('homePage') ||
+          document.getElementById('home');
+
+        if (home) {
+          home.style.display = 'block';
+        }
+      }
+
+      handlingBack = false;
+      return;
+    }
+
+    const page =
+      document.getElementById(pageId);
+
+    if (page) {
+      page.style.display = 'block';
+    }
+
+    handlingBack = false;
+  }
+
+
+  function pushBrowserGuard() {
+    history.pushState(
+      { communityForAllApp: true },
+      '',
+      location.href
+    );
+  }
+
+
+  document.addEventListener(
+    'click',
+    function () {
+      setTimeout(
+        rememberCurrentPage,
+        80
+      );
+    },
+    true
+  );
+
+
+  window.addEventListener(
+    'popstate',
+    function () {
+
+      const current =
+        getVisibleAppPage();
+
+      if (
+        !appBackStack.length
+      ) {
+        appBackStack.push('HOME');
+      }
+
+      while (
+        appBackStack.length &&
+        appBackStack[
+          appBackStack.length - 1
+        ] === current
+      ) {
+        appBackStack.pop();
+      }
+
+      const previous =
+        appBackStack.length
+          ? appBackStack.pop()
+          : 'HOME';
+
+      showAppPage(previous);
+
+      /*
+        Pokiaľ ešte nie sme na HOME,
+        Chrome nesmie aplikáciu opustiť.
+      */
+      if (previous !== 'HOME') {
+        pushBrowserGuard();
+      }
+    }
+  );
+
+
+  window.addEventListener(
+    'load',
+    function () {
+      appBackStack = ['HOME'];
+
+      setTimeout(
+        rememberCurrentPage,
+        100
+      );
+
+      pushBrowserGuard();
+    }
+  );
+
+})();
+</script>
