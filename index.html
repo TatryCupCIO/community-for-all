@@ -2077,3 +2077,371 @@ showEvents = async function () {
 
 })();
 </script>
+<script>
+/* ===== PRIVATE MESSAGES – USERS DIRECTORY ===== */
+
+(function () {
+
+  /* ---------- CREATE HOME BUTTON ---------- */
+
+  function createPrivateMessagesButton() {
+    if (document.getElementById('privateMessagesBtn')) return;
+
+    const contactBtn = document.getElementById('contactBtn');
+    if (!contactBtn) return;
+
+    const button = document.createElement('button');
+
+    button.id = 'privateMessagesBtn';
+    button.className = 'menu-btn';
+    button.type = 'button';
+
+    button.onclick = openPrivateUsers;
+
+    contactBtn.insertAdjacentElement('afterend', button);
+
+    updatePrivateMessagesLanguage();
+  }
+
+
+  /* ---------- CREATE USERS PAGE ---------- */
+
+  function createPrivateUsersPage() {
+    if (document.getElementById('privateUsersPage')) return;
+
+    const page = document.createElement('div');
+
+    page.id = 'privateUsersPage';
+    page.className = 'page';
+    page.style.display = 'none';
+
+    page.innerHTML = `
+      <h2 id="privateUsersTitle"></h2>
+
+      <div class="card">
+
+        <input
+          id="privateUserSearch"
+          type="search"
+          autocomplete="off"
+          style="width:100%;margin-bottom:16px;"
+        >
+
+        <div id="privateUsersList"></div>
+
+      </div>
+
+      <button
+        type="button"
+        class="submit-btn"
+        id="privateUsersBackBtn"
+        style="margin-top:16px;"
+      ></button>
+    `;
+
+    document.body.appendChild(page);
+
+    document
+      .getElementById('privateUserSearch')
+      .addEventListener('input', renderPrivateUsers);
+
+    document
+      .getElementById('privateUsersBackBtn')
+      .onclick = function () {
+        document.getElementById('privateUsersPage').style.display = 'none';
+        showHome();
+      };
+
+    updatePrivateMessagesLanguage();
+  }
+
+
+  /* ---------- LANGUAGE ---------- */
+
+  function updatePrivateMessagesLanguage() {
+
+    const button =
+      document.getElementById('privateMessagesBtn');
+
+    if (button) {
+      button.textContent =
+        currentLanguage === 'en'
+          ? 'Private Messages'
+          : 'Súkromné správy';
+    }
+
+    const title =
+      document.getElementById('privateUsersTitle');
+
+    if (title) {
+      title.textContent =
+        currentLanguage === 'en'
+          ? 'Private Messages'
+          : 'Súkromné správy';
+    }
+
+    const search =
+      document.getElementById('privateUserSearch');
+
+    if (search) {
+      search.placeholder =
+        currentLanguage === 'en'
+          ? 'Search users...'
+          : 'Vyhľadať používateľa...';
+    }
+
+    const back =
+      document.getElementById('privateUsersBackBtn');
+
+    if (back) {
+      back.textContent =
+        currentLanguage === 'en'
+          ? 'Back'
+          : 'Späť';
+    }
+  }
+
+
+  /* ---------- OPEN DIRECTORY ---------- */
+
+  async function openPrivateUsers() {
+
+    if (!currentUser) {
+      if (typeof requireLogin === 'function') {
+        requireLogin();
+      }
+      return;
+    }
+
+    createPrivateUsersPage();
+
+    if (typeof hidePages === 'function') {
+      hidePages();
+    }
+
+    document.getElementById('privateUsersPage').style.display = 'block';
+
+    document.getElementById('privateUserSearch').value = '';
+
+    updatePrivateMessagesLanguage();
+
+    await loadPrivateUsers();
+
+    window.scrollTo(0, 0);
+  }
+
+  window.openPrivateUsers = openPrivateUsers;
+
+
+  /* ---------- LOAD USERS ---------- */
+
+  let privateUsers = [];
+
+  async function loadPrivateUsers() {
+
+    const list =
+      document.getElementById('privateUsersList');
+
+    if (!list) return;
+
+    list.innerHTML =
+      `<div class="loading">${
+        currentLanguage === 'en'
+          ? 'Loading users...'
+          : 'Načítavam používateľov...'
+      }</div>`;
+
+    const { data, error } =
+      await supabaseClient
+        .from('user_profiles')
+        .select('user_id,display_name,avatar_url')
+        .neq('user_id', currentUser.id)
+        .order('display_name', { ascending: true });
+
+    if (error) {
+      list.innerHTML =
+        `<div>${
+          currentLanguage === 'en'
+            ? 'Users could not be loaded.'
+            : 'Používateľov sa nepodarilo načítať.'
+        }</div>`;
+      return;
+    }
+
+    privateUsers = data || [];
+
+    renderPrivateUsers();
+  }
+
+
+  /* ---------- RENDER USERS ---------- */
+
+  function renderPrivateUsers() {
+
+    const list =
+      document.getElementById('privateUsersList');
+
+    if (!list) return;
+
+    const query =
+      (
+        document.getElementById('privateUserSearch')?.value || ''
+      )
+      .trim()
+      .toLowerCase();
+
+    const users =
+      privateUsers.filter(user =>
+        (user.display_name || '')
+          .toLowerCase()
+          .includes(query)
+      );
+
+    list.innerHTML = '';
+
+    if (!users.length) {
+
+      const empty = document.createElement('div');
+
+      empty.style.padding = '15px 0';
+
+      empty.textContent =
+        currentLanguage === 'en'
+          ? 'No users found.'
+          : 'Nenašli sa žiadni používatelia.';
+
+      list.appendChild(empty);
+
+      return;
+    }
+
+
+    users.forEach(user => {
+
+      const row = document.createElement('button');
+
+      row.type = 'button';
+
+      row.style.cssText = `
+        width:100%;
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding:12px;
+        margin:8px 0;
+        text-align:left;
+        border:1px solid #334155;
+        border-radius:12px;
+        background:#172033;
+        color:white;
+        cursor:pointer;
+      `;
+
+
+      /* AVATAR */
+
+      const avatar = document.createElement('div');
+
+      avatar.style.cssText = `
+        width:52px;
+        height:52px;
+        min-width:52px;
+        border-radius:50%;
+        overflow:hidden;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background:#334155;
+        font-size:27px;
+      `;
+
+      if (user.avatar_url) {
+
+        const img = document.createElement('img');
+
+        img.src = user.avatar_url;
+        img.alt = '';
+
+        img.style.cssText = `
+          width:100%;
+          height:100%;
+          object-fit:cover;
+        `;
+
+        avatar.appendChild(img);
+
+      } else {
+
+        avatar.textContent = '👤';
+
+      }
+
+
+      /* NAME */
+
+      const name = document.createElement('div');
+
+      name.style.fontWeight = '800';
+      name.style.fontSize = '16px';
+
+      name.textContent =
+        user.display_name || 'User';
+
+
+      row.append(
+        avatar,
+        name
+      );
+
+
+      /* NEXT STEP: OPEN PRIVATE CHAT */
+
+      row.onclick = function () {
+
+        window.selectedPrivateUser = user;
+
+        alert(
+          currentLanguage === 'en'
+            ? `Private chat with ${user.display_name} will open here.`
+            : `Tu sa otvorí súkromný chat s používateľom ${user.display_name}.`
+        );
+
+      };
+
+
+      list.appendChild(row);
+
+    });
+  }
+
+
+  /* ---------- KEEP SK / EN SYNCHRONISED ---------- */
+
+  const privateMessagesOriginalLanguage =
+    window.setLanguage;
+
+  window.setLanguage = function (lang) {
+
+    privateMessagesOriginalLanguage.apply(this, arguments);
+
+    setTimeout(() => {
+      updatePrivateMessagesLanguage();
+
+      if (
+        document.getElementById('privateUsersPage')
+          ?.style.display === 'block'
+      ) {
+        renderPrivateUsers();
+      }
+
+    }, 0);
+  };
+
+
+  /* ---------- START ---------- */
+
+  createPrivateMessagesButton();
+  createPrivateUsersPage();
+
+})();
+</script>
