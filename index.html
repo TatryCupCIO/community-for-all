@@ -4014,3 +4014,77 @@ showEvents = async function () {
 
 })();
 </script>
+<script>
+/* ===== PROFILE AVATAR – REAL UPLOAD ERROR ===== */
+
+(function () {
+
+  const originalConsoleError = console.error;
+
+  console.error = function () {
+    originalConsoleError.apply(console, arguments);
+  };
+
+
+  const originalFetch = window.fetch;
+
+  window.fetch = async function () {
+
+    const response =
+      await originalFetch.apply(this, arguments);
+
+    try {
+
+      const url =
+        String(arguments[0]?.url || arguments[0] || '');
+
+      if (
+        url.includes('/storage/v1/object/profile-avatars/')
+        && !response.ok
+      ) {
+
+        const clone =
+          response.clone();
+
+        const text =
+          await clone.text();
+
+        window.profileAvatarLastUploadErrorText =
+          text || ('HTTP ' + response.status);
+
+      }
+
+    } catch (e) {}
+
+    return response;
+  };
+
+
+  const oldAlert =
+    window.alert;
+
+  window.alert = function (message) {
+
+    if (
+      message === 'Fotografiu sa nepodarilo nahrať.' ||
+      message === 'The photo could not be uploaded.'
+    ) {
+
+      const exact =
+        window.profileAvatarLastUploadErrorText;
+
+      if (exact) {
+
+        return oldAlert(
+          'UPLOAD ERROR:\n\n' +
+          exact
+        );
+
+      }
+    }
+
+    return oldAlert(message);
+  };
+
+})();
+</script>
