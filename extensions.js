@@ -1832,3 +1832,20 @@ setLanguage = function(lang) {
 };
 
 finalFixHomeMenuLabels();
+/* ===== MY BOOKINGS – FINAL LANGUAGE FIX ===== */
+
+const bookingsLanguageFinalFix = setLanguage;
+
+setLanguage = function(lang) {
+  bookingsLanguageFinalFix(lang);
+
+  const bookingsBtn =
+    document.getElementById('bookingsBtn');
+
+  if (bookingsBtn) {
+    bookingsBtn.textContent =
+      lang === 'en'
+        ? 'My Bookings'
+        : 'Moje rezervácie';
+  }
+};
