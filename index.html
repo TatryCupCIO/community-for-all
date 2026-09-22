@@ -3963,3 +3963,54 @@ showEvents = async function () {
 
 })();
 </script>
+<script>
+/* ===== PROFILE AVATAR – SHOW EXACT UPLOAD ERROR ===== */
+
+(function () {
+
+  const originalAlert = window.alert;
+
+  window.alert = function (message) {
+
+    if (
+      message === 'Fotografiu sa nepodarilo nahrať.' ||
+      message === 'The photo could not be uploaded.'
+    ) {
+
+      const lastError =
+        window.profileAvatarLastUploadError;
+
+      if (lastError) {
+        return originalAlert(
+          'UPLOAD ERROR:\n\n' +
+          (lastError.message || JSON.stringify(lastError))
+        );
+      }
+    }
+
+    return originalAlert(message);
+  };
+
+
+  const storageBucket =
+    supabaseClient.storage.from('profile-avatars');
+
+  const originalUpload =
+    storageBucket.upload.bind(storageBucket);
+
+
+  storageBucket.upload = async function () {
+
+    const result =
+      await originalUpload(...arguments);
+
+    if (result.error) {
+      window.profileAvatarLastUploadError =
+        result.error;
+    }
+
+    return result;
+  };
+
+})();
+</script>
