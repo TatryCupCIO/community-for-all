@@ -5773,3 +5773,25 @@ showEvents = async function () {
 })();
     </script>
 <script src="private-chat.js"></script>
+<script>
+/* ===== MY BOOKINGS – LANGUAGE FIX ===== */
+
+function fixMyBookingsLanguage() {
+  const btn = document.getElementById('myBookingsBtn');
+
+  if (!btn) return;
+
+  btn.textContent =
+    typeof currentLang !== 'undefined' && currentLang === 'en'
+      ? 'My Bookings'
+      : 'Moje rezervácie';
+}
+
+document.addEventListener('click', () => {
+  setTimeout(fixMyBookingsLanguage, 50);
+});
+
+window.addEventListener('load', fixMyBookingsLanguage);
+
+setTimeout(fixMyBookingsLanguage, 300);
+</script>
