@@ -4088,3 +4088,1687 @@ showEvents = async function () {
 
 })();
 </script>
+<style>
+/* ===== PRIVATE CHAT V2 ===== */
+
+#privateMessagesBtn{
+  display:none !important;
+}
+
+.private-user-info{
+  flex:1;
+  min-width:0;
+}
+
+.private-user-name{
+  font-weight:800;
+  font-size:16px;
+}
+
+.private-user-status{
+  font-size:12px;
+  margin-top:4px;
+  font-weight:700;
+}
+
+.private-user-status.online{color:#22c55e;}
+.private-user-status.offline{color:#ef4444;}
+
+#privateChatPage{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:5000;
+  background:#111827;
+  color:#fff;
+  flex-direction:column;
+}
+
+.private-chat-header{
+  min-height:64px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  background:#1e293b;
+  border-bottom:1px solid #334155;
+}
+
+.private-chat-back{
+  border:0;
+  background:transparent;
+  color:white;
+  font-size:34px;
+  padding:2px 8px;
+}
+
+.private-chat-avatar{
+  width:42px;
+  height:42px;
+  min-width:42px;
+  border-radius:50%;
+  overflow:hidden;
+  background:#334155;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23px;
+}
+
+.private-chat-avatar img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+.private-chat-person{
+  min-width:0;
+  flex:1;
+}
+
+.private-chat-person-name{
+  font-weight:800;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+.private-chat-person-status{
+  font-size:12px;
+  font-weight:700;
+  margin-top:2px;
+}
+
+#privateChatMessages{
+  flex:1;
+  overflow-y:auto;
+  padding:15px 12px 95px;
+}
+
+.private-message-row{
+  display:flex;
+  margin:8px 0;
+}
+
+.private-message-row.mine{
+  justify-content:flex-end;
+}
+
+.private-message-bubble{
+  max-width:82%;
+  background:#334155;
+  border-radius:15px;
+  padding:9px 11px;
+  overflow-wrap:anywhere;
+}
+
+.private-message-row.mine .private-message-bubble{
+  background:#075985;
+}
+
+.private-message-photo{
+  display:block;
+  max-width:100%;
+  max-height:360px;
+  border-radius:10px;
+  margin-bottom:5px;
+}
+
+.private-message-meta{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:7px;
+  margin-top:5px;
+  color:#cbd5e1;
+  font-size:10px;
+}
+
+.private-message-delete{
+  border:0;
+  background:transparent;
+  color:#fca5a5;
+  padding:1px 3px;
+  font-size:14px;
+}
+
+.private-chat-compose{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  z-index:5001;
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  padding:10px 12px;
+  background:#1e293b;
+  border-top:1px solid #334155;
+}
+
+#privateChatInput{
+  flex:1;
+  min-height:44px;
+  max-height:110px;
+  resize:none;
+}
+
+.private-chat-photo-btn,
+.private-chat-send-btn{
+  width:44px;
+  height:44px;
+  min-width:44px;
+  border:0;
+  border-radius:50%;
+  color:#fff;
+  font-size:21px;
+}
+
+.private-chat-photo-btn{background:#334155;}
+.private-chat-send-btn{background:#0891b2;}
+
+#userTopBtn .top-user-avatar{
+  width:27px;
+  height:27px;
+  border-radius:50%;
+  object-fit:cover;
+  vertical-align:middle;
+  margin-right:6px;
+}
+</style>
+
+<script>
+/* ===== PRIVATE CHAT V2 – COMPLETE ===== */
+
+(function () {
+
+  let users = [];
+  let selectedUser = null;
+  let onlineIds = new Set();
+  let presenceChannel = null;
+  let privateMessageChannel = null;
+
+  const PC = (sk, en) =>
+    currentLanguage === 'en' ? en : sk;
+
+
+  /* =========================================================
+     HOME BUTTON
+  ========================================================= */
+
+  function removeOldPrivateButton() {
+    const button =
+      document.getElementById('privateMessagesBtn');
+
+    if (button) {
+      button.style.display = 'none';
+    }
+  }
+
+
+  /* =========================================================
+     TOP PROFILE PHOTO
+  ========================================================= */
+
+  async function refreshTopAvatar() {
+
+    const button =
+      document.getElementById('userTopBtn');
+
+    if (!button) return;
+
+    if (!currentUser) {
+      button.textContent =
+        PC('👤 Prihlásiť sa', '👤 Sign In');
+      return;
+    }
+
+    const { data } =
+      await supabaseClient
+        .from('user_profiles')
+        .select('display_name,avatar_url')
+        .eq('user_id', currentUser.id)
+        .maybeSingle();
+
+    const name =
+      data?.display_name ||
+      getUsername(currentUser) ||
+      PC('Môj účet', 'My Account');
+
+    button.innerHTML = '';
+
+    if (data?.avatar_url) {
+
+      const image =
+        document.createElement('img');
+
+      image.src = data.avatar_url;
+      image.alt = '';
+      image.className = 'top-user-avatar';
+
+      button.appendChild(image);
+
+    } else {
+
+      const icon =
+        document.createElement('span');
+
+      icon.textContent = '👤 ';
+      button.appendChild(icon);
+    }
+
+    button.appendChild(
+      document.createTextNode(name)
+    );
+  }
+
+
+  /* =========================================================
+     CREATE PRIVATE CHAT PAGE
+  ========================================================= */
+
+  function createPrivateChatPage() {
+
+    if (document.getElementById('privateChatPage')) return;
+
+    const page = document.createElement('div');
+
+    page.id = 'privateChatPage';
+
+    page.innerHTML = `
+      <div class="private-chat-header">
+
+        <button
+          type="button"
+          id="privateChatBack"
+          class="private-chat-back"
+        >‹</button>
+
+        <div
+          id="privateChatHeaderAvatar"
+          class="private-chat-avatar"
+        >👤</div>
+
+        <div class="private-chat-person">
+
+          <div
+            id="privateChatHeaderName"
+            class="private-chat-person-name"
+          ></div>
+
+          <div
+            id="privateChatHeaderStatus"
+            class="private-chat-person-status"
+          ></div>
+
+        </div>
+
+      </div>
+
+      <div id="privateChatMessages"></div>
+
+      <div class="private-chat-compose">
+
+        <input
+          id="privateChatPhotoInput"
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          hidden
+        >
+
+        <button
+          type="button"
+          id="privateChatPhotoBtn"
+          class="private-chat-photo-btn"
+        >📷</button>
+
+        <textarea
+          id="privateChatInput"
+          rows="1"
+          maxlength="1500"
+        ></textarea>
+
+        <button
+          type="button"
+          id="privateChatSendBtn"
+          class="private-chat-send-btn"
+        >➤</button>
+
+      </div>
+    `;
+
+    document.body.appendChild(page);
+
+    document.getElementById(
+      'privateChatBack'
+    ).onclick = openDirectory;
+
+    document.getElementById(
+      'privateChatPhotoBtn'
+    ).onclick = function () {
+
+      document.getElementById(
+        'privateChatPhotoInput'
+      ).click();
+    };
+
+    document.getElementById(
+      'privateChatPhotoInput'
+    ).onchange = sendPrivatePhoto;
+
+    document.getElementById(
+      'privateChatSendBtn'
+    ).onclick = sendPrivateText;
+
+    document.getElementById(
+      'privateChatInput'
+    ).addEventListener(
+      'keydown',
+      function (event) {
+
+        if (
+          event.key === 'Enter' &&
+          !event.shiftKey
+        ) {
+          event.preventDefault();
+          sendPrivateText();
+        }
+      }
+    );
+
+    updatePrivateChatLanguage();
+  }
+
+
+  function updatePrivateChatLanguage() {
+
+    const input =
+      document.getElementById('privateChatInput');
+
+    if (input) {
+      input.placeholder =
+        PC(
+          'Napíšte správu...',
+          'Write a message...'
+        );
+    }
+
+    updatePrivateHeader();
+  }
+
+
+  /* =========================================================
+     PRESENCE – ONLINE / OFFLINE
+  ========================================================= */
+
+  async function startPresence() {
+
+    if (!currentUser) return;
+
+    if (presenceChannel) {
+      await supabaseClient.removeChannel(
+        presenceChannel
+      );
+    }
+
+    presenceChannel =
+      supabaseClient.channel(
+        'community-online-users',
+        {
+          config: {
+            presence: {
+              key: currentUser.id
+            }
+          }
+        }
+      );
+
+    presenceChannel.on(
+      'presence',
+      { event:'sync' },
+      function () {
+
+        const state =
+          presenceChannel.presenceState();
+
+        onlineIds =
+          new Set(Object.keys(state));
+
+        renderUsers();
+        updatePrivateHeader();
+      }
+    );
+
+    presenceChannel.subscribe(
+      async status => {
+
+        if (status === 'SUBSCRIBED') {
+
+          await presenceChannel.track({
+            user_id: currentUser.id,
+            online_at:
+              new Date().toISOString()
+          });
+        }
+      }
+    );
+  }
+
+
+  /* =========================================================
+     DIRECTORY
+  ========================================================= */
+
+  async function loadUsers() {
+
+    if (!currentUser) return;
+
+    const list =
+      document.getElementById(
+        'privateUsersList'
+      );
+
+    if (list) {
+      list.innerHTML =
+        `<div class="loading">${
+          PC(
+            'Načítavam používateľov...',
+            'Loading users...'
+          )
+        }</div>`;
+    }
+
+    const { data, error } =
+      await supabaseClient
+        .from('user_profiles')
+        .select(
+          'user_id,display_name,avatar_url'
+        )
+        .neq(
+          'user_id',
+          currentUser.id
+        )
+        .order(
+          'display_name',
+          { ascending:true }
+        );
+
+    if (error) {
+
+      if (list) {
+        list.textContent =
+          PC(
+            'Používateľov sa nepodarilo načítať.',
+            'Users could not be loaded.'
+          );
+      }
+
+      return;
+    }
+
+    users = data || [];
+
+    renderUsers();
+  }
+
+
+  function prepareDirectorySearch() {
+
+    const oldSearch =
+      document.getElementById(
+        'privateUserSearch'
+      );
+
+    if (!oldSearch) return;
+
+    if (
+      oldSearch.dataset.privateV2 === 'true'
+    ) return;
+
+    const search =
+      oldSearch.cloneNode(true);
+
+    search.dataset.privateV2 = 'true';
+
+    oldSearch.replaceWith(search);
+
+    search.addEventListener(
+      'input',
+      renderUsers
+    );
+  }
+
+
+  function renderUsers() {
+
+    const list =
+      document.getElementById(
+        'privateUsersList'
+      );
+
+    if (!list) return;
+
+    const search =
+      (
+        document.getElementById(
+          'privateUserSearch'
+        )?.value || ''
+      )
+      .trim()
+      .toLowerCase();
+
+    const filtered =
+      users.filter(user =>
+        (user.display_name || '')
+          .toLowerCase()
+          .includes(search)
+      );
+
+    list.innerHTML = '';
+
+    if (!filtered.length) {
+
+      list.textContent =
+        PC(
+          'Nenašli sa žiadni používatelia.',
+          'No users found.'
+        );
+
+      return;
+    }
+
+    filtered.forEach(user => {
+
+      const row =
+        document.createElement('button');
+
+      row.type = 'button';
+
+      row.style.cssText = `
+        width:100%;
+        display:flex;
+        align-items:center;
+        gap:14px;
+        padding:12px;
+        margin:8px 0;
+        text-align:left;
+        border:1px solid #334155;
+        border-radius:12px;
+        background:#172033;
+        color:white;
+      `;
+
+
+      const avatar =
+        document.createElement('div');
+
+      avatar.className =
+        'private-chat-avatar';
+
+      if (user.avatar_url) {
+
+        const image =
+          document.createElement('img');
+
+        image.src = user.avatar_url;
+        image.alt = '';
+
+        avatar.appendChild(image);
+
+      } else {
+
+        avatar.textContent = '👤';
+      }
+
+
+      const info =
+        document.createElement('div');
+
+      info.className =
+        'private-user-info';
+
+
+      const name =
+        document.createElement('div');
+
+      name.className =
+        'private-user-name';
+
+      name.textContent =
+        user.display_name ||
+        PC('Používateľ', 'User');
+
+
+      const status =
+        document.createElement('div');
+
+      const isOnline =
+        onlineIds.has(user.user_id);
+
+      status.className =
+        'private-user-status ' +
+        (isOnline ? 'online' : 'offline');
+
+      status.textContent =
+        isOnline
+          ? 'Online'
+          : 'Offline';
+
+
+      info.append(name, status);
+
+      row.append(avatar, info);
+
+      row.onclick =
+        () => openPrivateChat(user);
+
+      list.appendChild(row);
+    });
+  }
+
+
+  async function openDirectory() {
+
+    if (!currentUser) {
+      requireLogin();
+      return;
+    }
+
+    createPrivateChatPage();
+
+    const privateChat =
+      document.getElementById(
+        'privateChatPage'
+      );
+
+    if (privateChat) {
+      privateChat.style.display = 'none';
+    }
+
+    const publicChat =
+      document.getElementById(
+        'chatPage'
+      );
+
+    if (publicChat) {
+      publicChat.style.display = 'none';
+    }
+
+    hidePages();
+
+    const directory =
+      document.getElementById(
+        'privateUsersPage'
+      );
+
+    if (!directory) return;
+
+    directory.style.display = 'block';
+
+    prepareDirectorySearch();
+
+    const search =
+      document.getElementById(
+        'privateUserSearch'
+      );
+
+    if (search) {
+
+      search.placeholder =
+        PC(
+          'Vyhľadať používateľa...',
+          'Search users...'
+        );
+    }
+
+    const title =
+      document.getElementById(
+        'privateUsersTitle'
+      );
+
+    if (title) {
+
+      title.textContent =
+        PC(
+          'Súkromné správy',
+          'Private Messages'
+        );
+    }
+
+    const back =
+      document.getElementById(
+        'privateUsersBackBtn'
+      );
+
+    if (back) {
+
+      back.textContent =
+        PC('← CHAT', '← CHAT');
+
+      back.onclick = function () {
+
+        directory.style.display = 'none';
+
+        if (
+          typeof openCommunityChat ===
+          'function'
+        ) {
+          openCommunityChat();
+        }
+      };
+    }
+
+    await loadUsers();
+
+    window.scrollTo(0,0);
+  }
+
+
+  /* =========================================================
+     OPEN CHAT
+  ========================================================= */
+
+  async function openPrivateChat(user) {
+
+    if (!currentUser || !user) return;
+
+    selectedUser = user;
+
+    window.selectedPrivateUser = user;
+
+    document.getElementById(
+      'privateUsersPage'
+    ).style.display = 'none';
+
+    const publicChat =
+      document.getElementById(
+        'chatPage'
+      );
+
+    if (publicChat) {
+      publicChat.style.display = 'none';
+    }
+
+    const page =
+      document.getElementById(
+        'privateChatPage'
+      );
+
+    page.style.display = 'flex';
+
+    updatePrivateHeader();
+
+    await markConversationRead();
+
+    await loadPrivateMessages();
+
+    subscribePrivateMessages();
+
+    setTimeout(() => {
+
+      document.getElementById(
+        'privateChatInput'
+      )?.focus();
+
+    }, 100);
+  }
+
+
+  function updatePrivateHeader() {
+
+    if (!selectedUser) return;
+
+    const name =
+      document.getElementById(
+        'privateChatHeaderName'
+      );
+
+    const status =
+      document.getElementById(
+        'privateChatHeaderStatus'
+      );
+
+    const avatar =
+      document.getElementById(
+        'privateChatHeaderAvatar'
+      );
+
+    if (name) {
+
+      name.textContent =
+        selectedUser.display_name ||
+        PC('Používateľ', 'User');
+    }
+
+    const isOnline =
+      onlineIds.has(
+        selectedUser.user_id
+      );
+
+    if (status) {
+
+      status.textContent =
+        isOnline
+          ? 'Online'
+          : 'Offline';
+
+      status.style.color =
+        isOnline
+          ? '#22c55e'
+          : '#ef4444';
+    }
+
+    if (avatar) {
+
+      avatar.innerHTML = '';
+
+      if (selectedUser.avatar_url) {
+
+        const image =
+          document.createElement('img');
+
+        image.src =
+          selectedUser.avatar_url;
+
+        image.alt = '';
+
+        avatar.appendChild(image);
+
+      } else {
+
+        avatar.textContent = '👤';
+      }
+    }
+  }
+
+
+  /* =========================================================
+     LOAD MESSAGES
+  ========================================================= */
+
+  async function loadPrivateMessages() {
+
+    if (
+      !currentUser ||
+      !selectedUser
+    ) return;
+
+    const box =
+      document.getElementById(
+        'privateChatMessages'
+      );
+
+    box.innerHTML =
+      `<div class="loading">${
+        PC(
+          'Načítavam správy...',
+          'Loading messages...'
+        )
+      }</div>`;
+
+
+    const me =
+      currentUser.id;
+
+    const other =
+      selectedUser.user_id;
+
+
+    const { data, error } =
+      await supabaseClient
+        .from('private_messages')
+        .select('*')
+        .or(
+          `and(sender_id.eq.${me},receiver_id.eq.${other}),and(sender_id.eq.${other},receiver_id.eq.${me})`
+        )
+        .order(
+          'created_at',
+          { ascending:true }
+        );
+
+
+    if (error) {
+
+      box.textContent =
+        PC(
+          'Správy sa nepodarilo načítať.',
+          'Messages could not be loaded.'
+        );
+
+      return;
+    }
+
+
+    box.innerHTML = '';
+
+
+    for (const message of data || []) {
+
+      await renderMessage(message);
+    }
+
+
+    scrollPrivateChatBottom();
+  }
+
+
+  async function renderMessage(message) {
+
+    const box =
+      document.getElementById(
+        'privateChatMessages'
+      );
+
+    if (!box) return;
+
+
+    const mine =
+      message.sender_id ===
+      currentUser.id;
+
+
+    const row =
+      document.createElement('div');
+
+    row.className =
+      'private-message-row' +
+      (mine ? ' mine' : '');
+
+    row.dataset.messageId =
+      String(message.id);
+
+
+    const bubble =
+      document.createElement('div');
+
+    bubble.className =
+      'private-message-bubble';
+
+
+    if (message.image_url) {
+
+      const image =
+        document.createElement('img');
+
+      image.className =
+        'private-message-photo';
+
+      image.alt = '';
+
+      const { data } =
+        await supabaseClient.storage
+          .from('private-chat-media')
+          .createSignedUrl(
+            message.image_url,
+            3600
+          );
+
+      if (data?.signedUrl) {
+
+        image.src =
+          data.signedUrl;
+
+        bubble.appendChild(image);
+      }
+    }
+
+
+    if (message.message_text) {
+
+      const text =
+        document.createElement('div');
+
+      text.textContent =
+        message.message_text;
+
+      bubble.appendChild(text);
+    }
+
+
+    const meta =
+      document.createElement('div');
+
+    meta.className =
+      'private-message-meta';
+
+
+    const time =
+      document.createElement('span');
+
+    time.textContent =
+      new Date(
+        message.created_at
+      ).toLocaleTimeString(
+        currentLanguage === 'en'
+          ? 'en-GB'
+          : 'sk-SK',
+        {
+          hour:'2-digit',
+          minute:'2-digit'
+        }
+      );
+
+    meta.appendChild(time);
+
+
+    if (mine) {
+
+      const read =
+        document.createElement('span');
+
+      read.textContent =
+        message.read_at
+          ? '✓✓'
+          : '✓';
+
+      meta.appendChild(read);
+
+
+      const remove =
+        document.createElement('button');
+
+      remove.type = 'button';
+
+      remove.className =
+        'private-message-delete';
+
+      remove.textContent = '🗑️';
+
+      remove.setAttribute(
+        'aria-label',
+        PC(
+          'Vymazať správu',
+          'Delete message'
+        )
+      );
+
+      remove.onclick =
+        () => deletePrivateMessage(
+          message
+        );
+
+      meta.appendChild(remove);
+    }
+
+
+    bubble.appendChild(meta);
+
+    row.appendChild(bubble);
+
+    box.appendChild(row);
+  }
+
+
+  /* =========================================================
+     SEND TEXT
+  ========================================================= */
+
+  async function sendPrivateText() {
+
+    if (
+      !currentUser ||
+      !selectedUser
+    ) return;
+
+
+    const input =
+      document.getElementById(
+        'privateChatInput'
+      );
+
+    const text =
+      input.value.trim();
+
+    if (!text) return;
+
+
+    input.value = '';
+
+
+    const { error } =
+      await supabaseClient
+        .from('private_messages')
+        .insert({
+          sender_id:
+            currentUser.id,
+
+          receiver_id:
+            selectedUser.user_id,
+
+          message_text:
+            text,
+
+          image_url:
+            null
+        });
+
+
+    if (error) {
+
+      input.value = text;
+
+      alert(
+        PC(
+          'Správu sa nepodarilo odoslať.',
+          'The message could not be sent.'
+        )
+      );
+
+      return;
+    }
+
+
+    await loadPrivateMessages();
+  }
+
+
+  /* =========================================================
+     SEND PHOTO
+  ========================================================= */
+
+  async function sendPrivatePhoto(event) {
+
+    if (
+      !currentUser ||
+      !selectedUser
+    ) return;
+
+
+    const input =
+      event.target;
+
+    const file =
+      input.files?.[0];
+
+    if (!file) return;
+
+
+    if (
+      ![
+        'image/jpeg',
+        'image/png',
+        'image/webp'
+      ].includes(file.type)
+    ) {
+
+      alert(
+        PC(
+          'Vyberte fotografiu JPG, PNG alebo WEBP.',
+          'Select a JPG, PNG or WEBP photo.'
+        )
+      );
+
+      input.value = '';
+
+      return;
+    }
+
+
+    if (
+      file.size >
+      5 * 1024 * 1024
+    ) {
+
+      alert(
+        PC(
+          'Fotografia môže mať maximálne 5 MB.',
+          'The photo can be a maximum of 5 MB.'
+        )
+      );
+
+      input.value = '';
+
+      return;
+    }
+
+
+    const extension =
+      file.type === 'image/png'
+        ? 'png'
+        : file.type === 'image/webp'
+          ? 'webp'
+          : 'jpg';
+
+
+    const unique =
+      (
+        crypto.randomUUID
+          ? crypto.randomUUID()
+          : Date.now() +
+            '-' +
+            Math.random()
+              .toString(36)
+              .slice(2)
+      );
+
+
+    const path =
+      `${currentUser.id}/${unique}.${extension}`;
+
+
+    const { error: uploadError } =
+      await supabaseClient.storage
+        .from('private-chat-media')
+        .upload(
+          path,
+          file,
+          {
+            contentType:file.type,
+            upsert:false
+          }
+        );
+
+
+    if (uploadError) {
+
+      alert(
+        PC(
+          'Fotografiu sa nepodarilo odoslať.',
+          'The photo could not be sent.'
+        )
+      );
+
+      input.value = '';
+
+      return;
+    }
+
+
+    const { error: messageError } =
+      await supabaseClient
+        .from('private_messages')
+        .insert({
+          sender_id:
+            currentUser.id,
+
+          receiver_id:
+            selectedUser.user_id,
+
+          message_text:
+            null,
+
+          image_url:
+            path
+        });
+
+
+    if (messageError) {
+
+      await supabaseClient.storage
+        .from('private-chat-media')
+        .remove([path]);
+
+      alert(
+        PC(
+          'Fotografiu sa nepodarilo odoslať.',
+          'The photo could not be sent.'
+        )
+      );
+
+      input.value = '';
+
+      return;
+    }
+
+
+    input.value = '';
+
+    await loadPrivateMessages();
+  }
+
+
+  /* =========================================================
+     READ
+  ========================================================= */
+
+  async function markConversationRead() {
+
+    if (
+      !currentUser ||
+      !selectedUser
+    ) return;
+
+
+    await supabaseClient.rpc(
+      'mark_private_messages_read',
+      {
+        p_sender_id:
+          selectedUser.user_id
+      }
+    );
+  }
+
+
+  /* =========================================================
+     DELETE OWN MESSAGE / PHOTO
+  ========================================================= */
+
+  async function deletePrivateMessage(
+    message
+  ) {
+
+    if (
+      !currentUser ||
+      message.sender_id !==
+        currentUser.id
+    ) return;
+
+
+    const confirmed =
+      confirm(
+        message.image_url
+          ? PC(
+              'Vymazať túto fotografiu?',
+              'Delete this photo?'
+            )
+          : PC(
+              'Vymazať túto správu?',
+              'Delete this message?'
+            )
+      );
+
+
+    if (!confirmed) return;
+
+
+    if (message.image_url) {
+
+      const { error: storageError } =
+        await supabaseClient.storage
+          .from('private-chat-media')
+          .remove([
+            message.image_url
+          ]);
+
+
+      if (storageError) {
+
+        alert(
+          PC(
+            'Fotografiu sa nepodarilo vymazať.',
+            'The photo could not be deleted.'
+          )
+        );
+
+        return;
+      }
+    }
+
+
+    const { error } =
+      await supabaseClient
+        .from('private_messages')
+        .delete()
+        .eq(
+          'id',
+          message.id
+        )
+        .eq(
+          'sender_id',
+          currentUser.id
+        );
+
+
+    if (error) {
+
+      alert(
+        PC(
+          'Správu sa nepodarilo vymazať.',
+          'The message could not be deleted.'
+        )
+      );
+
+      return;
+    }
+
+
+    document.querySelector(
+      `[data-message-id="${message.id}"]`
+    )?.remove();
+  }
+
+
+  /* =========================================================
+     REALTIME
+  ========================================================= */
+
+  async function subscribePrivateMessages() {
+
+    if (!currentUser) return;
+
+
+    if (privateMessageChannel) {
+
+      await supabaseClient.removeChannel(
+        privateMessageChannel
+      );
+    }
+
+
+    privateMessageChannel =
+      supabaseClient
+        .channel(
+          'private-messages-' +
+          currentUser.id
+        )
+        .on(
+          'postgres_changes',
+          {
+            event:'*',
+            schema:'public',
+            table:'private_messages'
+          },
+          async payload => {
+
+            if (!selectedUser) return;
+
+
+            const message =
+              payload.new?.id
+                ? payload.new
+                : payload.old;
+
+
+            if (!message) return;
+
+
+            const belongs =
+              (
+                message.sender_id ===
+                  currentUser.id &&
+                message.receiver_id ===
+                  selectedUser.user_id
+              )
+              ||
+              (
+                message.sender_id ===
+                  selectedUser.user_id &&
+                message.receiver_id ===
+                  currentUser.id
+              );
+
+
+            if (!belongs) return;
+
+
+            if (
+              payload.eventType ===
+              'INSERT'
+            ) {
+
+              if (
+                message.receiver_id ===
+                currentUser.id
+              ) {
+
+                await markConversationRead();
+              }
+
+              await loadPrivateMessages();
+            }
+
+
+            if (
+              payload.eventType ===
+              'UPDATE'
+            ) {
+
+              await loadPrivateMessages();
+            }
+
+
+            if (
+              payload.eventType ===
+              'DELETE'
+            ) {
+
+              document.querySelector(
+                `[data-message-id="${message.id}"]`
+              )?.remove();
+            }
+          }
+        )
+        .subscribe();
+  }
+
+
+  function scrollPrivateChatBottom() {
+
+    const box =
+      document.getElementById(
+        'privateChatMessages'
+      );
+
+    if (!box) return;
+
+    requestAnimationFrame(() => {
+      box.scrollTop =
+        box.scrollHeight;
+    });
+  }
+
+
+  /* =========================================================
+     👥 BUTTON
+  ========================================================= */
+
+  function connectUsersButton() {
+
+    const button =
+      document.getElementById(
+        'chatUsersBtn'
+      );
+
+    if (!button) return;
+
+    button.onclick =
+      openDirectory;
+  }
+
+
+  /* =========================================================
+     LANGUAGE
+  ========================================================= */
+
+  const oldLanguage =
+    window.setLanguage;
+
+  window.setLanguage =
+    function (lang) {
+
+      oldLanguage.apply(
+        this,
+        arguments
+      );
+
+      setTimeout(() => {
+
+        removeOldPrivateButton();
+
+        refreshTopAvatar();
+
+        renderUsers();
+
+        updatePrivateChatLanguage();
+
+        connectUsersButton();
+
+      }, 0);
+    };
+
+
+  /* =========================================================
+     AUTH
+  ========================================================= */
+
+  supabaseClient.auth
+    .onAuthStateChange(
+      (event, session) => {
+
+        setTimeout(async () => {
+
+          currentUser =
+            session?.user || null;
+
+          removeOldPrivateButton();
+
+          await refreshTopAvatar();
+
+          if (currentUser) {
+
+            await startPresence();
+
+          } else {
+
+            onlineIds.clear();
+
+            if (presenceChannel) {
+
+              await supabaseClient
+                .removeChannel(
+                  presenceChannel
+                );
+
+              presenceChannel = null;
+            }
+          }
+
+        }, 100);
+      }
+    );
+
+
+  /* =========================================================
+     START
+  ========================================================= */
+
+  createPrivateChatPage();
+
+  removeOldPrivateButton();
+
+  connectUsersButton();
+
+
+  setTimeout(async () => {
+
+    removeOldPrivateButton();
+
+    connectUsersButton();
+
+    await refreshTopAvatar();
+
+    if (currentUser) {
+      await startPresence();
+    }
+
+  }, 700);
+
+
+  window.openPrivateUsersV2 =
+    openDirectory;
+
+  window.openPrivateChatV2 =
+    openPrivateChat;
+
+})();
+    </script>
