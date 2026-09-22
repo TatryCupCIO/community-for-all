@@ -2703,3 +2703,116 @@ showEvents = async function () {
 
 })();
 </script>
+<script>
+/* ===== PRIVATE USERS – MOVE INTO CHAT ===== */
+
+(function () {
+
+  function movePrivateUsersIntoChat() {
+
+    /* Odstráni samostatné tlačidlo z hlavnej stránky */
+    const oldButton =
+      document.getElementById('privateMessagesBtn');
+
+    if (oldButton) {
+      oldButton.style.display = 'none';
+    }
+
+
+    /* Vytvorí tlačidlo používateľov v hlavičke CHATu */
+    if (!document.getElementById('chatUsersBtn')) {
+
+      const chatTitle =
+        document.querySelector('.chat-title');
+
+      if (!chatTitle) return;
+
+      const usersButton =
+        document.createElement('button');
+
+      usersButton.id = 'chatUsersBtn';
+      usersButton.type = 'button';
+      usersButton.textContent = '👥';
+
+      usersButton.setAttribute(
+        'aria-label',
+        currentLanguage === 'en'
+          ? 'Users'
+          : 'Používatelia'
+      );
+
+      usersButton.style.cssText = `
+        border:0;
+        background:transparent;
+        color:white;
+        font-size:25px;
+        padding:6px 9px;
+        cursor:pointer;
+        position:relative;
+      `;
+
+      usersButton.onclick = function () {
+
+        if (typeof openPrivateUsers === 'function') {
+          openPrivateUsers();
+        }
+
+      };
+
+      chatTitle.insertAdjacentElement(
+        'afterend',
+        usersButton
+      );
+    }
+  }
+
+
+  /* Po načítaní stránky */
+  movePrivateUsersIntoChat();
+
+
+  /* Pre istotu aj pri otvorení CHATu */
+  const originalOpenCommunityChatUsers =
+    window.openCommunityChat;
+
+  window.openCommunityChat = async function () {
+
+    const result =
+      await originalOpenCommunityChatUsers.apply(
+        this,
+        arguments
+      );
+
+    movePrivateUsersIntoChat();
+
+    return result;
+  };
+
+
+  /* SK / EN */
+  const originalUsersLanguage =
+    window.setLanguage;
+
+  window.setLanguage = function (lang) {
+
+    originalUsersLanguage.apply(
+      this,
+      arguments
+    );
+
+    const button =
+      document.getElementById('chatUsersBtn');
+
+    if (button) {
+      button.setAttribute(
+        'aria-label',
+        lang === 'en'
+          ? 'Users'
+          : 'Používatelia'
+      );
+    }
+
+  };
+
+})();
+</script>
