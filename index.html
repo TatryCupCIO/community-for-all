@@ -1673,11 +1673,25 @@ loadPublicDonations()
 }
 }
 
-supabaseClient.auth.onAuthStateChange((event,session)=>{
+supabaseClient.auth.onAuthStateChange(async (event,session)=>{
 currentUser=session?.user||null;
+
+if(currentUser){
+  await supabaseClient
+    .from('user_profiles')
+    .update({
+      presence_status:'logged_in',
+      last_active_at:new Date().toISOString()
+    })
+    .eq('user_id',currentUser.id);
+}
+
 updateUserButton();
 setTimeout(refreshCartBadge,0);
-if(event==='PASSWORD_RECOVERY')showResetPassword()
+
+if(event==='PASSWORD_RECOVERY'){
+  showResetPassword();
+}
 });
 
 (async()=>{
