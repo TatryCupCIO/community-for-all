@@ -1,5 +1,13 @@
-// Community For All - Extensions
-// Reservation availability display
+// ============================================================
+// COMMUNITY FOR ALL
+// EXTENSIONS.JS – CLEAN VERSION
+// Reservations, availability, guests, dates, cart and bookings
+// ============================================================
+
+
+// ============================================================
+// AVAILABILITY
+// ============================================================
 
 function availabilityInfo(option) {
   const status = option?.availability_status || 'available';
@@ -31,358 +39,608 @@ function availabilityInfo(option) {
   };
 }
 
+
 function availabilityHtml(option) {
   const info = availabilityInfo(option);
 
   return `
-    <div style="
-      margin-top:8px;
-      font-size:13px;
-      font-weight:800;
-      color:${info.color};
-    ">
+    <div
+      class="extension-availability"
+      style="
+        margin-top:8px;
+        font-size:13px;
+        font-weight:800;
+        color:${info.color};
+      "
+    >
       ● ${info.text}
     </div>
   `;
 }
 
 
-// Add availability status to reservation options
-
-const originalShowEventDetail = showEventDetail;
-
-showEventDetail = async function(id) {
-
-  await originalShowEventDetail(id);
-
-  const rows = document.querySelectorAll(
-    '#eventDetailContent .option-row'
-  );
-
-  rows.forEach((row, index) => {
-
-    const option = currentEventOptions[index];
-
-    if (!option) return;
-
-    const existing = row.querySelector(
-      '.extension-availability'
-    );
-
-    if (existing) return;
-
-    const info = availabilityInfo(option);
-
-    const status = document.createElement('div');
-
-    status.className = 'extension-availability';
-
-    status.style.marginTop = '8px';
-    status.style.fontSize = '13px';
-    status.style.fontWeight = '800';
-    status.style.color = info.color;
-
-    status.textContent = '● ' + info.text;
-
-    const price = row.querySelector('.option-price');
-
-    if (price) {
-      price.insertAdjacentElement('afterend', status);
-    } else {
-      row.appendChild(status);
-    }
-
-  });
-
-};
 // ============================================================
-// COMMUNITY FOR ALL
-// RESERVATION EXTENSION V2
-// Specific days/nights + guests + detailed cart + SK/EN
+// EVENT DATE HELPERS
 // ============================================================
 
 function extDateISO(date) {
   const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+
+  const m = String(
+    date.getMonth() + 1
+  ).padStart(2, '0');
+
+  const d = String(
+    date.getDate()
+  ).padStart(2, '0');
+
   return `${y}-${m}-${d}`;
 }
 
+
 function extEventDates(event) {
   const result = [];
-  const start = new Date(event.start_date + 'T12:00:00');
-  const end = new Date(event.end_date + 'T12:00:00');
+
+  if (!event?.start_date) {
+    return result;
+  }
+
+  const start =
+    new Date(
+      event.start_date + 'T12:00:00'
+    );
+
+  const end =
+    new Date(
+      (event.end_date || event.start_date) +
+      'T12:00:00'
+    );
 
   for (
     let d = new Date(start);
     d <= end;
     d.setDate(d.getDate() + 1)
   ) {
-    result.push(extDateISO(d));
+    result.push(
+      extDateISO(d)
+    );
   }
 
   return result;
 }
 
+
 function extEventNights(event) {
-  const dates = extEventDates(event);
-  return dates.slice(0, Math.max(0, dates.length - 1));
+  const dates =
+    extEventDates(event);
+
+  return dates.slice(
+    0,
+    Math.max(
+      0,
+      dates.length - 1
+    )
+  );
 }
+
 
 function extShortDate(date) {
   return new Intl.DateTimeFormat(
-    currentLanguage === 'sk' ? 'sk-SK' : 'en-GB',
+    currentLanguage === 'sk'
+      ? 'sk-SK'
+      : 'en-GB',
     {
       weekday: 'short',
       day: 'numeric',
       month: 'short'
     }
-  ).format(new Date(date + 'T12:00:00'));
-}
-
-function extNightLabel(date) {
-  const start = new Date(date + 'T12:00:00');
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
-
-  return (
-    extShortDate(extDateISO(start)) +
-    ' → ' +
-    extShortDate(extDateISO(end))
+  ).format(
+    new Date(
+      date + 'T12:00:00'
+    )
   );
 }
 
-function extSelectionBox(title, dates, nightMode = false) {
-  const box = document.createElement('div');
+
+function extNightLabel(date) {
+  const start =
+    new Date(
+      date + 'T12:00:00'
+    );
+
+  const end =
+    new Date(start);
+
+  end.setDate(
+    end.getDate() + 1
+  );
+
+  return (
+    extShortDate(
+      extDateISO(start)
+    ) +
+    ' → ' +
+    extShortDate(
+      extDateISO(end)
+    )
+  );
+}
+
+
+// ============================================================
+// DATE / NIGHT SELECTION
+// ============================================================
+
+function extSelectionBox(
+  title,
+  dates,
+  nightMode = false
+) {
+  const box =
+    document.createElement('div');
+
   box.style.marginTop = '14px';
   box.style.padding = '12px';
   box.style.background = '#172033';
-  box.style.border = '1px solid #334155';
+  box.style.border =
+    '1px solid #334155';
   box.style.borderRadius = '10px';
 
-  const heading = document.createElement('div');
+
+  const heading =
+    document.createElement('div');
+
   heading.style.fontWeight = '800';
   heading.style.marginBottom = '8px';
   heading.textContent = title;
+
   box.appendChild(heading);
 
-  const selected = new Set();
+
+  const selected =
+    new Set();
+
 
   dates.forEach(date => {
-    const line = document.createElement('label');
+
+    const line =
+      document.createElement('label');
+
     line.style.display = 'flex';
     line.style.alignItems = 'center';
     line.style.gap = '9px';
     line.style.margin = '8px 0';
     line.style.fontWeight = '400';
 
-    const input = document.createElement('input');
+
+    const input =
+      document.createElement('input');
+
     input.type = 'checkbox';
     input.value = date;
     input.style.width = 'auto';
     input.style.margin = '0';
 
+
     input.onchange = () => {
-      if (input.checked) selected.add(date);
-      else selected.delete(date);
+
+      if (input.checked) {
+        selected.add(date);
+      } else {
+        selected.delete(date);
+      }
+
     };
 
-    const text = document.createElement('span');
-    text.textContent = nightMode
-      ? extNightLabel(date)
-      : extShortDate(date);
 
-    line.append(input, text);
+    const text =
+      document.createElement('span');
+
+    text.textContent =
+      nightMode
+        ? extNightLabel(date)
+        : extShortDate(date);
+
+
+    line.append(
+      input,
+      text
+    );
+
     box.appendChild(line);
   });
 
-  return { box, selected };
+
+  return {
+    box,
+    selected
+  };
 }
 
-function extSetBookingLanguage(bookingId) {
-  if (!bookingId) return Promise.resolve();
+
+// ============================================================
+// BOOKING LANGUAGE
+// ============================================================
+
+function extSetBookingLanguage(
+  bookingId
+) {
+  if (!bookingId) {
+    return Promise.resolve();
+  }
 
   return supabaseClient
     .from('bookings')
-    .update({ booking_language: currentLanguage })
-    .eq('id', bookingId);
+    .update({
+      booking_language:
+        currentLanguage
+    })
+    .eq(
+      'id',
+      bookingId
+    );
 }
 
-function extValidAges(ages, min = 0, max = 17) {
+
+// ============================================================
+// AGE VALIDATION
+// ============================================================
+
+function extValidAges(
+  ages,
+  min = 0,
+  max = 17
+) {
   return ages.every(age =>
     age !== '' &&
-    Number.isInteger(Number(age)) &&
+    Number.isInteger(
+      Number(age)
+    ) &&
     Number(age) >= min &&
     Number(age) <= max
   );
 }
 
-function extCounter(label, initial, callback, maxGetter = null) {
-  let count = initial;
 
-  const line = document.createElement('div');
-  line.className = 'guest-counter';
+// ============================================================
+// COUNTER
+// ============================================================
 
-  const lab = document.createElement('div');
-  lab.className = 'guest-counter-label';
-  lab.textContent = label;
+function extCounter(
+  label,
+  initial,
+  callback,
+  maxGetter = null,
+  min = 0
+) {
+  let count =
+    Math.max(
+      min,
+      Number(initial) || 0
+    );
 
-  const controls = document.createElement('div');
-  controls.className = 'guest-counter-controls';
 
-  const minus = document.createElement('button');
+  const line =
+    document.createElement('div');
+
+  line.className =
+    'guest-counter';
+
+
+  const lab =
+    document.createElement('div');
+
+  lab.className =
+    'guest-counter-label';
+
+  lab.textContent =
+    label;
+
+
+  const controls =
+    document.createElement('div');
+
+  controls.className =
+    'guest-counter-controls';
+
+
+  const minus =
+    document.createElement('button');
+
   minus.type = 'button';
   minus.className = 'guest-btn';
   minus.textContent = '−';
 
-  const value = document.createElement('span');
-  value.className = 'guest-count';
-  value.textContent = count;
 
-  const plus = document.createElement('button');
+  const value =
+    document.createElement('span');
+
+  value.className =
+    'guest-count';
+
+  value.textContent =
+    count;
+
+
+  const plus =
+    document.createElement('button');
+
   plus.type = 'button';
   plus.className = 'guest-btn';
   plus.textContent = '+';
 
+
   minus.onclick = () => {
-    if (count > 0) {
-      count--;
-      value.textContent = count;
-      callback(count);
+
+    if (count <= min) {
+      return;
     }
+
+    count--;
+
+    value.textContent =
+      count;
+
+    callback(count);
   };
 
+
   plus.onclick = () => {
+
     const max =
       typeof maxGetter === 'function'
         ? maxGetter()
         : maxGetter;
 
-    if (max !== null && max !== undefined && count >= max) {
+    if (
+      max !== null &&
+      max !== undefined &&
+      count >= max
+    ) {
       return;
     }
 
     count++;
-    value.textContent = count;
+
+    value.textContent =
+      count;
+
     callback(count);
   };
 
-  controls.append(minus, value, plus);
-  line.append(lab, controls);
+
+  controls.append(
+    minus,
+    value,
+    plus
+  );
+
+  line.append(
+    lab,
+    controls
+  );
+
 
   return {
     element: line,
-    getValue: () => count,
+
+    getValue: () =>
+      count,
+
     setValue: n => {
-      count = Math.max(0, Number(n) || 0);
-      value.textContent = count;
+
+      count =
+        Math.max(
+          min,
+          Number(n) || 0
+        );
+
+      value.textContent =
+        count;
+
       callback(count);
     }
   };
 }
 
-function extAgeInputs(container, ages, title, min = 0, max = 17) {
+
+// ============================================================
+// CHILD AGE INPUTS
+// ============================================================
+
+function extAgeInputs(
+  container,
+  ages,
+  title,
+  min = 0,
+  max = 17
+) {
   container.innerHTML = '';
 
-  if (!ages.length) return;
+  if (!ages.length) {
+    return;
+  }
 
-  const titleEl = document.createElement('div');
+
+  const titleEl =
+    document.createElement('div');
+
   titleEl.className = 'small';
-  titleEl.innerHTML = `<b>${title}</b>`;
-  container.appendChild(titleEl);
 
-  ages.forEach((age, index) => {
-    const row = document.createElement('div');
-    row.className = 'child-age-row';
+  titleEl.innerHTML =
+    `<b>${title}</b>`;
 
-    const label = document.createElement('span');
-    label.textContent = T(
-      `Dieťa ${index + 1}`,
-      `Child ${index + 1}`
-    );
+  container.appendChild(
+    titleEl
+  );
 
-    const input = document.createElement('input');
-    input.type = 'number';
-    input.min = String(min);
-    input.max = String(max);
-    input.inputMode = 'numeric';
-    input.value = age;
 
-    input.oninput = () => {
-      ages[index] =
-        input.value === '' ? '' : Number(input.value);
-    };
+  ages.forEach(
+    (age, index) => {
 
-    row.append(label, input);
-    container.appendChild(row);
-  });
+      const row =
+        document.createElement('div');
+
+      row.className =
+        'child-age-row';
+
+
+      const label =
+        document.createElement('span');
+
+      label.textContent =
+        T(
+          `Dieťa ${index + 1}`,
+          `Child ${index + 1}`
+        );
+
+
+      const input =
+        document.createElement('input');
+
+      input.type = 'number';
+      input.min = String(min);
+      input.max = String(max);
+      input.inputMode = 'numeric';
+      input.value = age;
+
+
+      input.oninput = () => {
+
+        ages[index] =
+          input.value === ''
+            ? ''
+            : Number(
+                input.value
+              );
+      };
+
+
+      row.append(
+        label,
+        input
+      );
+
+      container.appendChild(
+        row
+      );
+    }
+  );
 }
 
 
 // ============================================================
-// NEW RESERVATION CONTROL
+// RESERVATION CONTROL
 // ============================================================
 
-reservationControl = function(row, o, e) {
+reservationControl = function(
+  row,
+  o,
+  e
+) {
 
   let quantity = 1;
 
   let bedAdults =
-    collectsGuests(o) ? 1 : 0;
+    collectsGuests(o)
+      ? 1
+      : 0;
 
   let noBedAdults = 0;
+
   let bedChildAges = [];
+
   let noBedChildAges = [];
 
-  const childMin = Number(o.min_age ?? 0);
-  const childMax = Number(o.max_age ?? 17);
+
+  const childMin =
+    Number(
+      o.min_age ?? 0
+    );
+
+  const childMax =
+    Number(
+      o.max_age ?? 17
+    );
+
 
   let ticketAges =
-    isChild(o) ? [childMin] : [];
+    isChild(o)
+      ? [childMin]
+      : [];
 
-  const privateAccommodation = [
-    'private_room_2',
-    'private_lodge_4'
-  ].includes(o.option_code);
+
+  const privateAccommodation =
+    [
+      'private_room_2',
+      'private_lodge_4'
+    ].includes(
+      o.option_code
+    );
+
 
   const sharedAccommodation =
-    o.option_code === 'shared_accommodation_adult';
+    o.option_code ===
+    'shared_accommodation_adult';
 
-  const camping = [
-    'small_tent',
-    'large_tent',
-    'caravan_motorhome'
-  ].includes(o.option_code);
 
-  const dayPricing = isDayPricing(o);
-  const nightPricing = isNightPricing(o);
+  const camping =
+    [
+      'small_tent',
+      'large_tent',
+      'caravan_motorhome'
+    ].includes(
+      o.option_code
+    );
+
+
+  const dayPricing =
+    isDayPricing(o);
+
+  const nightPricing =
+    isNightPricing(o);
+
 
   let dateSelector = null;
 
-  if (dayPricing) {
-    dateSelector = extSelectionBox(
-      T(
-        'Vyberte deň:',
-        'Select day:'
-      ),
-      extEventDates(e),
-      false
-    );
 
-    row.appendChild(dateSelector.box);
+  // ----------------------------------------------------------
+  // DAY / NIGHT SELECTION
+  // ----------------------------------------------------------
+
+  if (dayPricing) {
+
+    dateSelector =
+      extSelectionBox(
+        T(
+          'Vyberte deň:',
+          'Select day:'
+        ),
+        extEventDates(e),
+        false
+      );
+
+    row.appendChild(
+      dateSelector.box
+    );
   }
 
-  if (nightPricing) {
-    dateSelector = extSelectionBox(
-      T(
-        'Vyberte noc:',
-        'Select night:'
-      ),
-      extEventNights(e),
-      true
-    );
 
-    row.appendChild(dateSelector.box);
+  if (nightPricing) {
+
+    dateSelector =
+      extSelectionBox(
+        T(
+          'Vyberte noc:',
+          'Select night:'
+        ),
+        extEventNights(e),
+        true
+      );
+
+    row.appendChild(
+      dateSelector.box
+    );
   }
 
 
@@ -392,11 +650,19 @@ reservationControl = function(row, o, e) {
 
   if (collectsGuests(o)) {
 
-    const guestBox = document.createElement('div');
-    guestBox.className = 'guest-box';
+    const guestBox =
+      document.createElement('div');
 
-    const title = document.createElement('div');
-    title.className = 'guest-title';
+    guestBox.className =
+      'guest-box';
+
+
+    const title =
+      document.createElement('div');
+
+    title.className =
+      'guest-title';
+
     title.textContent =
       '👥 ' +
       T(
@@ -404,249 +670,157 @@ reservationControl = function(row, o, e) {
         'Guests in this booking'
       );
 
-    guestBox.appendChild(title);
 
-
-    // Accommodation units
-    if (o.is_accommodation && !sharedAccommodation) {
-
-      let unitLabel = T(
-        'Počet ubytovacích jednotiek',
-        'Number of accommodation units'
-      );
-
-      if (
-        o.option_code === 'small_tent' ||
-        o.option_code === 'large_tent'
-      ) {
-        unitLabel = T(
-          'Počet stanov',
-          'Number of tents'
-        );
-      }
-
-      if (o.option_code === 'caravan_motorhome') {
-        unitLabel = T(
-          'Počet vozidiel',
-          'Number of vehicles'
-        );
-      }
-
-      if (o.option_code === 'private_room_2') {
-        unitLabel = T(
-          'Počet izieb',
-          'Number of rooms'
-        );
-      }
-
-      if (o.option_code === 'private_lodge_4') {
-        unitLabel = T(
-          'Počet chatiek',
-          'Number of lodges'
-        );
-      }
-
-      const unitCounter = extCounter(
-        unitLabel,
-        1,
-        n => {
-          quantity = Math.max(1, n);
-          if (quantity < 1) quantity = 1;
-        }
-      );
-
-      guestBox.appendChild(unitCounter.element);
-    }
-
-
-    // Adults using beds / adults in camping
-    const adultLabel = privateAccommodation
-      ? T(
-          'Dospelí – lôžko',
-          'Adults – bed'
-        )
-      : T(
-          'Dospelí',
-          'Adults'
-        );
-
-    const adultCounter = extCounter(
-      adultLabel,
-      bedAdults,
-      n => bedAdults = n
+    guestBox.appendChild(
+      title
     );
 
-    guestBox.appendChild(adultCounter.element);
+
+    // --------------------------------------------------------
+    // ACCOMMODATION UNITS
+    // --------------------------------------------------------
+
+    let unitCounter = null;
+    let refreshCapacity = null;
 
 
-    // PRIVATE ROOM / LODGE
-    if (privateAccommodation) {
+    if (
+      o.is_accommodation &&
+      !sharedAccommodation
+    ) {
 
-      const bedSection = document.createElement('div');
-      bedSection.className = 'guest-section';
-
-      const bedTitle = document.createElement('div');
-      bedTitle.className = 'paid-child-title';
-      bedTitle.textContent = T(
-        'Deti – lôžko',
-        'Children – bed'
-      );
-
-      bedSection.appendChild(bedTitle);
-
-      const bedAgeBox = document.createElement('div');
-      bedAgeBox.className = 'child-age-list';
-
-      const bedChildCounter = extCounter(
+      let unitLabel =
         T(
-          'Počet detí na lôžku',
-          'Children using a bed'
-        ),
-        0,
-        n => {
-          while (bedChildAges.length < n) {
-            bedChildAges.push('');
-          }
-
-          bedChildAges =
-            bedChildAges.slice(0, n);
-
-          extAgeInputs(
-            bedAgeBox,
-            bedChildAges,
-            T(
-              'Vek každého dieťaťa:',
-              'Age of each child:'
-            )
-          );
-        }
-      );
-
-      bedSection.append(
-        bedChildCounter.element,
-        bedAgeBox
-      );
-
-      guestBox.appendChild(bedSection);
-
-
-      // Without bed
-      const noBedSection = document.createElement('div');
-      noBedSection.className = 'child-free-note';
-
-      const noBedTitle = document.createElement('div');
-      noBedTitle.className = 'free-child-title';
-      noBedTitle.textContent = T(
-        'Ďalšie osoby – bez lôžka',
-        'Additional guests – without bed'
-      );
-
-      noBedSection.appendChild(noBedTitle);
-
-      const freePrice = document.createElement('span');
-      freePrice.className = 'free-price';
-      freePrice.textContent = T(
-        '£0.00 / ZDARMA',
-        '£0.00 / FREE'
-      );
-
-      noBedSection.appendChild(freePrice);
-
-      const note = document.createElement('div');
-      note.style.marginTop = '7px';
-      note.textContent = T(
-        'Maximálne 3 ďalšie osoby bez lôžka spolu. Môžu to byť dospelí, deti alebo ich kombinácia.',
-        'Maximum 3 additional guests without a bed in total. They may be adults, children or a combination.'
-      );
-
-      noBedSection.appendChild(note);
-
-      const remainingNoBed = () =>
-        Math.max(
-          0,
-          3 -
-          noBedAdults -
-          noBedChildAges.length
+          'Počet ubytovacích jednotiek',
+          'Number of accommodation units'
         );
 
-      const noBedAdultCounter = extCounter(
-        T(
-          'Dospelí bez lôžka',
-          'Adults without a bed'
-        ),
-        0,
-        n => noBedAdults = n,
-        () => noBedAdults + remainingNoBed()
-      );
 
-      noBedSection.appendChild(
-        noBedAdultCounter.element
-      );
+      if (
+        o.option_code ===
+          'small_tent' ||
+        o.option_code ===
+          'large_tent'
+      ) {
 
-      const noBedAgeBox =
-        document.createElement('div');
-
-      noBedAgeBox.className =
-        'child-age-list';
-
-      const noBedChildCounter = extCounter(
-        T(
-          'Deti bez lôžka',
-          'Children without a bed'
-        ),
-        0,
-        n => {
-          while (noBedChildAges.length < n) {
-            noBedChildAges.push('');
-          }
-
-          noBedChildAges =
-            noBedChildAges.slice(0, n);
-
-          extAgeInputs(
-            noBedAgeBox,
-            noBedChildAges,
-            T(
-              'Vek každého dieťaťa:',
-              'Age of each child:'
-            )
+        unitLabel =
+          T(
+            'Počet stanov',
+            'Number of tents'
           );
-        },
-        () =>
-          noBedChildAges.length +
-          remainingNoBed()
-      );
 
-      noBedSection.append(
-        noBedChildCounter.element,
-        noBedAgeBox
-      );
-
-      guestBox.appendChild(noBedSection);
+      }
 
 
-      const capacity = document.createElement('div');
-      capacity.className = 'capacity-note';
+      if (
+        o.option_code ===
+        'caravan_motorhome'
+      ) {
 
-      const refreshCapacity = () => {
-        const maxBeds =
-          Number(o.max_occupancy || 0) *
-          quantity;
+        unitLabel =
+          T(
+            'Počet vozidiel',
+            'Number of vehicles'
+          );
 
-        capacity.textContent = T(
-          `Kapacita lôžok: ${maxBeds} osôb. Navyše sú povolené maximálne 3 osoby bez lôžka spolu.`,
-          `Bed capacity: ${maxBeds} people. A maximum of 3 additional guests without a bed are allowed.`
+      }
+
+
+      if (
+        o.option_code ===
+        'private_room_2'
+      ) {
+
+        unitLabel =
+          T(
+            'Počet izieb',
+            'Number of rooms'
+          );
+
+      }
+
+
+      if (
+        o.option_code ===
+        'private_lodge_4'
+      ) {
+
+        unitLabel =
+          T(
+            'Počet chatiek',
+            'Number of lodges'
+          );
+
+      }
+
+
+      unitCounter =
+        extCounter(
+          unitLabel,
+          1,
+          n => {
+
+            quantity =
+              Math.max(
+                1,
+                n
+              );
+
+            if (
+              typeof refreshCapacity ===
+              'function'
+            ) {
+              refreshCapacity();
+            }
+
+          },
+          null,
+          1
         );
-      };
 
-      refreshCapacity();
-      guestBox.appendChild(capacity);
 
+      guestBox.appendChild(
+        unitCounter.element
+      );
     }
 
 
-    // SHARED ACCOMMODATION
-    else if (sharedAccommodation) {
+    // --------------------------------------------------------
+    // ADULTS
+    // --------------------------------------------------------
+
+    const adultLabel =
+      privateAccommodation
+        ? T(
+            'Dospelí – lôžko',
+            'Adults – bed'
+          )
+        : T(
+            'Dospelí',
+            'Adults'
+          );
+
+
+    const adultCounter =
+      extCounter(
+        adultLabel,
+        bedAdults,
+        n => {
+          bedAdults = n;
+        }
+      );
+
+
+    guestBox.appendChild(
+      adultCounter.element
+    );
+
+
+    // --------------------------------------------------------
+    // PRIVATE ROOM / PRIVATE LODGE
+    // --------------------------------------------------------
+
+    if (privateAccommodation) {
 
       const bedSection =
         document.createElement('div');
@@ -654,18 +828,24 @@ reservationControl = function(row, o, e) {
       bedSection.className =
         'guest-section';
 
+
       const bedTitle =
         document.createElement('div');
 
       bedTitle.className =
         'paid-child-title';
 
-      bedTitle.textContent = T(
-        'Deti – vlastné lôžko',
-        'Children – own bed'
+      bedTitle.textContent =
+        T(
+          'Deti – lôžko',
+          'Children – bed'
+        );
+
+
+      bedSection.appendChild(
+        bedTitle
       );
 
-      bedSection.appendChild(bedTitle);
 
       const bedAgeBox =
         document.createElement('div');
@@ -673,20 +853,27 @@ reservationControl = function(row, o, e) {
       bedAgeBox.className =
         'child-age-list';
 
-      bedSection.appendChild(
+
+      const bedChildCounter =
         extCounter(
           T(
-            'Počet detí',
-            'Number of children'
+            'Počet detí na lôžku',
+            'Children using a bed'
           ),
           0,
           n => {
-            while (bedChildAges.length < n) {
+
+            while (
+              bedChildAges.length < n
+            ) {
               bedChildAges.push('');
             }
 
             bedChildAges =
-              bedChildAges.slice(0, n);
+              bedChildAges.slice(
+                0,
+                n
+              );
 
             extAgeInputs(
               bedAgeBox,
@@ -697,11 +884,285 @@ reservationControl = function(row, o, e) {
               )
             );
           }
-        ).element
+        );
+
+
+      bedSection.append(
+        bedChildCounter.element,
+        bedAgeBox
       );
 
-      bedSection.appendChild(bedAgeBox);
-      guestBox.appendChild(bedSection);
+
+      guestBox.appendChild(
+        bedSection
+      );
+
+
+      // ------------------------------------------------------
+      // ADDITIONAL GUESTS WITHOUT BED
+      // ------------------------------------------------------
+
+      const noBedSection =
+        document.createElement('div');
+
+      noBedSection.className =
+        'child-free-note';
+
+
+      const noBedTitle =
+        document.createElement('div');
+
+      noBedTitle.className =
+        'free-child-title';
+
+      noBedTitle.textContent =
+        T(
+          'Ďalšie osoby – bez lôžka',
+          'Additional guests – without bed'
+        );
+
+
+      noBedSection.appendChild(
+        noBedTitle
+      );
+
+
+      const freePrice =
+        document.createElement('span');
+
+      freePrice.className =
+        'free-price';
+
+      freePrice.textContent =
+        T(
+          '£0.00 / ZDARMA',
+          '£0.00 / FREE'
+        );
+
+
+      noBedSection.appendChild(
+        freePrice
+      );
+
+
+      const note =
+        document.createElement('div');
+
+      note.style.marginTop =
+        '7px';
+
+      note.textContent =
+        T(
+          'Maximálne 3 ďalšie osoby bez lôžka spolu. Môžu to byť dospelí, deti alebo ich kombinácia.',
+          'Maximum 3 additional guests without a bed in total. They may be adults, children or a combination.'
+        );
+
+
+      noBedSection.appendChild(
+        note
+      );
+
+
+      const remainingNoBed =
+        () =>
+          Math.max(
+            0,
+            3 -
+            noBedAdults -
+            noBedChildAges.length
+          );
+
+
+      const noBedAdultCounter =
+        extCounter(
+          T(
+            'Dospelí bez lôžka',
+            'Adults without a bed'
+          ),
+          0,
+          n => {
+            noBedAdults = n;
+          },
+          () =>
+            noBedAdults +
+            remainingNoBed()
+        );
+
+
+      noBedSection.appendChild(
+        noBedAdultCounter.element
+      );
+
+
+      const noBedAgeBox =
+        document.createElement('div');
+
+      noBedAgeBox.className =
+        'child-age-list';
+
+
+      const noBedChildCounter =
+        extCounter(
+          T(
+            'Deti bez lôžka',
+            'Children without a bed'
+          ),
+          0,
+          n => {
+
+            while (
+              noBedChildAges.length < n
+            ) {
+              noBedChildAges.push('');
+            }
+
+            noBedChildAges =
+              noBedChildAges.slice(
+                0,
+                n
+              );
+
+            extAgeInputs(
+              noBedAgeBox,
+              noBedChildAges,
+              T(
+                'Vek každého dieťaťa:',
+                'Age of each child:'
+              )
+            );
+          },
+          () =>
+            noBedChildAges.length +
+            remainingNoBed()
+        );
+
+
+      noBedSection.append(
+        noBedChildCounter.element,
+        noBedAgeBox
+      );
+
+
+      guestBox.appendChild(
+        noBedSection
+      );
+
+
+      // ------------------------------------------------------
+      // CAPACITY
+      // ------------------------------------------------------
+
+      const capacity =
+        document.createElement('div');
+
+      capacity.className =
+        'capacity-note';
+
+
+      refreshCapacity = () => {
+
+        const maxBeds =
+          Number(
+            o.max_occupancy || 0
+          ) *
+          quantity;
+
+
+        capacity.textContent =
+          T(
+            `Kapacita lôžok: ${maxBeds} osôb. Navyše sú povolené maximálne 3 osoby bez lôžka spolu.`,
+            `Bed capacity: ${maxBeds} people. A maximum of 3 additional guests without a bed are allowed.`
+          );
+      };
+
+
+      refreshCapacity();
+
+
+      guestBox.appendChild(
+        capacity
+      );
+    }
+        // --------------------------------------------------------
+    // SHARED ACCOMMODATION
+    // --------------------------------------------------------
+
+    else if (sharedAccommodation) {
+
+      const bedSection =
+        document.createElement('div');
+
+      bedSection.className =
+        'guest-section';
+
+
+      const bedTitle =
+        document.createElement('div');
+
+      bedTitle.className =
+        'paid-child-title';
+
+      bedTitle.textContent =
+        T(
+          'Deti – vlastné lôžko',
+          'Children – own bed'
+        );
+
+
+      bedSection.appendChild(
+        bedTitle
+      );
+
+
+      const bedAgeBox =
+        document.createElement('div');
+
+      bedAgeBox.className =
+        'child-age-list';
+
+
+      const bedChildCounter =
+        extCounter(
+          T(
+            'Počet detí',
+            'Number of children'
+          ),
+          0,
+          n => {
+
+            while (
+              bedChildAges.length < n
+            ) {
+              bedChildAges.push('');
+            }
+
+            bedChildAges =
+              bedChildAges.slice(
+                0,
+                n
+              );
+
+            extAgeInputs(
+              bedAgeBox,
+              bedChildAges,
+              T(
+                'Vek každého dieťaťa:',
+                'Age of each child:'
+              )
+            );
+          }
+        );
+
+
+      bedSection.append(
+        bedChildCounter.element,
+        bedAgeBox
+      );
+
+
+      guestBox.appendChild(
+        bedSection
+      );
 
 
       const noBedSection =
@@ -710,27 +1171,42 @@ reservationControl = function(row, o, e) {
       noBedSection.className =
         'child-free-note';
 
+
       const noBedTitle =
         document.createElement('div');
 
       noBedTitle.className =
         'free-child-title';
 
-      noBedTitle.textContent = T(
-        'Deti – bez vlastného lôžka',
-        'Children – without own bed'
+      noBedTitle.textContent =
+        T(
+          'Deti – bez vlastného lôžka',
+          'Children – without own bed'
+        );
+
+
+      noBedSection.appendChild(
+        noBedTitle
       );
 
-      noBedSection.appendChild(noBedTitle);
 
       const freePrice =
         document.createElement('span');
 
-      freePrice.className = 'free-price';
-      freePrice.textContent =
-        T('£0.00 / ZDARMA', '£0.00 / FREE');
+      freePrice.className =
+        'free-price';
 
-      noBedSection.appendChild(freePrice);
+      freePrice.textContent =
+        T(
+          '£0.00 / ZDARMA',
+          '£0.00 / FREE'
+        );
+
+
+      noBedSection.appendChild(
+        freePrice
+      );
+
 
       const ageBox =
         document.createElement('div');
@@ -738,7 +1214,8 @@ reservationControl = function(row, o, e) {
       ageBox.className =
         'child-age-list';
 
-      noBedSection.appendChild(
+
+      const noBedChildCounter =
         extCounter(
           T(
             'Počet detí',
@@ -746,12 +1223,18 @@ reservationControl = function(row, o, e) {
           ),
           0,
           n => {
-            while (noBedChildAges.length < n) {
+
+            while (
+              noBedChildAges.length < n
+            ) {
               noBedChildAges.push('');
             }
 
             noBedChildAges =
-              noBedChildAges.slice(0, n);
+              noBedChildAges.slice(
+                0,
+                n
+              );
 
             extAgeInputs(
               ageBox,
@@ -762,16 +1245,25 @@ reservationControl = function(row, o, e) {
               )
             );
           }
-        ).element
+        );
+
+
+      noBedSection.append(
+        noBedChildCounter.element,
+        ageBox
       );
 
-      noBedSection.appendChild(ageBox);
-      guestBox.appendChild(noBedSection);
 
+      guestBox.appendChild(
+        noBedSection
+      );
     }
 
 
+    // --------------------------------------------------------
     // CAMPING
+    // --------------------------------------------------------
+
     else if (camping) {
 
       const ageBox =
@@ -780,17 +1272,27 @@ reservationControl = function(row, o, e) {
       ageBox.className =
         'child-age-list';
 
-      guestBox.appendChild(
+
+      const childCounter =
         extCounter(
-          T('Deti', 'Children'),
+          T(
+            'Deti',
+            'Children'
+          ),
           0,
           n => {
-            while (noBedChildAges.length < n) {
+
+            while (
+              noBedChildAges.length < n
+            ) {
               noBedChildAges.push('');
             }
 
             noBedChildAges =
-              noBedChildAges.slice(0, n);
+              noBedChildAges.slice(
+                0,
+                n
+              );
 
             extAgeInputs(
               ageBox,
@@ -801,70 +1303,134 @@ reservationControl = function(row, o, e) {
               )
             );
           }
-        ).element
-      );
+        );
 
-      guestBox.appendChild(ageBox);
+
+      guestBox.append(
+        childCounter.element,
+        ageBox
+      );
     }
 
-    row.appendChild(guestBox);
+
+    row.appendChild(
+      guestBox
+    );
   }
 
 
-  // ----------------------------------------------------------
-  // QUANTITY + ADD
-  // ----------------------------------------------------------
+  // ==========================================================
+  // QUANTITY + ADD BUTTON
+  // ==========================================================
 
-  const line = document.createElement('div');
-  line.className = 'qty-line';
+  const line =
+    document.createElement('div');
 
-  const minus = document.createElement('button');
+  line.className =
+    'qty-line';
+
+
+  const minus =
+    document.createElement('button');
+
   minus.type = 'button';
   minus.className = 'qty-btn';
   minus.textContent = '−';
 
-  const qtyValue = document.createElement('span');
-  qtyValue.className = 'qty-value';
-  qtyValue.textContent = '1';
 
-  const plus = document.createElement('button');
+  const qtyValue =
+    document.createElement('span');
+
+  qtyValue.className =
+    'qty-value';
+
+  qtyValue.textContent =
+    String(quantity);
+
+
+  const plus =
+    document.createElement('button');
+
   plus.type = 'button';
   plus.className = 'qty-btn';
   plus.textContent = '+';
 
-  const add = document.createElement('button');
+
+  const add =
+    document.createElement('button');
+
   add.type = 'button';
   add.className = 'add-btn';
-  add.textContent = T('Pridať', 'Add');
 
+  add.textContent =
+    T(
+      'Pridať',
+      'Add'
+    );
+
+
+  // Accommodation quantity is controlled
+  // by the accommodation-unit counter above.
+  // Therefore no duplicate bottom − 1 + control.
   if (o.is_accommodation) {
-    line.style.justifyContent = 'flex-end';
-    line.appendChild(add);
+
+    line.style.justifyContent =
+      'flex-end';
+
+    line.appendChild(
+      add
+    );
+
   } else {
+
     minus.onclick = () => {
-      if (quantity > 1) {
-        quantity--;
-        qtyValue.textContent = quantity;
 
-        if (isChild(o)) {
-          ticketAges =
-            ticketAges.slice(0, quantity);
-          renderTicketAges();
-        }
+      if (quantity <= 1) {
+        return;
       }
-    };
 
-    plus.onclick = () => {
-      quantity++;
-      qtyValue.textContent = quantity;
+      quantity--;
+
+      qtyValue.textContent =
+        String(quantity);
+
 
       if (isChild(o)) {
-        while (ticketAges.length < quantity) {
-          ticketAges.push(childMin);
-        }
+
+        ticketAges =
+          ticketAges.slice(
+            0,
+            quantity
+          );
+
         renderTicketAges();
       }
     };
+
+
+    plus.onclick = () => {
+
+      quantity++;
+
+      qtyValue.textContent =
+        String(quantity);
+
+
+      if (isChild(o)) {
+
+        while (
+          ticketAges.length <
+          quantity
+        ) {
+          ticketAges.push(
+            childMin
+          );
+        }
+
+        renderTicketAges();
+      }
+    };
+
 
     line.append(
       minus,
@@ -874,24 +1440,42 @@ reservationControl = function(row, o, e) {
     );
   }
 
-  row.appendChild(line);
+
+  row.appendChild(
+    line
+  );
 
 
-  // ----------------------------------------------------------
+  // ==========================================================
   // CHILD TICKET / CHILD BREAKFAST AGES
-  // ----------------------------------------------------------
+  // ==========================================================
 
   let ticketAgeBox = null;
 
-  function renderTicketAges() {
-    if (!ticketAgeBox) return;
 
-    while (ticketAges.length < quantity) {
-      ticketAges.push(childMin);
+  function renderTicketAges() {
+
+    if (!ticketAgeBox) {
+      return;
     }
 
+
+    while (
+      ticketAges.length <
+      quantity
+    ) {
+      ticketAges.push(
+        childMin
+      );
+    }
+
+
     ticketAges =
-      ticketAges.slice(0, quantity);
+      ticketAges.slice(
+        0,
+        quantity
+      );
+
 
     extAgeInputs(
       ticketAgeBox,
@@ -905,27 +1489,38 @@ reservationControl = function(row, o, e) {
     );
   }
 
+
   if (isChild(o)) {
+
     ticketAgeBox =
       document.createElement('div');
 
     ticketAgeBox.className =
       'child-box';
 
-    row.appendChild(ticketAgeBox);
+
+    row.appendChild(
+      ticketAgeBox
+    );
+
+
     renderTicketAges();
   }
 
 
-  // ----------------------------------------------------------
+  // ==========================================================
   // ADD TO CART
-  // ----------------------------------------------------------
+  // ==========================================================
 
   add.onclick = async () => {
 
-    if (!requireLogin()) return;
+    if (!requireLogin()) {
+      return;
+    }
+
 
     if (isTbd(o)) {
+
       return alert(
         T(
           'Cena tejto položky ešte nie je nastavená.',
@@ -934,15 +1529,20 @@ reservationControl = function(row, o, e) {
       );
     }
 
+
     const selectedDates =
       dateSelector
-        ? Array.from(dateSelector.selected)
+        ? Array.from(
+            dateSelector.selected
+          )
         : [null];
+
 
     if (
       (dayPricing || nightPricing) &&
       selectedDates.length === 0
     ) {
+
       return alert(
         T(
           dayPricing
@@ -956,6 +1556,10 @@ reservationControl = function(row, o, e) {
     }
 
 
+    // --------------------------------------------------------
+    // GUEST VALIDATION
+    // --------------------------------------------------------
+
     if (collectsGuests(o)) {
 
       const totalGuests =
@@ -964,7 +1568,9 @@ reservationControl = function(row, o, e) {
         bedChildAges.length +
         noBedChildAges.length;
 
+
       if (totalGuests < 1) {
+
         return alert(
           T(
             'Uveďte aspoň jedného hosťa.',
@@ -973,10 +1579,16 @@ reservationControl = function(row, o, e) {
         );
       }
 
+
       if (
-        !extValidAges(bedChildAges) ||
-        !extValidAges(noBedChildAges)
+        !extValidAges(
+          bedChildAges
+        ) ||
+        !extValidAges(
+          noBedChildAges
+        )
       ) {
+
         return alert(
           T(
             'Zadajte vek každého dieťaťa od 0 do 17 rokov.',
@@ -985,13 +1597,20 @@ reservationControl = function(row, o, e) {
         );
       }
 
+
+      // ------------------------------------------------------
+      // PRIVATE ROOM / LODGE CAPACITY
+      // ------------------------------------------------------
+
       if (privateAccommodation) {
 
         const noBedTotal =
           noBedAdults +
           noBedChildAges.length;
 
+
         if (noBedTotal > 3) {
+
           return alert(
             T(
               'Povolené sú maximálne 3 ďalšie osoby bez lôžka spolu.',
@@ -1000,18 +1619,26 @@ reservationControl = function(row, o, e) {
           );
         }
 
+
         const bedTotal =
           bedAdults +
           bedChildAges.length;
 
+
         const maxBeds =
-          Number(o.max_occupancy || 0) *
+          Number(
+            o.max_occupancy || 0
+          ) *
           quantity;
 
+
         if (
-          Number(o.max_occupancy || 0) > 0 &&
+          Number(
+            o.max_occupancy || 0
+          ) > 0 &&
           bedTotal > maxBeds
         ) {
+
           return alert(
             T(
               `Kapacita lôžok je maximálne ${maxBeds} osôb.`,
@@ -1021,15 +1648,30 @@ reservationControl = function(row, o, e) {
         }
       }
 
+
+      // ------------------------------------------------------
+      // CAMPING CAPACITY
+      // ------------------------------------------------------
+
       if (
         camping &&
-        Number(o.max_occupancy || 0) > 0
+        Number(
+          o.max_occupancy || 0
+        ) > 0
       ) {
+
         const maxGuests =
-          Number(o.max_occupancy) *
+          Number(
+            o.max_occupancy
+          ) *
           quantity;
 
-        if (totalGuests > maxGuests) {
+
+        if (
+          totalGuests >
+          maxGuests
+        ) {
+
           return alert(
             T(
               `Maximálna kapacita je ${maxGuests} osôb.`,
@@ -1041,6 +1683,10 @@ reservationControl = function(row, o, e) {
     }
 
 
+    // --------------------------------------------------------
+    // CHILD TICKET AGE VALIDATION
+    // --------------------------------------------------------
+
     if (
       isChild(o) &&
       !extValidAges(
@@ -1049,6 +1695,7 @@ reservationControl = function(row, o, e) {
         childMax
       )
     ) {
+
       return alert(
         T(
           `Zadajte vek každého dieťaťa od ${childMin} do ${childMax} rokov.`,
@@ -1059,96 +1706,135 @@ reservationControl = function(row, o, e) {
 
 
     add.disabled = true;
+
     add.textContent =
-      T('Pridávam…', 'Adding…');
+      T(
+        'Pridávam…',
+        'Adding…'
+      );
+
 
     try {
 
-      for (const selectedDate of selectedDates) {
+      // ------------------------------------------------------
+      // ADD EACH SELECTED DATE / NIGHT
+      // ------------------------------------------------------
+
+      for (
+        const selectedDate
+        of selectedDates
+      ) {
 
         let result;
+
 
         if (
           collectsGuests(o) &&
           o.is_accommodation
         ) {
 
-          result = await supabaseClient.rpc(
-            'add_accommodation_to_cart',
-            {
-              p_event_option_id: o.id,
-              p_quantity:
-                sharedAccommodation
-                  ? 1
-                  : quantity,
+          result =
+            await supabaseClient.rpc(
+              'add_accommodation_to_cart',
+              {
+                p_event_option_id:
+                  o.id,
 
-              p_adult_count:
-                bedAdults,
+                p_quantity:
+                  sharedAccommodation
+                    ? 1
+                    : quantity,
 
-              p_paid_child_ages:
-                isBedAccommodation(o)
-                  ? bedChildAges.map(Number)
-                  : [],
+                p_adult_count:
+                  bedAdults,
 
-              p_free_child_ages:
-                noBedChildAges.map(Number),
+                p_paid_child_ages:
+                  isBedAccommodation(o)
+                    ? bedChildAges.map(
+                        Number
+                      )
+                    : [],
 
-              p_number_of_nights:
-                nightPricing ? 1 : 1,
+                p_free_child_ages:
+                  noBedChildAges.map(
+                    Number
+                  ),
 
-              p_night_start_date:
-                nightPricing
-                  ? selectedDate
-                  : null,
+                p_number_of_nights:
+                  1,
 
-              p_no_bed_adult_count:
-                privateAccommodation
-                  ? noBedAdults
-                  : 0
-            }
-          );
+                p_night_start_date:
+                  nightPricing
+                    ? selectedDate
+                    : null,
+
+                p_no_bed_adult_count:
+                  privateAccommodation
+                    ? noBedAdults
+                    : 0
+              }
+            );
 
         } else {
 
-          result = await supabaseClient.rpc(
-            'add_item_to_cart',
-            {
-              p_event_option_id: o.id,
-              p_quantity: quantity,
+          result =
+            await supabaseClient.rpc(
+              'add_item_to_cart',
+              {
+                p_event_option_id:
+                  o.id,
 
-              p_child_ages:
-                isChild(o)
-                  ? ticketAges.map(Number)
-                  : [],
+                p_quantity:
+                  quantity,
 
-              p_number_of_days:
-                dayPricing ? 1 : 1,
+                p_child_ages:
+                  isChild(o)
+                    ? ticketAges.map(
+                        Number
+                      )
+                    : [],
 
-              p_number_of_nights:
-                nightPricing ? 1 : 1,
+                p_number_of_days:
+                  1,
 
-              p_option_date:
-                (dayPricing || nightPricing)
-                  ? selectedDate
-                  : null,
+                p_number_of_nights:
+                  1,
 
-              p_adult_count: 0
-            }
-          );
+                p_option_date:
+                  (
+                    dayPricing ||
+                    nightPricing
+                  )
+                    ? selectedDate
+                    : null,
+
+                p_adult_count:
+                  0
+              }
+            );
         }
+
 
         if (result.error) {
           throw result.error;
         }
       }
 
-      const cart = await getActiveCart();
+
+      const cart =
+        await getActiveCart();
+
 
       if (cart) {
-        await extSetBookingLanguage(cart.id);
+
+        await extSetBookingLanguage(
+          cart.id
+        );
       }
 
+
       await refreshCartBadge();
+
 
       alert(
         T(
@@ -1164,53 +1850,86 @@ reservationControl = function(row, o, e) {
           'Nepodarilo sa pridať položku: ',
           'Could not add item: '
         ) +
-        (error?.message || error)
+        (
+          error?.message ||
+          error
+        )
       );
 
     } finally {
 
       add.disabled = false;
+
       add.textContent =
-        T('Pridať', 'Add');
+        T(
+          'Pridať',
+          'Add'
+        );
     }
   };
 };
 
 
 // ============================================================
-// DETAILED CART DISPLAY
+// DETAILED CART – DATE / NIGHT
 // ============================================================
 
 function extItemDateHtml(item) {
 
   if (item.night_start_date) {
+
     return `
       <div class="small">
-        🌙 <b>${T('Noc:', 'Night:')}</b>
-        ${escapeHtml(extNightLabel(item.night_start_date))}
+        🌙 <b>${T(
+          'Noc:',
+          'Night:'
+        )}</b>
+        ${escapeHtml(
+          extNightLabel(
+            item.night_start_date
+          )
+        )}
       </div>
     `;
   }
 
-  if (item.service_date || item.option_date) {
+
+  if (
+    item.service_date ||
+    item.option_date
+  ) {
+
     const date =
       item.service_date ||
       item.option_date;
 
+
     return `
       <div class="small">
-        📅 <b>${T('Deň:', 'Day:')}</b>
-        ${escapeHtml(extShortDate(date))}
+        📅 <b>${T(
+          'Deň:',
+          'Day:'
+        )}</b>
+        ${escapeHtml(
+          extShortDate(date)
+        )}
       </div>
     `;
   }
 
+
   return '';
 }
+
+
+// ============================================================
+// DETAILED CART – GUESTS
+// ============================================================
 
 function extGuestCartHtml(item) {
 
   let html = '';
+
 
   const bedAdults =
     Number(
@@ -1219,6 +1938,7 @@ function extGuestCartHtml(item) {
       0
     );
 
+
   const bedChildren =
     Number(
       item.bed_child_count ??
@@ -1226,15 +1946,22 @@ function extGuestCartHtml(item) {
       0
     );
 
+
   const bedAges =
     item.bed_child_ages?.length
       ? item.bed_child_ages
-      : (item.paid_child_ages || []);
+      : (
+          item.paid_child_ages ||
+          []
+        );
+
 
   const noBedAdults =
     Number(
-      item.no_bed_adult_count || 0
+      item.no_bed_adult_count ||
+      0
     );
+
 
   const noBedChildren =
     Number(
@@ -1243,38 +1970,59 @@ function extGuestCartHtml(item) {
       0
     );
 
+
   const noBedAges =
     item.no_bed_child_ages?.length
       ? item.no_bed_child_ages
-      : (item.free_child_ages || []);
+      : (
+          item.free_child_ages ||
+          []
+        );
+
 
   const code =
-    item.event_options?.option_code || '';
+    item.event_options
+      ?.option_code ||
+    '';
 
-  const privateAccommodation = [
-    'private_room_2',
-    'private_lodge_4'
-  ].includes(code);
 
-  const camping = [
-    'small_tent',
-    'large_tent',
-    'caravan_motorhome'
-  ].includes(code);
+  const privateAccommodation =
+    [
+      'private_room_2',
+      'private_lodge_4'
+    ].includes(code);
+
+
+  const camping =
+    [
+      'small_tent',
+      'large_tent',
+      'caravan_motorhome'
+    ].includes(code);
 
 
   if (bedAdults > 0) {
+
     html += `
       <div class="small">
-        ${privateAccommodation
-          ? T('Dospelí – lôžko: ', 'Adults – bed: ')
-          : T('Dospelí: ', 'Adults: ')
+        ${
+          privateAccommodation
+            ? T(
+                'Dospelí – lôžko: ',
+                'Adults – bed: '
+              )
+            : T(
+                'Dospelí: ',
+                'Adults: '
+              )
         }${bedAdults}
       </div>
     `;
   }
 
+
   if (bedChildren > 0) {
+
     html += `
       <div class="small">
         ${T(
@@ -1282,13 +2030,20 @@ function extGuestCartHtml(item) {
           'Children – bed: '
         )}${bedChildren}
         <br>
-        ${T('Vek: ', 'Ages: ')}
-        ${escapeHtml(bedAges.join(', '))}
+        ${T(
+          'Vek: ',
+          'Ages: '
+        )}
+        ${escapeHtml(
+          bedAges.join(', ')
+        )}
       </div>
     `;
   }
 
+
   if (noBedAdults > 0) {
+
     html += `
       <div class="small">
         ${T(
@@ -1299,48 +2054,72 @@ function extGuestCartHtml(item) {
     `;
   }
 
+
   if (noBedChildren > 0) {
 
-    const label = camping
-      ? T('Deti: ', 'Children: ')
-      : T(
-          'Deti – bez lôžka: ',
-          'Children – without bed: '
-        );
+    const label =
+      camping
+        ? T(
+            'Deti: ',
+            'Children: '
+          )
+        : T(
+            'Deti – bez lôžka: ',
+            'Children – without bed: '
+          );
+
 
     html += `
       <div class="small">
         ${label}${noBedChildren}
         <br>
-        ${T('Vek: ', 'Ages: ')}
-        ${escapeHtml(noBedAges.join(', '))}
+        ${T(
+          'Vek: ',
+          'Ages: '
+        )}
+        ${escapeHtml(
+          noBedAges.join(', ')
+        )}
       </div>
     `;
   }
+
 
   if (
     !bedChildren &&
     !noBedChildren &&
     item.child_ages?.length
   ) {
+
     html += `
       <div class="small">
         ${T(
           'Deti – vek: ',
           'Children – ages: '
         )}
-        ${escapeHtml(item.child_ages.join(', '))}
+        ${escapeHtml(
+          item.child_ages.join(', ')
+        )}
       </div>
     `;
   }
 
+
   if (
     code === 'day_parking' &&
-    Number(item.line_total) === 0
+    Number(
+      item.line_total
+    ) === 0
   ) {
+
     html += `
-      <div class="small"
-           style="color:#86efac;font-weight:700">
+      <div
+        class="small"
+        style="
+          color:#86efac;
+          font-weight:700;
+        "
+      >
         ${T(
           'Parkovanie zdarma k ubytovaniu',
           'Free parking with accommodation'
@@ -1349,470 +2128,825 @@ function extGuestCartHtml(item) {
     `;
   }
 
+
   return html;
 }
 
 
-// Replace cart detail renderer used by cart and bookings
+// ============================================================
+// CART / BOOKING GUEST DETAIL RENDERER
+// ============================================================
 
 guestCartHtml = function(item) {
+
   return (
     extItemDateHtml(item) +
     extGuestCartHtml(item)
   );
 };
-
-
 // ============================================================
-// BOOKING LANGUAGE
-// Keep active cart language synced with SK / EN selection
-// ============================================================
-
-const extOriginalSetLanguage = setLanguage;
-
-setLanguage = function(lang) {
-
-  extOriginalSetLanguage(lang);
-
-  setTimeout(async () => {
-
-    if (!currentUser) return;
-
-    const cart = await getActiveCart();
-
-    if (cart) {
-      await extSetBookingLanguage(cart.id);
-    }
-
-  }, 0);
-};
-// ============================================================
-// CART + BOOKINGS - FORCE FULL SK / EN TRANSLATION
+// ITEM NAME TRANSLATION
 // ============================================================
 
 function extTranslatedItemName(item) {
-  const code = item?.event_options?.option_code || '';
+  const code =
+    item?.event_options
+      ?.option_code || '';
 
-  if (code && optionNames[code]) {
-    return optionNames[code][currentLanguage === 'sk' ? 0 : 1];
+  if (
+    code &&
+    optionNames?.[code]
+  ) {
+    return optionNames[code][
+      currentLanguage === 'sk'
+        ? 0
+        : 1
+    ];
   }
 
   return item?.item_name || '';
 }
 
 
-// CART
-const extOriginalShowCartPage = showCartPage;
-
-showCartPage = async function() {
-  await extOriginalShowCartPage();
-
-  const cart = await getActiveCart();
-  if (!cart) return;
-
-  const items = await getCartItems(cart.id);
-
-  const renderedItems =
-    document.querySelectorAll('#cartPageContent .cart-item');
-
-  renderedItems.forEach((row, index) => {
-    const item = items[index];
-    if (!item) return;
-
-    const title = row.querySelector('b');
-    if (!title) return;
-
-    title.textContent =
-      `${item.quantity}× ${extTranslatedItemName(item)}`;
-  });
-};
-
-
-// BOOKINGS
-const extOriginalShowBookings = showBookings;
-
-showBookings = async function() {
-  await extOriginalShowBookings();
-
-  if (!currentUser) return;
-
-  const { data: bookings } = await supabaseClient
-    .from('bookings')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false });
-
-  const cards =
-    document.querySelectorAll('#bookingsContent .card');
-
-  for (let bIndex = 0; bIndex < (bookings || []).length; bIndex++) {
-
-    const booking = bookings[bIndex];
-    const card = cards[bIndex];
-
-    if (!booking || !card) continue;
-
-    const { data: items } = await supabaseClient
-      .from('booking_items')
-      .select('*,event_options(option_code,is_accommodation,free_with_accommodation)')
-      .eq('booking_id', booking.id)
-      .order('created_at');
-
-    const renderedItems =
-      card.querySelectorAll('.cart-item');
-
-    renderedItems.forEach((row, itemIndex) => {
-      const item = items?.[itemIndex];
-      if (!item) return;
-
-      const title = row.querySelector('b');
-      if (!title) return;
-
-      title.textContent =
-        `${item.quantity}× ${extTranslatedItemName(item)}`;
-    });
-  }
-};
-
-
-// Re-render current cart/bookings immediately after SK / EN switch
-const extLanguageTranslationFix = setLanguage;
-
-setLanguage = function(lang) {
-  extLanguageTranslationFix(lang);
-
-  setTimeout(() => {
-    if (
-      document.getElementById('cartPage')?.style.display === 'block' &&
-      currentUser
-    ) {
-      showCartPage();
-    }
-
-    if (
-      document.getElementById('bookingsPage')?.style.display === 'block' &&
-      currentUser
-    ) {
-      showBookings();
-    }
-  }, 50);
-};
 // ============================================================
-// BREAKFAST AGE LABEL FIX
-// 0–11 child / 12+ adult
+// BREAKFAST NAMES
 // ============================================================
 
-const extOriginalLocalName = localName;
+const extBaseLocalName =
+  localName;
 
 localName = function(o) {
-  if (o?.option_code === 'breakfast_adult') {
+
+  if (
+    o?.option_code ===
+    'breakfast_adult'
+  ) {
     return T(
       'Raňajky – dospelý (od 12 rokov)',
       'Breakfast – adult (12+ years)'
     );
   }
 
-  if (o?.option_code === 'breakfast_child') {
+
+  if (
+    o?.option_code ===
+    'breakfast_child'
+  ) {
     return T(
       'Raňajky – dieťa (0–11 rokov)',
       'Breakfast – child (0–11 years)'
     );
   }
 
-  return extOriginalLocalName(o);
+
+  return extBaseLocalName(o);
 };
+
+
 // ============================================================
-// MY BOOKINGS – HIDE + HIDDEN BOOKINGS DROPDOWN
+// EVENT DETAIL + AVAILABILITY
+// One wrapper only
 // ============================================================
 
-async function extHideBooking(bookingId) {
-  const { error } = await supabaseClient
-    .from('bookings')
-    .update({
-      hidden_by_user: true,
-      hidden_by_user_at: new Date().toISOString()
-    })
-    .eq('id', bookingId)
-    .eq('user_id', currentUser.id);
+const extBaseShowEventDetail =
+  showEventDetail;
 
-  if (error) {
-    alert(T(
-      'Rezerváciu sa nepodarilo skryť.',
-      'The booking could not be hidden.'
-    ));
-    return;
-  }
 
-  await showBookings();
-}
+showEventDetail =
+  async function(id) {
 
-async function extRestoreBooking(bookingId) {
-  const { error } = await supabaseClient
-    .from('bookings')
-    .update({
-      hidden_by_user: false,
-      hidden_by_user_at: null
-    })
-    .eq('id', bookingId)
-    .eq('user_id', currentUser.id);
+    await extBaseShowEventDetail(id);
 
-  if (error) {
-    alert(T(
-      'Rezerváciu sa nepodarilo obnoviť.',
-      'The booking could not be restored.'
-    ));
-    return;
-  }
 
-  await showBookings();
-}
+    const rows =
+      document.querySelectorAll(
+        '#eventDetailContent .option-row'
+      );
 
-showBookings = async function() {
-  if (!requireLogin()) return;
 
-  go('bookingsPage');
+    rows.forEach(
+      (row, index) => {
 
-  const box = el('bookingsContent');
-  box.innerHTML =
-    `<div class="loading">${T('Načítavam rezervácie...','Loading bookings...')}</div>`;
+        const option =
+          currentEventOptions?.[index];
 
-  const { data, error } = await supabaseClient
-    .from('bookings')
-    .select('*')
-    .eq('user_id', currentUser.id)
-    .order('created_at', { ascending: false });
+        if (!option) {
+          return;
+        }
 
-  box.innerHTML = '';
 
-  if (error) {
-    box.innerHTML =
-      `<div class="card">${T(
-        'Rezervácie sa nepodarilo načítať.',
-        'Bookings could not be loaded.'
-      )}</div>`;
-    return;
-  }
+        const existing =
+          row.querySelector(
+            '.extension-availability'
+          );
 
-  if (!data?.length) {
-    box.innerHTML =
-      `<div class="card">${T(
-        'Zatiaľ nemáte žiadne rezervácie.',
-        'You do not have any bookings yet.'
-      )}</div>`;
-    return;
-  }
 
-  const sixMonthsAgo = new Date();
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        if (existing) {
+          existing.remove();
+        }
 
-  const visible = data.filter(b =>
-    !b.hidden_by_user &&
-    new Date(b.created_at) >= sixMonthsAgo
-  );
 
-  const hidden = data.filter(b =>
-    b.hidden_by_user ||
-    new Date(b.created_at) < sixMonthsAgo
-  );
+        const info =
+          availabilityInfo(option);
 
-  async function renderBooking(b, target, isHidden) {
-    const { data: items } = await supabaseClient
-      .from('booking_items')
-      .select('*,event_options(option_code,is_accommodation,free_with_accommodation)')
-      .eq('booking_id', b.id);
 
-    const card = document.createElement('div');
-    card.className = 'card';
+        const status =
+          document.createElement(
+            'div'
+          );
 
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start">
-        <div>
-          <b>${T('Rezervácia ','Booking ')}${escapeHtml(b.booking_number || b.id)}</b>
-          <div><span class="status-pill">${escapeHtml(b.status)}</span></div>
-        </div>
-      </div>
-    `;
 
-    (items || []).forEach(i => {
-      const row = document.createElement('div');
-      row.className = 'cart-item';
-      row.innerHTML =
-        `<b>${i.quantity}× ${escapeHtml(i.item_name)}</b> — ${money(i.line_total)}${guestCartHtml(i)}`;
-      card.appendChild(row);
-    });
+        status.className =
+          'extension-availability';
 
-    const total = document.createElement('div');
-    total.className = 'cart-total';
-    total.textContent = T('Spolu: ','Total: ') + money(b.total_amount);
-    card.appendChild(total);
+        status.style.marginTop =
+          '8px';
 
-    const btn = document.createElement('button');
-    btn.className = 'remove-btn';
-    btn.style.marginTop = '10px';
+        status.style.fontSize =
+          '13px';
 
-    if (isHidden) {
-      btn.textContent = T('Obnoviť','Restore');
-      btn.onclick = () => extRestoreBooking(b.id);
-    } else {
-      btn.textContent = T('Skryť','Hide');
-      btn.onclick = () => extHideBooking(b.id);
-    }
+        status.style.fontWeight =
+          '800';
 
-    card.appendChild(btn);
-    target.appendChild(card);
-  }
+        status.style.color =
+          info.color;
 
-  if (visible.length) {
-    for (const b of visible) {
-      await renderBooking(b, box, false);
-    }
-  } else {
-    const empty = document.createElement('div');
-    empty.className = 'card';
-    empty.textContent = T(
-      'Nemáte žiadne aktuálne rezervácie.',
-      'You have no current bookings.'
+
+        status.textContent =
+          '● ' + info.text;
+
+
+        const price =
+          row.querySelector(
+            '.option-price'
+          );
+
+
+        if (price) {
+
+          price.insertAdjacentElement(
+            'afterend',
+            status
+          );
+
+        } else {
+
+          row.appendChild(
+            status
+          );
+        }
+      }
     );
-    box.appendChild(empty);
-  }
+  };
 
-  if (hidden.length) {
-    const details = document.createElement('details');
-    details.className = 'card';
 
-    const summary = document.createElement('summary');
-    summary.style.cursor = 'pointer';
-    summary.style.fontWeight = '800';
-    summary.textContent =
-      T('Staršie a skryté rezervácie','Older and hidden bookings') +
-      ` (${hidden.length})`;
-
-    details.appendChild(summary);
-
-    const hiddenBox = document.createElement('div');
-    hiddenBox.style.marginTop = '12px';
-    details.appendChild(hiddenBox);
-
-    box.appendChild(details);
-
-    for (const b of hidden) {
-      await renderBooking(b, hiddenBox, true);
-    }
-  }
-};
 // ============================================================
-// MY BOOKINGS – HIDE / RESTORE DATABASE FIX
+// HIDE / RESTORE BOOKING
+// Database RPC version only
 // ============================================================
 
-extHideBooking = async function(bookingId) {
-  const { error } = await supabaseClient.rpc(
-    'set_my_booking_hidden',
-    {
-      p_booking_id: bookingId,
-      p_hidden: true
-    }
-  );
+async function extHideBooking(
+  bookingId
+) {
+
+  if (
+    !bookingId ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  const { error } =
+    await supabaseClient.rpc(
+      'set_my_booking_hidden',
+      {
+        p_booking_id:
+          bookingId,
+
+        p_hidden:
+          true
+      }
+    );
+
 
   if (error) {
+
     alert(
       T(
         'Rezerváciu sa nepodarilo skryť: ',
         'The booking could not be hidden: '
-      ) + error.message
+      ) +
+      (
+        error.message ||
+        error
+      )
     );
+
     return;
   }
 
-  await showBookings();
-};
 
-extRestoreBooking = async function(bookingId) {
-  const { error } = await supabaseClient.rpc(
-    'set_my_booking_hidden',
-    {
-      p_booking_id: bookingId,
-      p_hidden: false
-    }
-  );
+  await showBookings();
+}
+
+
+async function extRestoreBooking(
+  bookingId
+) {
+
+  if (
+    !bookingId ||
+    !currentUser
+  ) {
+    return;
+  }
+
+
+  const { error } =
+    await supabaseClient.rpc(
+      'set_my_booking_hidden',
+      {
+        p_booking_id:
+          bookingId,
+
+        p_hidden:
+          false
+      }
+    );
+
 
   if (error) {
+
     alert(
       T(
         'Rezerváciu sa nepodarilo obnoviť: ',
         'The booking could not be restored: '
-      ) + error.message
+      ) +
+      (
+        error.message ||
+        error
+      )
     );
+
     return;
   }
 
+
   await showBookings();
-};
-// ============================================================
-// HOME MENU – REMOVE DUPLICATE EMOJIS
-// ============================================================
-
-function extCleanHomeMenuIcons() {
-  setText('eventsBtn', 'Podujatia', 'Events');
-  setText('bookingsBtn', 'Moje rezervácie', 'My Bookings');
-  setText(
-    'fatraBtn',
-    'Fatra Potraviny Rugby – Objednávka',
-    'Fatra Potraviny Rugby – Grocery Order'
-  );
-  setText(
-    'faceBtn',
-    'Tinuška – Maľovanie na tvár',
-    'Tinuška – Face Painting'
-  );
-  setText('aboutBtn', 'O nás', 'About Us');
-  setText('contactBtn', 'Kontakt', 'Contact');
 }
 
-const extMenuLanguageFix = setLanguage;
 
-setLanguage = function(lang) {
-  extMenuLanguageFix(lang);
-  extCleanHomeMenuIcons();
-};
+// ============================================================
+// MY BOOKINGS
+// Current + hidden/older bookings
+// ============================================================
 
-extCleanHomeMenuIcons();
-/* ===== FINAL HOME MENU TEXT ===== */
+showBookings =
+  async function() {
 
-function finalHomeMenuText() {
+    if (!requireLogin()) {
+      return;
+    }
+
+
+    go(
+      'bookingsPage'
+    );
+
+
+    const box =
+      el(
+        'bookingsContent'
+      );
+
+
+    box.innerHTML =
+      `<div class="loading">${
+        T(
+          'Načítavam rezervácie...',
+          'Loading bookings...'
+        )
+      }</div>`;
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from('bookings')
+        .select('*')
+        .eq(
+          'user_id',
+          currentUser.id
+        )
+        .order(
+          'created_at',
+          {
+            ascending: false
+          }
+        );
+
+
+    box.innerHTML = '';
+
+
+    if (error) {
+
+      box.innerHTML =
+        `<div class="card">${
+          T(
+            'Rezervácie sa nepodarilo načítať.',
+            'Bookings could not be loaded.'
+          )
+        }</div>`;
+
+      return;
+    }
+
+
+    if (!data?.length) {
+
+      box.innerHTML =
+        `<div class="card">${
+          T(
+            'Zatiaľ nemáte žiadne rezervácie.',
+            'You do not have any bookings yet.'
+          )
+        }</div>`;
+
+      return;
+    }
+
+
+    const sixMonthsAgo =
+      new Date();
+
+
+    sixMonthsAgo.setMonth(
+      sixMonthsAgo.getMonth() - 6
+    );
+
+
+    const visible =
+      data.filter(
+        booking =>
+          !booking.hidden_by_user &&
+          new Date(
+            booking.created_at
+          ) >= sixMonthsAgo
+      );
+
+
+    const hidden =
+      data.filter(
+        booking =>
+          booking.hidden_by_user ||
+          new Date(
+            booking.created_at
+          ) < sixMonthsAgo
+      );
+
+
+    // --------------------------------------------------------
+    // BOOKING CARD
+    // --------------------------------------------------------
+
+    async function renderBooking(
+      booking,
+      target,
+      isHidden
+    ) {
+
+      const {
+        data: items,
+        error: itemsError
+      } =
+        await supabaseClient
+          .from(
+            'booking_items'
+          )
+          .select(
+            '*,event_options(option_code,is_accommodation,free_with_accommodation)'
+          )
+          .eq(
+            'booking_id',
+            booking.id
+          )
+          .order(
+            'created_at',
+            {
+              ascending: true
+            }
+          );
+
+
+      const card =
+        document.createElement(
+          'div'
+        );
+
+      card.className =
+        'card';
+
+
+      card.innerHTML = `
+        <div
+          style="
+            display:flex;
+            justify-content:space-between;
+            gap:10px;
+            align-items:flex-start;
+          "
+        >
+          <div>
+            <b>
+              ${T(
+                'Rezervácia ',
+                'Booking '
+              )}${
+                escapeHtml(
+                  booking.booking_number ||
+                  booking.id
+                )
+              }
+            </b>
+
+            <div>
+              <span class="status-pill">
+                ${escapeHtml(
+                  booking.status || ''
+                )}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+
+
+      if (itemsError) {
+
+        const itemError =
+          document.createElement(
+            'div'
+          );
+
+        itemError.className =
+          'small';
+
+        itemError.textContent =
+          T(
+            'Položky rezervácie sa nepodarilo načítať.',
+            'Booking items could not be loaded.'
+          );
+
+
+        card.appendChild(
+          itemError
+        );
+
+      } else {
+
+        (items || []).forEach(
+          item => {
+
+            const row =
+              document.createElement(
+                'div'
+              );
+
+            row.className =
+              'cart-item';
+
+
+            const itemName =
+              extTranslatedItemName(
+                item
+              );
+
+
+            row.innerHTML = `
+              <b>
+                ${item.quantity}×
+                ${escapeHtml(
+                  itemName
+                )}
+              </b>
+              —
+              ${money(
+                item.line_total
+              )}
+              ${guestCartHtml(
+                item
+              )}
+            `;
+
+
+            card.appendChild(
+              row
+            );
+          }
+        );
+      }
+
+
+      const total =
+        document.createElement(
+          'div'
+        );
+
+      total.className =
+        'cart-total';
+
+
+      total.textContent =
+        T(
+          'Spolu: ',
+          'Total: '
+        ) +
+        money(
+          booking.total_amount
+        );
+
+
+      card.appendChild(
+        total
+      );
+
+
+      const button =
+        document.createElement(
+          'button'
+        );
+
+      button.type =
+        'button';
+
+      button.className =
+        'remove-btn';
+
+      button.style.marginTop =
+        '10px';
+
+
+      if (isHidden) {
+
+        button.textContent =
+          T(
+            'Obnoviť',
+            'Restore'
+          );
+
+        button.onclick =
+          () =>
+            extRestoreBooking(
+              booking.id
+            );
+
+      } else {
+
+        button.textContent =
+          T(
+            'Skryť',
+            'Hide'
+          );
+
+        button.onclick =
+          () =>
+            extHideBooking(
+              booking.id
+            );
+      }
+
+
+      card.appendChild(
+        button
+      );
+
+
+      target.appendChild(
+        card
+      );
+    }
+
+
+    // --------------------------------------------------------
+    // CURRENT BOOKINGS
+    // --------------------------------------------------------
+
+    if (visible.length) {
+
+      for (
+        const booking
+        of visible
+      ) {
+
+        await renderBooking(
+          booking,
+          box,
+          false
+        );
+      }
+
+    } else {
+
+      const empty =
+        document.createElement(
+          'div'
+        );
+
+      empty.className =
+        'card';
+
+
+      empty.textContent =
+        T(
+          'Nemáte žiadne aktuálne rezervácie.',
+          'You have no current bookings.'
+        );
+
+
+      box.appendChild(
+        empty
+      );
+    }
+
+
+    // --------------------------------------------------------
+    // HIDDEN / OLDER BOOKINGS
+    // --------------------------------------------------------
+
+    if (hidden.length) {
+
+      const details =
+        document.createElement(
+          'details'
+        );
+
+      details.className =
+        'card';
+
+
+      const summary =
+        document.createElement(
+          'summary'
+        );
+
+      summary.style.cursor =
+        'pointer';
+
+      summary.style.fontWeight =
+        '800';
+
+
+      summary.textContent =
+        T(
+          'Staršie a skryté rezervácie',
+          'Older and hidden bookings'
+        ) +
+        ` (${hidden.length})`;
+
+
+      details.appendChild(
+        summary
+      );
+
+
+      const hiddenBox =
+        document.createElement(
+          'div'
+        );
+
+      hiddenBox.style.marginTop =
+        '12px';
+
+
+      details.appendChild(
+        hiddenBox
+      );
+
+
+      box.appendChild(
+        details
+      );
+
+
+      for (
+        const booking
+        of hidden
+      ) {
+
+        await renderBooking(
+          booking,
+          hiddenBox,
+          true
+        );
+      }
+    }
+  };
+
+
+// ============================================================
+// CART ITEM NAME TRANSLATION
+// ============================================================
+
+const extBaseShowCartPage =
+  showCartPage;
+
+
+showCartPage =
+  async function() {
+
+    await extBaseShowCartPage();
+
+
+    if (!currentUser) {
+      return;
+    }
+
+
+    const cart =
+      await getActiveCart();
+
+
+    if (!cart) {
+      return;
+    }
+
+
+    const items =
+      await getCartItems(
+        cart.id
+      );
+
+
+    const renderedItems =
+      document.querySelectorAll(
+        '#cartPageContent .cart-item'
+      );
+
+
+    renderedItems.forEach(
+      (row, index) => {
+
+        const item =
+          items?.[index];
+
+        if (!item) {
+          return;
+        }
+
+
+        const title =
+          row.querySelector(
+            'b'
+          );
+
+
+        if (!title) {
+          return;
+        }
+
+
+        title.textContent =
+          `${item.quantity}× ${
+            extTranslatedItemName(
+              item
+            )
+          }`;
+      }
+    );
+  };
+
+
+// ============================================================
+// HOME MENU LABELS
+// One function only
+// ============================================================
+
+function extUpdateHomeMenuLabels() {
+
+  setText(
+    'eventsBtn',
+    'Podujatia',
+    'Events'
+  );
+
+
+  setText(
+    'bookingsBtn',
+    'Moje rezervácie',
+    'My Bookings'
+  );
+
+
   setText(
     'fatraBtn',
     'Fatra Potraviny Rugby\nObjednávka',
     'Fatra Potraviny Rugby\nGrocery Order'
   );
 
-  setText(
-    'faceBtn',
-    'Tinuška\nMaľovanie na tvár',
-    'Tinuška\nFace Painting'
-  );
-}
-
-const finalHomeLanguage = setLanguage;
-
-setLanguage = function(lang) {
-  finalHomeLanguage(lang);
-  finalHomeMenuText();
-};
-
-finalHomeMenuText();
-// ============================================================
-// FINAL FIX – HOME MENU LABELS SK / EN
-// ============================================================
-
-function finalFixHomeMenuLabels() {
-  setText('eventsBtn', 'Podujatia', 'Events');
-  setText('bookingsBtn', 'Moje rezervácie', 'My Bookings');
-
-  setText(
-    'fatraBtn',
-    'Fatra Potraviny Rugby\nObjednávka',
-    'Fatra Potraviny Rugby\nGrocery Order'
-  );
 
   setText(
     'faceBtn',
@@ -1820,32 +2954,107 @@ function finalFixHomeMenuLabels() {
     'Tinuška\nFace Painting'
   );
 
-  setText('aboutBtn', 'O nás', 'About Us');
-  setText('contactBtn', 'Kontakt', 'Contact');
+
+  setText(
+    'aboutBtn',
+    'O nás',
+    'About Us'
+  );
+
+
+  setText(
+    'contactBtn',
+    'Kontakt',
+    'Contact'
+  );
 }
 
-const finalFixedSetLanguage = setLanguage;
 
-setLanguage = function(lang) {
-  finalFixedSetLanguage(lang);
-  finalFixHomeMenuLabels();
-};
+// ============================================================
+// LANGUAGE
+// ONE extension wrapper only
+// ============================================================
 
-finalFixHomeMenuLabels();
-/* ===== MY BOOKINGS – FINAL LANGUAGE FIX ===== */
+const extBaseSetLanguage =
+  setLanguage;
 
-const bookingsLanguageFinalFix = setLanguage;
 
-setLanguage = function(lang) {
-  bookingsLanguageFinalFix(lang);
+setLanguage =
+  function(lang) {
 
-  const bookingsBtn =
-    document.getElementById('bookingsBtn');
+    extBaseSetLanguage(
+      lang
+    );
 
-  if (bookingsBtn) {
-    bookingsBtn.textContent =
-      lang === 'en'
-        ? 'My Bookings'
-        : 'Moje rezervácie';
-  }
-};
+
+    extUpdateHomeMenuLabels();
+
+
+    setTimeout(
+      async () => {
+
+        if (!currentUser) {
+          return;
+        }
+
+
+        // Keep active cart language
+        // synchronized with selected SK / EN.
+        const cart =
+          await getActiveCart();
+
+
+        if (cart) {
+
+          await extSetBookingLanguage(
+            cart.id
+          );
+        }
+
+
+        // Re-render only the page
+        // currently visible.
+        const cartPage =
+          document.getElementById(
+            'cartPage'
+          );
+
+
+        const bookingsPage =
+          document.getElementById(
+            'bookingsPage'
+          );
+
+
+        if (
+          cartPage &&
+          getComputedStyle(
+            cartPage
+          ).display !== 'none'
+        ) {
+
+          await showCartPage();
+        }
+
+
+        if (
+          bookingsPage &&
+          getComputedStyle(
+            bookingsPage
+          ).display !== 'none'
+        ) {
+
+          await showBookings();
+        }
+
+      },
+      50
+    );
+  };
+
+
+// ============================================================
+// INITIAL HOME MENU LANGUAGE
+// ============================================================
+
+extUpdateHomeMenuLabels();
