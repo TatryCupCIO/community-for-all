@@ -1159,14 +1159,6 @@ await refreshCartBadge();
 alert(T('Položka bola pridaná do košíka.','Item added to cart.'))
 }
 }
-
-async function getActiveCart(){
-if(!currentUser)return null;
-const{data,error}=await supabaseClient.from('bookings').select('*').eq('user_id',currentUser.id).eq('status','cart').order('created_at',{ascending:false}).limit(1).maybeSingle();
-if(error)return null;
-return data||null
-}
-
 async function getActiveCart(){
 if(!currentUser)return null;
 
