@@ -2823,12 +2823,10 @@ function addPasswordEye(inputId) {
       `;
 
       usersButton.onclick = function () {
-
-        if (typeof openPrivateUsers === 'function') {
-          openPrivateUsers();
-        }
-
-      };
+  if (typeof window.openPrivateUsers === 'function') {
+    window.openPrivateUsers();
+  }
+};
 
       chatTitle.insertAdjacentElement(
         'afterend',
