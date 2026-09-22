@@ -48,7 +48,13 @@ async function openCommunityChat() {
   }
 
   communityChatOpen = true;
-
+await supabaseClient
+  .from('user_profiles')
+  .update({
+    presence_status: 'online',
+    last_active_at: new Date().toISOString()
+  })
+  .eq('user_id', currentUser.id);
   const container =
     document.querySelector('.container');
 
