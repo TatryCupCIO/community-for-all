@@ -3859,3 +3859,93 @@ showEvents = async function () {
 
 })();
 </script>
+<script>
+/* ===== PROFILE AVATAR – HORIZONTAL / VERTICAL MOVE FIX ===== */
+
+(function () {
+
+  function applyAvatarSliderPosition() {
+
+    if (!avatarImage) return;
+
+    const horizontal =
+      document.getElementById('avatarHorizontal');
+
+    const vertical =
+      document.getElementById('avatarVertical');
+
+    if (!horizontal || !vertical) return;
+
+    const size = 280;
+
+    const scale =
+      avatarImage.baseScale * avatarScale;
+
+    const width =
+      avatarImage.width * scale;
+
+    const height =
+      avatarImage.height * scale;
+
+    const extraX =
+      Math.max(0, width - size);
+
+    const extraY =
+      Math.max(0, height - size);
+
+    const h =
+      Number(horizontal.value);
+
+    const v =
+      Number(vertical.value);
+
+    /* -100 = úplne vľavo, +100 = úplne vpravo */
+    avatarX =
+      -(extraX / 2) +
+      (h / 100) * (extraX / 2);
+
+    /* -100 = úplne hore, +100 = úplne dole */
+    avatarY =
+      -(extraY / 2) +
+      (v / 100) * (extraY / 2);
+
+    keepAvatarInside();
+    drawAvatarCrop();
+  }
+
+
+  const horizontal =
+    document.getElementById('avatarHorizontal');
+
+  const vertical =
+    document.getElementById('avatarVertical');
+
+  const zoom =
+    document.getElementById('avatarZoom');
+
+
+  if (horizontal) {
+    horizontal.oninput =
+      applyAvatarSliderPosition;
+  }
+
+
+  if (vertical) {
+    vertical.oninput =
+      applyAvatarSliderPosition;
+  }
+
+
+  if (zoom) {
+
+    zoom.oninput = function () {
+
+      avatarScale =
+        Number(this.value);
+
+      applyAvatarSliderPosition();
+    };
+  }
+
+})();
+</script>
