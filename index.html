@@ -2053,3 +2053,27 @@ showEvents = async function () {
   window.scrollTo(0, 0);
 };
 </script>
+<script>
+/* ===== MY BOOKINGS – LANGUAGE FIX ===== */
+
+(function () {
+
+  const originalSetLanguageBookingsFix = setLanguage;
+
+  setLanguage = function (lang) {
+
+    originalSetLanguageBookingsFix.apply(this, arguments);
+
+    const bookingsBtn =
+      document.getElementById('bookingsBtn');
+
+    if (bookingsBtn) {
+      bookingsBtn.textContent =
+        lang === 'en'
+          ? '🎟️ My Bookings'
+          : '🎟️ Moje rezervácie';
+    }
+  };
+
+})();
+</script>
