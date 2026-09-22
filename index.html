@@ -1867,3 +1867,122 @@ setTimeout(async () => {
   </script>
 </body>
 </html>
+<script>
+/* ===== PASSWORD RECOVERY – LOCK UNTIL NEW PASSWORD SAVED ===== */
+
+(function () {
+  let recoveryLocked = false;
+
+  function openRecoveryScreen() {
+    recoveryLocked = true;
+
+    if (typeof hidePages === 'function') {
+      hidePages();
+    }
+
+    const resetPage = document.getElementById('resetPage');
+
+    if (resetPage) {
+      resetPage.style.display = 'block';
+    }
+
+    document.getElementById('newPassword')?.focus();
+  }
+
+  /* Zachytí recovery udalosť zo Supabase */
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      sessionStorage.setItem('passwordRecoveryPending', 'true');
+
+      currentUser = session?.user || null;
+
+      openRecoveryScreen();
+    }
+  });
+
+  /* Recovery môže byť zachytené už pri načítaní stránky */
+  if (
+    location.hash.includes('type=recovery') ||
+    location.search.includes('type=recovery')
+  ) {
+    sessionStorage.setItem('passwordRecoveryPending', 'true');
+  }
+
+  if (sessionStorage.getItem('passwordRecoveryPending') === 'true') {
+    openRecoveryScreen();
+  }
+
+  /* Nedovolí ostatnému kódu prekryť reset obrazovku */
+  const originalShowHome = window.showHome;
+
+  window.showHome = function () {
+    if (
+      recoveryLocked ||
+      sessionStorage.getItem('passwordRecoveryPending') === 'true'
+    ) {
+      openRecoveryScreen();
+      return;
+    }
+
+    return originalShowHome.apply(this, arguments);
+  };
+
+  /* Vlastné dokončenie resetu */
+  const resetForm = document.getElementById('resetForm');
+
+  if (resetForm) {
+    resetForm.onsubmit = async function (e) {
+      e.preventDefault();
+
+      const password =
+        document.getElementById('newPassword').value;
+
+      const password2 =
+        document.getElementById('newPassword2').value;
+
+      if (password !== password2) {
+        showMessage(
+          'resetMessage',
+          T('Heslá sa nezhodujú.', 'Passwords do not match.'),
+          'error'
+        );
+        return;
+      }
+
+      const { error } =
+        await supabaseClient.auth.updateUser({
+          password: password
+        });
+
+      if (error) {
+        showMessage(
+          'resetMessage',
+          error.message,
+          'error'
+        );
+        return;
+      }
+
+      /* AŽ TERAZ odomkneme normálny vstup */
+      sessionStorage.removeItem('passwordRecoveryPending');
+      recoveryLocked = false;
+
+      document.getElementById('newPassword').value = '';
+      document.getElementById('newPassword2').value = '';
+
+      showMessage(
+        'resetMessage',
+        T(
+          'Nové heslo bolo uložené.',
+          'Your new password has been saved.'
+        ),
+        'success'
+      );
+
+      setTimeout(() => {
+        originalShowHome();
+      }, 700);
+    };
+  }
+})();
+</script>
