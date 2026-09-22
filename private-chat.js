@@ -1,1 +1,1571 @@
 // ===== COMMUNITY FOR ALL - PRIVATE CHAT =====
+/* ===== PRIVATE CHAT – CORE ===== */
+
+let privateChatOpen = false;
+let privateChatConversationId = null;
+let privateChatSelectedUser = null;
+let privateChatMessagesChannel = null;
+let privateChatEventsChannel = null;
+
+
+/* ---------- CREATE PRIVATE CHAT PAGE ---------- */
+
+function createPrivateChatPage() {
+  if (document.getElementById('privateChatPage')) return;
+
+  const page = document.createElement('div');
+
+  page.id = 'privateChatPage';
+  page.className = 'page';
+  page.style.display = 'none';
+
+  page.innerHTML = `
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:14px;
+    ">
+      <button
+        type="button"
+        id="privateChatBackBtn"
+        style="
+          border:0;
+          background:transparent;
+          color:#ff7417;
+          font-size:28px;
+          cursor:pointer;
+          padding:4px;
+        "
+      >←</button>
+
+      <div
+        id="privateChatAvatar"
+        style="
+          width:46px;
+          height:46px;
+          min-width:46px;
+          border-radius:50%;
+          overflow:hidden;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:#334155;
+          font-size:24px;
+        "
+      >👤</div>
+
+      <div style="min-width:0;flex:1;">
+        <div
+          id="privateChatTitle"
+          style="
+            font-weight:800;
+            font-size:17px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+          "
+        ></div>
+
+        <div
+          id="privateChatStatus"
+          style="
+            font-size:12px;
+            margin-top:2px;
+          "
+        ></div>
+      </div>
+
+      <button
+        type="button"
+        id="privateChatMembersBtn"
+        title="Add people"
+        style="
+          border:0;
+          background:transparent;
+          font-size:25px;
+          cursor:pointer;
+          padding:5px;
+        "
+      >👥</button>
+    </div>
+
+    <div
+      id="privateChatMessages"
+      style="
+        min-height:300px;
+        max-height:58vh;
+        overflow-y:auto;
+        padding:8px 2px 14px;
+      "
+    ></div>
+
+    <div
+      id="privateChatPendingPhoto"
+      style="
+        display:none;
+        position:relative;
+        width:max-content;
+        max-width:120px;
+        margin:4px 0 8px;
+      "
+    >
+      <img
+        id="privateChatPendingPhotoImage"
+        alt=""
+        style="
+          display:block;
+          max-width:120px;
+          max-height:100px;
+          border-radius:10px;
+        "
+      >
+
+      <button
+        type="button"
+        id="privateChatPendingPhotoRemove"
+        style="
+          position:absolute;
+          right:-7px;
+          top:-7px;
+          width:25px;
+          height:25px;
+          border:0;
+          border-radius:50%;
+          background:#ff7417;
+          color:white;
+          font-size:18px;
+          line-height:23px;
+          padding:0;
+          cursor:pointer;
+        "
+      >×</button>
+    </div>
+
+    <div style="
+      display:flex;
+      align-items:center;
+      gap:8px;
+    ">
+      <input
+        id="privateChatPhotoInput"
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        hidden
+      >
+
+      <button
+        type="button"
+        id="privateChatPhotoBtn"
+        style="
+          border:0;
+          background:transparent;
+          font-size:25px;
+          cursor:pointer;
+          padding:5px;
+        "
+      >📷</button>
+
+      <input
+        id="privateChatMessageInput"
+        type="text"
+        autocomplete="off"
+        style="
+          flex:1;
+          min-width:0;
+          padding:12px;
+          border-radius:12px;
+        "
+      >
+
+      <button
+        type="button"
+        id="privateChatSendBtn"
+        style="
+          border:0;
+          border-radius:50%;
+          width:43px;
+          height:43px;
+          background:#ff7417;
+          color:white;
+          font-size:22px;
+          cursor:pointer;
+        "
+      >➤</button>
+    </div>
+  `;
+
+  document.body.appendChild(page);
+
+  document
+    .getElementById('privateChatBackBtn')
+    .addEventListener('click', closePrivateChat);
+
+  document
+    .getElementById('privateChatSendBtn')
+    .addEventListener('click', sendPrivateChatContent);
+
+  document
+    .getElementById('privateChatMessageInput')
+    .addEventListener('keydown', event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        sendPrivateChatContent();
+      }
+    });
+
+  document
+    .getElementById('privateChatPhotoBtn')
+    .addEventListener('click', () => {
+      document.getElementById('privateChatPhotoInput').click();
+    });
+
+  document
+    .getElementById('privateChatPhotoInput')
+    .addEventListener('change', event => {
+      const file = event.target.files?.[0];
+
+      if (file) {
+        showPrivateChatPendingPhoto(file);
+      }
+    });
+
+  document
+    .getElementById('privateChatPendingPhotoRemove')
+    .addEventListener('click', clearPrivateChatPendingPhoto);
+
+  document
+    .getElementById('privateChatMembersBtn')
+    .addEventListener('click', openPrivateChatMembers);
+
+  setPrivateChatLanguage();
+}
+
+
+/* ---------- OPEN FROM USERS DIRECTORY ---------- */
+
+async function openPrivateChatWithUser(user) {
+  if (!currentUser || !user?.user_id) return;
+
+  createPrivateChatPage();
+
+  const { data, error } =
+    await supabaseClient.rpc(
+      'create_private_conversation',
+      {
+        p_other_user_id: user.user_id
+      }
+    );
+
+  if (error || !data) {
+    alert(
+      T(
+        'Súkromný chat sa nepodarilo otvoriť.',
+        'The private chat could not be opened.'
+      )
+    );
+    return;
+  }
+
+  privateChatConversationId = Number(data);
+  privateChatSelectedUser = user;
+  privateChatOpen = true;
+
+  if (typeof hidePages === 'function') {
+    hidePages();
+  }
+
+  const usersPage =
+    document.getElementById('privateUsersPage');
+
+  if (usersPage) {
+    usersPage.style.display = 'none';
+  }
+
+  const page =
+    document.getElementById('privateChatPage');
+
+  page.style.display = 'block';
+
+  setPrivateChatHeader(user);
+  setPrivateChatLanguage();
+
+  await loadPrivateChatMessages();
+  await markPrivateChatRead();
+
+  subscribePrivateChat();
+
+  window.scrollTo(0, 0);
+}
+
+window.openPrivateChatWithUser =
+  openPrivateChatWithUser;
+
+
+/* ---------- HEADER ---------- */
+
+function setPrivateChatHeader(user) {
+  const title =
+    document.getElementById('privateChatTitle');
+
+  const avatar =
+    document.getElementById('privateChatAvatar');
+
+  if (title) {
+    title.textContent =
+      user?.display_name || T('Používateľ', 'User');
+  }
+
+  if (avatar) {
+    avatar.innerHTML = '';
+
+    if (user?.avatar_url) {
+      const img = document.createElement('img');
+
+      img.src = user.avatar_url;
+      img.alt = '';
+
+      img.style.cssText =
+        'width:100%;height:100%;object-fit:cover;';
+
+      avatar.appendChild(img);
+    } else {
+      avatar.textContent = '👤';
+    }
+  }
+
+  updatePrivateChatStatus();
+}
+
+
+/* ---------- STATUS ---------- */
+
+function updatePrivateChatStatus() {
+  const status =
+    document.getElementById('privateChatStatus');
+
+  if (!status || !privateChatSelectedUser) return;
+
+  const online =
+    window.onlineUserIds instanceof Set &&
+    window.onlineUserIds.has(
+      privateChatSelectedUser.user_id
+    );
+
+  status.textContent =
+    online
+      ? T('Online', 'Online')
+      : T('Offline', 'Offline');
+
+  status.style.color =
+    online ? '#22c55e' : '#ef4444';
+}
+
+
+/* ---------- LOAD MESSAGES ---------- */
+
+async function loadPrivateChatMessages() {
+  const box =
+    document.getElementById('privateChatMessages');
+
+  if (!box || !privateChatConversationId) return;
+
+  box.innerHTML =
+    '<div class="loading">' +
+    T('Načítavam správy...', 'Loading messages...') +
+    '</div>';
+
+  const { data, error } =
+    await supabaseClient
+      .from('private_messages')
+      .select('*')
+      .eq(
+        'conversation_id',
+        privateChatConversationId
+      )
+      .order('created_at', {
+        ascending: true
+      });
+
+  box.innerHTML = '';
+
+  if (error) {
+    box.innerHTML =
+      '<div class="loading">' +
+      T(
+        'Správy sa nepodarilo načítať.',
+        'Messages could not be loaded.'
+      ) +
+      '</div>';
+
+    return;
+  }
+
+  for (const message of data || []) {
+    await renderPrivateChatMessage(message);
+  }
+
+  await loadPrivateConversationEvents();
+
+  scrollPrivateChatToBottom();
+}
+
+
+/* ---------- RENDER MESSAGE ---------- */
+
+async function renderPrivateChatMessage(message) {
+  const box =
+    document.getElementById('privateChatMessages');
+
+  if (!box || !message) return;
+
+  if (
+    document.getElementById(
+      'private-message-' + message.id
+    )
+  ) {
+    return;
+  }
+
+  const mine =
+    message.sender_id === currentUser?.id;
+
+  const item =
+    document.createElement('div');
+
+  item.id =
+    'private-message-' + message.id;
+
+  item.style.cssText = `
+    position:relative;
+    max-width:82%;
+    margin:8px 0;
+    padding:10px 12px;
+    border-radius:14px;
+    background:${mine ? '#ff7417' : '#172033'};
+    color:white;
+    margin-left:${mine ? 'auto' : '0'};
+    margin-right:${mine ? '0' : 'auto'};
+    overflow-wrap:anywhere;
+  `;
+
+  if (message.message_text) {
+    const text =
+      document.createElement('div');
+
+    text.textContent =
+      message.message_text;
+
+    item.appendChild(text);
+  }
+
+  if (message.image_url) {
+    const holder =
+      document.createElement('div');
+
+    holder.style.marginTop =
+      message.message_text ? '8px' : '0';
+
+    item.appendChild(holder);
+
+    await loadPrivateChatPhoto(
+      message.image_url,
+      holder
+    );
+  }
+
+  const meta =
+    document.createElement('div');
+
+  meta.style.cssText = `
+    margin-top:5px;
+    font-size:10px;
+    opacity:.8;
+    text-align:right;
+  `;
+
+  meta.textContent =
+    formatCommunityChatDate(
+      message.created_at
+    );
+
+  item.appendChild(meta);
+
+  if (mine) {
+    const receipt =
+      document.createElement('div');
+
+    receipt.className =
+      'private-read-receipt';
+
+    receipt.style.cssText = `
+      margin-top:2px;
+      font-size:10px;
+      text-align:right;
+      opacity:.9;
+    `;
+
+    receipt.textContent =
+      message.read_at
+        ? T('Prečítané', 'Read')
+        : T('Odoslané', 'Sent');
+
+    item.appendChild(receipt);
+
+    const deleteButton =
+      document.createElement('button');
+
+    deleteButton.type = 'button';
+    deleteButton.textContent = '🗑️';
+
+    deleteButton.style.cssText = `
+      border:0;
+      background:transparent;
+      cursor:pointer;
+      font-size:15px;
+      padding:3px;
+      margin-top:3px;
+    `;
+
+    deleteButton.title =
+      T('Vymazať', 'Delete');
+
+    deleteButton.addEventListener(
+      'click',
+      event => {
+        event.stopPropagation();
+        deleteOwnPrivateChatMessage(message);
+      }
+    );
+
+    item.appendChild(deleteButton);
+  }
+
+  box.appendChild(item);
+}
+
+
+/* ---------- SEND TEXT ---------- */
+
+async function sendPrivateChatText(text) {
+  if (
+    !currentUser ||
+    !privateChatConversationId ||
+    !text
+  ) {
+    return;
+  }
+
+  const receiverId =
+    privateChatSelectedUser?.user_id || null;
+
+  const { error } =
+    await supabaseClient
+      .from('private_messages')
+      .insert({
+        conversation_id:
+          privateChatConversationId,
+
+        sender_id:
+          currentUser.id,
+
+        receiver_id:
+          receiverId,
+
+        message_text:
+          text,
+
+        image_url:
+          null
+      });
+
+  if (error) {
+    alert(
+      T(
+        'Správu sa nepodarilo odoslať.',
+        'The message could not be sent.'
+      )
+    );
+
+    return false;
+  }
+
+  return true;
+}
+
+
+/* ---------- PHOTO PREVIEW ---------- */
+
+let pendingPrivateChatPhoto = null;
+let pendingPrivateChatPreviewUrl = null;
+
+function showPrivateChatPendingPhoto(file) {
+  if (!file?.type?.startsWith('image/')) {
+    alert(
+      T(
+        'Môžete odosielať iba fotografie.',
+        'You can only send photos.'
+      )
+    );
+
+    return;
+  }
+
+  pendingPrivateChatPhoto = file;
+
+  if (pendingPrivateChatPreviewUrl) {
+    URL.revokeObjectURL(
+      pendingPrivateChatPreviewUrl
+    );
+  }
+
+  pendingPrivateChatPreviewUrl =
+    URL.createObjectURL(file);
+
+  const preview =
+    document.getElementById(
+      'privateChatPendingPhoto'
+    );
+
+  const image =
+    document.getElementById(
+      'privateChatPendingPhotoImage'
+    );
+
+  if (image) {
+    image.src =
+      pendingPrivateChatPreviewUrl;
+  }
+
+  if (preview) {
+    preview.style.display = 'block';
+  }
+}
+
+
+function clearPrivateChatPendingPhoto() {
+  pendingPrivateChatPhoto = null;
+
+  if (pendingPrivateChatPreviewUrl) {
+    URL.revokeObjectURL(
+      pendingPrivateChatPreviewUrl
+    );
+
+    pendingPrivateChatPreviewUrl = null;
+  }
+
+  const preview =
+    document.getElementById(
+      'privateChatPendingPhoto'
+    );
+
+  if (preview) {
+    preview.style.display = 'none';
+  }
+
+  const input =
+    document.getElementById(
+      'privateChatPhotoInput'
+    );
+
+  if (input) {
+    input.value = '';
+  }
+}
+
+
+/* ---------- COMPRESS PHOTO ---------- */
+
+async function compressPrivateChatPhoto(file) {
+  const objectUrl =
+    URL.createObjectURL(file);
+
+  try {
+    const image =
+      await new Promise(
+        (resolve, reject) => {
+          const img = new Image();
+
+          img.onload = () =>
+            resolve(img);
+
+          img.onerror = () =>
+            reject(
+              new Error(
+                'IMAGE_LOAD_FAILED'
+              )
+            );
+
+          img.src = objectUrl;
+        }
+      );
+
+    const maxSide = 1600;
+
+    let width =
+      image.naturalWidth ||
+      image.width;
+
+    let height =
+      image.naturalHeight ||
+      image.height;
+
+    if (
+      width > maxSide ||
+      height > maxSide
+    ) {
+      const scale =
+        maxSide /
+        Math.max(width, height);
+
+      width =
+        Math.round(width * scale);
+
+      height =
+        Math.round(height * scale);
+    }
+
+    const canvas =
+      document.createElement('canvas');
+
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx =
+      canvas.getContext('2d');
+
+    ctx.drawImage(
+      image,
+      0,
+      0,
+      width,
+      height
+    );
+
+    let quality = 0.85;
+
+    let blob =
+      await new Promise(resolve => {
+        canvas.toBlob(
+          resolve,
+          'image/jpeg',
+          quality
+        );
+      });
+
+    while (
+      blob &&
+      blob.size > 500 * 1024 &&
+      quality > 0.50
+    ) {
+      quality -= 0.05;
+
+      blob =
+        await new Promise(resolve => {
+          canvas.toBlob(
+            resolve,
+            'image/jpeg',
+            quality
+          );
+        });
+    }
+
+    return blob;
+
+  } finally {
+    URL.revokeObjectURL(objectUrl);
+  }
+}
+
+
+/* ---------- SEND PHOTO ---------- */
+
+async function sendPrivateChatPhoto(file) {
+  if (
+    !currentUser ||
+    !privateChatConversationId ||
+    !file
+  ) {
+    return false;
+  }
+
+  let photo;
+
+  try {
+    photo =
+      await compressPrivateChatPhoto(file);
+  } catch (error) {
+    alert(
+      T(
+        'Fotografiu sa nepodarilo spracovať.',
+        'The photo could not be processed.'
+      )
+    );
+
+    return false;
+  }
+
+  if (!photo) return false;
+
+  const path =
+    currentUser.id +
+    '/' +
+    Date.now() +
+    '-' +
+    Math.random()
+      .toString(36)
+      .slice(2) +
+    '.jpg';
+
+  const { error: uploadError } =
+    await supabaseClient.storage
+      .from('private-chat-media')
+      .upload(
+        path,
+        photo,
+        {
+          contentType: 'image/jpeg',
+          upsert: false
+        }
+      );
+
+  if (uploadError) {
+    alert(
+      T(
+        'Fotografiu sa nepodarilo nahrať.',
+        'The photo could not be uploaded.'
+      )
+    );
+
+    return false;
+  }
+
+  const { error: messageError } =
+    await supabaseClient
+      .from('private_messages')
+      .insert({
+        conversation_id:
+          privateChatConversationId,
+
+        sender_id:
+          currentUser.id,
+
+        receiver_id:
+          privateChatSelectedUser?.user_id ||
+          null,
+
+        message_text:
+          null,
+
+        image_url:
+          path
+      });
+
+  if (messageError) {
+    await supabaseClient.storage
+      .from('private-chat-media')
+      .remove([path]);
+
+    alert(
+      T(
+        'Fotografiu sa nepodarilo odoslať.',
+        'The photo could not be sent.'
+      )
+    );
+
+    return false;
+  }
+
+  return true;
+}
+
+
+/* ---------- LOAD PRIVATE PHOTO ---------- */
+
+async function loadPrivateChatPhoto(
+  path,
+  container
+) {
+  const { data, error } =
+    await supabaseClient.storage
+      .from('private-chat-media')
+      .createSignedUrl(
+        path,
+        3600
+      );
+
+  if (
+    error ||
+    !data?.signedUrl
+  ) {
+    return;
+  }
+
+  const img =
+    document.createElement('img');
+
+  img.src =
+    data.signedUrl;
+
+  img.alt =
+    T(
+      'Fotografia v súkromnom chate',
+      'Private chat photo'
+    );
+
+  img.loading = 'lazy';
+
+  img.style.cssText = `
+    display:block;
+    max-width:100%;
+    max-height:360px;
+    border-radius:10px;
+    cursor:pointer;
+  `;
+
+  img.addEventListener(
+    'click',
+    () => {
+      if (
+        typeof openCommunityChatPhoto ===
+        'function'
+      ) {
+        openCommunityChatPhoto(
+          data.signedUrl
+        );
+      }
+    }
+  );
+
+  container.appendChild(img);
+}
+
+
+/* ---------- SEND TEXT + PHOTO ---------- */
+
+async function sendPrivateChatContent() {
+  const input =
+    document.getElementById(
+      'privateChatMessageInput'
+    );
+
+  const button =
+    document.getElementById(
+      'privateChatSendBtn'
+    );
+
+  const text =
+    input?.value.trim() || '';
+
+  const photo =
+    pendingPrivateChatPhoto;
+
+  if (!text && !photo) return;
+
+  if (button) {
+    button.disabled = true;
+  }
+
+  if (text) {
+    const sent =
+      await sendPrivateChatText(text);
+
+    if (sent && input) {
+      input.value = '';
+    }
+  }
+
+  if (photo) {
+    const sent =
+      await sendPrivateChatPhoto(photo);
+
+    if (sent) {
+      clearPrivateChatPendingPhoto();
+    }
+  }
+
+  if (button) {
+    button.disabled = false;
+  }
+}
+
+
+/* ---------- READ ---------- */
+
+async function markPrivateChatRead() {
+  if (
+    !currentUser ||
+    !privateChatSelectedUser?.user_id
+  ) {
+    return;
+  }
+
+  await supabaseClient.rpc(
+    'mark_private_messages_read',
+    {
+      p_sender_id:
+        privateChatSelectedUser.user_id
+    }
+  );
+}
+
+
+/* ---------- DELETE OWN MESSAGE / PHOTO ---------- */
+
+async function deleteOwnPrivateChatMessage(
+  message
+) {
+  if (
+    !currentUser ||
+    message.sender_id !== currentUser.id
+  ) {
+    return;
+  }
+
+  const question =
+    message.image_url
+      ? T(
+          'Naozaj chcete vymazať túto fotografiu?',
+          'Do you really want to delete this photo?'
+        )
+      : T(
+          'Naozaj chcete vymazať túto správu?',
+          'Do you really want to delete this message?'
+        );
+
+  if (!confirm(question)) return;
+
+  if (message.image_url) {
+    const { error: storageError } =
+      await supabaseClient.storage
+        .from('private-chat-media')
+        .remove([
+          message.image_url
+        ]);
+
+    if (storageError) {
+      alert(
+        T(
+          'Fotografiu sa nepodarilo vymazať.',
+          'The photo could not be deleted.'
+        )
+      );
+
+      return;
+    }
+  }
+
+  const { error } =
+    await supabaseClient
+      .from('private_messages')
+      .delete()
+      .eq('id', message.id)
+      .eq(
+        'sender_id',
+        currentUser.id
+      );
+
+  if (error) {
+    alert(
+      T(
+        'Správu sa nepodarilo vymazať.',
+        'The message could not be deleted.'
+      )
+    );
+
+    return;
+  }
+
+  document
+    .getElementById(
+      'private-message-' +
+      message.id
+    )
+    ?.remove();
+}
+
+
+/* ---------- REALTIME ---------- */
+
+function subscribePrivateChat() {
+  if (!privateChatConversationId) return;
+
+  if (privateChatMessagesChannel) {
+    supabaseClient.removeChannel(
+      privateChatMessagesChannel
+    );
+
+    privateChatMessagesChannel = null;
+  }
+
+  privateChatMessagesChannel =
+    supabaseClient
+      .channel(
+        'private-chat-' +
+        privateChatConversationId
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'private_messages',
+          filter:
+            'conversation_id=eq.' +
+            privateChatConversationId
+        },
+        async payload => {
+          if (
+            payload.eventType ===
+            'INSERT'
+          ) {
+            await renderPrivateChatMessage(
+              payload.new
+            );
+
+            scrollPrivateChatToBottom();
+
+            if (
+              payload.new.sender_id !==
+              currentUser?.id
+            ) {
+              await markPrivateChatRead();
+
+              if (
+                chatNotificationsEnabled &&
+                typeof playCommunityChatSound ===
+                  'function'
+              ) {
+                playCommunityChatSound();
+              }
+            }
+          }
+
+          if (
+            payload.eventType ===
+            'UPDATE'
+          ) {
+            updatePrivateChatReadReceipt(
+              payload.new
+            );
+          }
+
+          if (
+            payload.eventType ===
+            'DELETE'
+          ) {
+            document
+              .getElementById(
+                'private-message-' +
+                payload.old.id
+              )
+              ?.remove();
+          }
+        }
+      )
+      .subscribe();
+
+  subscribePrivateConversationEvents();
+}
+
+
+/* ---------- UPDATE READ RECEIPT ---------- */
+
+function updatePrivateChatReadReceipt(
+  message
+) {
+  if (
+    message.sender_id !==
+    currentUser?.id
+  ) {
+    return;
+  }
+
+  const item =
+    document.getElementById(
+      'private-message-' +
+      message.id
+    );
+
+  const receipt =
+    item?.querySelector(
+      '.private-read-receipt'
+    );
+
+  if (!receipt) return;
+
+  receipt.textContent =
+    message.read_at
+      ? T('Prečítané', 'Read')
+      : T('Odoslané', 'Sent');
+}
+
+
+/* ---------- SYSTEM EVENTS ---------- */
+
+async function loadPrivateConversationEvents() {
+  if (!privateChatConversationId) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from(
+        'private_conversation_events'
+      )
+      .select('*')
+      .eq(
+        'conversation_id',
+        privateChatConversationId
+      )
+      .order(
+        'created_at',
+        {
+          ascending: true
+        }
+      );
+
+  if (error) return;
+
+  for (const event of data || []) {
+    await renderPrivateConversationEvent(
+      event
+    );
+  }
+}
+
+
+async function renderPrivateConversationEvent(
+  event
+) {
+  if (
+    event.event_type !==
+    'members_removed'
+  ) {
+    return;
+  }
+
+  if (
+    document.getElementById(
+      'private-event-' +
+      event.id
+    )
+  ) {
+    return;
+  }
+
+  const ids =
+    event.affected_user_ids || [];
+
+  let names = [];
+
+  if (ids.length) {
+    const { data } =
+      await supabaseClient
+        .from('user_profiles')
+        .select(
+          'user_id,display_name'
+        )
+        .in(
+          'user_id',
+          ids
+        );
+
+    names =
+      (data || []).map(
+        user =>
+          user.display_name ||
+          T(
+            'Používateľ',
+            'User'
+          )
+      );
+  }
+
+  const box =
+    document.getElementById(
+      'privateChatMessages'
+    );
+
+  if (!box) return;
+
+  const item =
+    document.createElement('div');
+
+  item.id =
+    'private-event-' +
+    event.id;
+
+  item.style.cssText = `
+    margin:14px auto;
+    padding:10px 12px;
+    max-width:92%;
+    text-align:center;
+    border-radius:12px;
+    background:#334155;
+    color:white;
+    font-size:13px;
+  `;
+
+  const removedText =
+    names.length === 1
+      ? T(
+          'Z chatu bol odstránený: ',
+          'Removed from the chat: '
+        )
+      : T(
+          'Z chatu boli odstránení: ',
+          'Removed from the chat: '
+        );
+
+  item.textContent =
+    T(
+      '😄 Tak, dohodnuté! Ďakujeme za pokec, pááá 👋 Vidíme sa!',
+      '😄 All agreed! Thanks for the chat, byeee 👋 See you!'
+    ) +
+    (names.length
+      ? '\n' +
+        removedText +
+        names.join(', ')
+      : '');
+
+  item.style.whiteSpace =
+    'pre-line';
+
+  box.appendChild(item);
+}
+
+
+/* ---------- REALTIME EVENTS ---------- */
+
+function subscribePrivateConversationEvents() {
+  if (!privateChatConversationId) return;
+
+  if (privateChatEventsChannel) {
+    supabaseClient.removeChannel(
+      privateChatEventsChannel
+    );
+
+    privateChatEventsChannel = null;
+  }
+
+  privateChatEventsChannel =
+    supabaseClient
+      .channel(
+        'private-events-' +
+        privateChatConversationId
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table:
+            'private_conversation_events',
+          filter:
+            'conversation_id=eq.' +
+            privateChatConversationId
+        },
+        async payload => {
+          await renderPrivateConversationEvent(
+            payload.new
+          );
+
+          scrollPrivateChatToBottom();
+        }
+      )
+      .subscribe();
+}
+
+
+/* ---------- ADD / REMOVE MEMBERS PLACEHOLDER ---------- */
+
+function openPrivateChatMembers() {
+  alert(
+    T(
+      'Výber používateľov do diskusie doplníme v ďalšom kroku.',
+      'User selection for this conversation will be added in the next step.'
+    )
+  );
+}
+
+
+/* ---------- CLOSE ---------- */
+
+function closePrivateChat() {
+  privateChatOpen = false;
+
+  const page =
+    document.getElementById(
+      'privateChatPage'
+    );
+
+  if (page) {
+    page.style.display = 'none';
+  }
+
+  if (privateChatMessagesChannel) {
+    supabaseClient.removeChannel(
+      privateChatMessagesChannel
+    );
+
+    privateChatMessagesChannel = null;
+  }
+
+  if (privateChatEventsChannel) {
+    supabaseClient.removeChannel(
+      privateChatEventsChannel
+    );
+
+    privateChatEventsChannel = null;
+  }
+
+  privateChatConversationId = null;
+  privateChatSelectedUser = null;
+
+  if (
+    typeof window.openPrivateUsers ===
+    'function'
+  ) {
+    window.openPrivateUsers();
+  }
+}
+
+
+/* ---------- LANGUAGE ---------- */
+
+function setPrivateChatLanguage() {
+  const input =
+    document.getElementById(
+      'privateChatMessageInput'
+    );
+
+  if (input) {
+    input.placeholder =
+      T(
+        'Napíšte správu...',
+        'Write a message...'
+      );
+  }
+
+  const members =
+    document.getElementById(
+      'privateChatMembersBtn'
+    );
+
+  if (members) {
+    members.title =
+      T(
+        'Pridať používateľov',
+        'Add users'
+      );
+  }
+
+  updatePrivateChatStatus();
+}
+
+
+/* ---------- SCROLL ---------- */
+
+function scrollPrivateChatToBottom() {
+  const box =
+    document.getElementById(
+      'privateChatMessages'
+    );
+
+  if (!box) return;
+
+  requestAnimationFrame(() => {
+    box.scrollTop =
+      box.scrollHeight;
+  });
+}
+
+
+/* ---------- CONNECT EXISTING USER DIRECTORY ---------- */
+
+document.addEventListener(
+  'click',
+  event => {
+    const row =
+      event.target.closest(
+        '#privateUsersList button'
+      );
+
+    if (!row) return;
+
+    /*
+      Existing directory currently has its own
+      onclick alert. We replace that behaviour
+      below after the directory renders.
+    */
+  }
+);
+
+
+function connectPrivateUsersDirectory() {
+  const list =
+    document.getElementById(
+      'privateUsersList'
+    );
+
+  if (!list) return;
+
+  const rows =
+    list.querySelectorAll('button');
+
+  rows.forEach((row, index) => {
+    const user =
+      typeof privateUsers !==
+        'undefined'
+        ? privateUsers[index]
+        : null;
+
+    if (!user) return;
+
+    row.onclick = function () {
+      window.selectedPrivateUser =
+        user;
+
+      openPrivateChatWithUser(
+        user
+      );
+    };
+  });
+}
+
+
+const privateDirectoryObserver =
+  new MutationObserver(() => {
+    connectPrivateUsersDirectory();
+  });
+
+function startPrivateDirectoryObserver() {
+  const list =
+    document.getElementById(
+      'privateUsersList'
+    );
+
+  if (!list) {
+    setTimeout(
+      startPrivateDirectoryObserver,
+      500
+    );
+
+    return;
+  }
+
+  privateDirectoryObserver.observe(
+    list,
+    {
+      childList: true
+    }
+  );
+
+  connectPrivateUsersDirectory();
+}
+
+startPrivateDirectoryObserver();
+
+
+/* ---------- CREATE PAGE ---------- */
+
+createPrivateChatPage();
