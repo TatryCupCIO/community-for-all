@@ -3142,9 +3142,19 @@ function initialisePrivateMembersLongPress(
 // CLOSE PRIVATE CHAT
 // ============================================================
 
-function closePrivateChat() {
+async function closePrivateChat() {
   privateChatOpen =
     false;
+
+  if (currentUser) {
+    await supabaseClient
+      .from('user_profiles')
+      .update({
+        presence_status: 'logged_in',
+        last_active_at: new Date().toISOString()
+      })
+      .eq('user_id', currentUser.id);
+  }
 
   clearPrivateChatPendingPhoto();
 
