@@ -2391,3 +2391,148 @@ if (privateMembersMainButton) {
 
 
 createPrivateRemoveMembersPanel();
+/* ===== PRIVATE CHAT – CONVERSATION SEND FIX ===== */
+
+sendPrivateChatText = async function (text) {
+  if (
+    !currentUser ||
+    !privateChatConversationId ||
+    !text
+  ) {
+    return false;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from('private_messages')
+      .insert({
+        conversation_id:
+          privateChatConversationId,
+
+        sender_id:
+          currentUser.id,
+
+        receiver_id:
+          null,
+
+        message_text:
+          text,
+
+        image_url:
+          null
+      });
+
+  if (error) {
+    alert(
+      T(
+        'Správu sa nepodarilo odoslať.',
+        'The message could not be sent.'
+      )
+    );
+
+    return false;
+  }
+
+  return true;
+};
+
+
+sendPrivateChatPhoto = async function (file) {
+  if (
+    !currentUser ||
+    !privateChatConversationId ||
+    !file
+  ) {
+    return false;
+  }
+
+  let photo;
+
+  try {
+    photo =
+      await compressPrivateChatPhoto(file);
+  } catch (error) {
+    alert(
+      T(
+        'Fotografiu sa nepodarilo spracovať.',
+        'The photo could not be processed.'
+      )
+    );
+
+    return false;
+  }
+
+  if (!photo) return false;
+
+  const path =
+    currentUser.id +
+    '/' +
+    privateChatConversationId +
+    '/' +
+    Date.now() +
+    '-' +
+    Math.random()
+      .toString(36)
+      .slice(2) +
+    '.jpg';
+
+  const { error: uploadError } =
+    await supabaseClient.storage
+      .from('private-chat-media')
+      .upload(
+        path,
+        photo,
+        {
+          contentType: 'image/jpeg',
+          upsert: false
+        }
+      );
+
+  if (uploadError) {
+    alert(
+      T(
+        'Fotografiu sa nepodarilo nahrať.',
+        'The photo could not be uploaded.'
+      )
+    );
+
+    return false;
+  }
+
+  const { error: messageError } =
+    await supabaseClient
+      .from('private_messages')
+      .insert({
+        conversation_id:
+          privateChatConversationId,
+
+        sender_id:
+          currentUser.id,
+
+        receiver_id:
+          null,
+
+        message_text:
+          null,
+
+        image_url:
+          path
+      });
+
+  if (messageError) {
+    await supabaseClient.storage
+      .from('private-chat-media')
+      .remove([path]);
+
+    alert(
+      T(
+        'Fotografiu sa nepodarilo odoslať.',
+        'The photo could not be sent.'
+      )
+    );
+
+    return false;
+  }
+
+  return true;
+};
