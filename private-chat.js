@@ -1,23 +1,53 @@
-// ===== COMMUNITY FOR ALL - PRIVATE CHAT =====
-/* ===== PRIVATE CHAT – CORE ===== */
+// ============================================================
+// COMMUNITY FOR ALL
+// PRIVATE-CHAT.JS – CLEAN VERSION
+// Private conversations, members, photos and realtime
+// ============================================================
+
+
+// ============================================================
+// STATE
+// ============================================================
 
 let privateChatOpen = false;
 let privateChatConversationId = null;
 let privateChatSelectedUser = null;
+
 let privateChatMessagesChannel = null;
 let privateChatEventsChannel = null;
 
+let pendingPrivateChatPhoto = null;
+let pendingPrivateChatPreviewUrl = null;
 
-/* ---------- CREATE PRIVATE CHAT PAGE ---------- */
+let privateMemberCandidates = [];
+
+
+// ============================================================
+// CREATE PRIVATE CHAT PAGE
+// ============================================================
 
 function createPrivateChatPage() {
-  if (document.getElementById('privateChatPage')) return;
+  if (
+    document.getElementById(
+      'privateChatPage'
+    )
+  ) {
+    return;
+  }
 
-  const page = document.createElement('div');
+  const page =
+    document.createElement(
+      'div'
+    );
 
-  page.id = 'privateChatPage';
-  page.className = 'page';
-  page.style.display = 'none';
+  page.id =
+    'privateChatPage';
+
+  page.className =
+    'page';
+
+  page.style.display =
+    'none';
 
   page.innerHTML = `
     <div style="
@@ -55,7 +85,12 @@ function createPrivateChatPage() {
         "
       >👤</div>
 
-      <div style="min-width:0;flex:1;">
+      <div
+        style="
+          min-width:0;
+          flex:1;
+        "
+      >
         <div
           id="privateChatTitle"
           style="
@@ -79,7 +114,6 @@ function createPrivateChatPage() {
       <button
         type="button"
         id="privateChatMembersBtn"
-        title="Add people"
         style="
           border:0;
           background:transparent;
@@ -142,11 +176,13 @@ function createPrivateChatPage() {
       >×</button>
     </div>
 
-    <div style="
-      display:flex;
-      align-items:center;
-      gap:8px;
-    ">
+    <div
+      style="
+        display:flex;
+        align-items:center;
+        gap:8px;
+      "
+    >
       <input
         id="privateChatPhotoInput"
         type="file"
@@ -195,142 +231,288 @@ function createPrivateChatPage() {
     </div>
   `;
 
-  document.body.appendChild(page);
+  document.body.appendChild(
+    page
+  );
 
-  document
-    .getElementById('privateChatBackBtn')
-    .addEventListener('click', closePrivateChat);
+  const backButton =
+    document.getElementById(
+      'privateChatBackBtn'
+    );
 
-  document
-    .getElementById('privateChatSendBtn')
-    .addEventListener('click', sendPrivateChatContent);
+  const sendButton =
+    document.getElementById(
+      'privateChatSendBtn'
+    );
 
-  document
-    .getElementById('privateChatMessageInput')
-    .addEventListener('keydown', event => {
-      if (event.key === 'Enter') {
-        event.preventDefault();
-        sendPrivateChatContent();
+  const messageInput =
+    document.getElementById(
+      'privateChatMessageInput'
+    );
+
+  const photoButton =
+    document.getElementById(
+      'privateChatPhotoBtn'
+    );
+
+  const photoInput =
+    document.getElementById(
+      'privateChatPhotoInput'
+    );
+
+  const photoRemove =
+    document.getElementById(
+      'privateChatPendingPhotoRemove'
+    );
+
+  const membersButton =
+    document.getElementById(
+      'privateChatMembersBtn'
+    );
+
+
+  if (backButton) {
+    backButton.addEventListener(
+      'click',
+      closePrivateChat
+    );
+  }
+
+
+  if (sendButton) {
+    sendButton.addEventListener(
+      'click',
+      sendPrivateChatContent
+    );
+  }
+
+
+  if (messageInput) {
+    messageInput.addEventListener(
+      'keydown',
+      event => {
+        if (
+          event.key === 'Enter' &&
+          !event.shiftKey
+        ) {
+          event.preventDefault();
+
+          sendPrivateChatContent();
+        }
       }
-    });
+    );
+  }
 
-  document
-    .getElementById('privateChatPhotoBtn')
-    .addEventListener('click', () => {
-      document.getElementById('privateChatPhotoInput').click();
-    });
 
-  document
-    .getElementById('privateChatPhotoInput')
-    .addEventListener('change', event => {
-      const file = event.target.files?.[0];
-
-      if (file) {
-        showPrivateChatPendingPhoto(file);
+  if (
+    photoButton &&
+    photoInput
+  ) {
+    photoButton.addEventListener(
+      'click',
+      () => {
+        photoInput.click();
       }
-    });
+    );
+  }
 
-  document
-    .getElementById('privateChatPendingPhotoRemove')
-    .addEventListener('click', clearPrivateChatPendingPhoto);
 
-  document
-    .getElementById('privateChatMembersBtn')
-    .addEventListener('click', openPrivateChatMembers);
+  if (photoInput) {
+    photoInput.addEventListener(
+      'change',
+      event => {
+        const file =
+          event.target.files?.[0];
+
+        if (file) {
+          showPrivateChatPendingPhoto(
+            file
+          );
+        }
+      }
+    );
+  }
+
+
+  if (photoRemove) {
+    photoRemove.addEventListener(
+      'click',
+      clearPrivateChatPendingPhoto
+    );
+  }
+
+
+  if (membersButton) {
+    membersButton.addEventListener(
+      'click',
+      openPrivateChatMembers
+    );
+
+    initialisePrivateMembersLongPress(
+      membersButton
+    );
+  }
 
   setPrivateChatLanguage();
 }
 
 
-/* ---------- OPEN FROM USERS DIRECTORY ---------- */
+// ============================================================
+// OPEN PRIVATE CHAT
+// ============================================================
 
-async function openPrivateChatWithUser(user) {
-  if (!currentUser || !user?.user_id) return;
+async function openPrivateChatWithUser(
+  user
+) {
+  if (
+    !currentUser ||
+    !user?.user_id
+  ) {
+    return;
+  }
 
   createPrivateChatPage();
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient.rpc(
       'create_private_conversation',
       {
-        p_other_user_id: user.user_id
+        p_other_user_id:
+          user.user_id
       }
     );
 
-  if (error || !data) {
+  if (
+    error ||
+    !data
+  ) {
     alert(
       T(
         'Súkromný chat sa nepodarilo otvoriť.',
         'The private chat could not be opened.'
       )
     );
+
     return;
   }
 
-  privateChatConversationId = Number(data);
-  privateChatSelectedUser = user;
-  privateChatOpen = true;
+  privateChatConversationId =
+    Number(data);
 
-  if (typeof hidePages === 'function') {
+  privateChatSelectedUser =
+    user;
+
+  privateChatOpen =
+    true;
+
+  if (
+    typeof hidePages ===
+    'function'
+  ) {
     hidePages();
   }
 
   const usersPage =
-    document.getElementById('privateUsersPage');
+    document.getElementById(
+      'privateUsersPage'
+    );
 
   if (usersPage) {
-    usersPage.style.display = 'none';
+    usersPage.style.display =
+      'none';
   }
 
   const page =
-    document.getElementById('privateChatPage');
+    document.getElementById(
+      'privateChatPage'
+    );
 
-  page.style.display = 'block';
+  if (page) {
+    page.style.display =
+      'block';
+  }
 
-  setPrivateChatHeader(user);
+  setPrivateChatHeader(
+    user
+  );
+
   setPrivateChatLanguage();
 
   await loadPrivateChatMessages();
+
   await markPrivateChatRead();
 
   subscribePrivateChat();
+  subscribePrivateConversationEvents();
 
-  window.scrollTo(0, 0);
+  window.scrollTo(
+    0,
+    0
+  );
 }
+
 
 window.openPrivateChatWithUser =
   openPrivateChatWithUser;
 
 
-/* ---------- HEADER ---------- */
+// ============================================================
+// HEADER
+// ============================================================
 
-function setPrivateChatHeader(user) {
+function setPrivateChatHeader(
+  user
+) {
   const title =
-    document.getElementById('privateChatTitle');
+    document.getElementById(
+      'privateChatTitle'
+    );
 
   const avatar =
-    document.getElementById('privateChatAvatar');
+    document.getElementById(
+      'privateChatAvatar'
+    );
 
   if (title) {
     title.textContent =
-      user?.display_name || T('Používateľ', 'User');
+      user?.display_name ||
+      T(
+        'Používateľ',
+        'User'
+      );
   }
 
   if (avatar) {
-    avatar.innerHTML = '';
+    avatar.innerHTML =
+      '';
 
     if (user?.avatar_url) {
-      const img = document.createElement('img');
+      const image =
+        document.createElement(
+          'img'
+        );
 
-      img.src = user.avatar_url;
-      img.alt = '';
+      image.src =
+        user.avatar_url;
 
-      img.style.cssText =
-        'width:100%;height:100%;object-fit:cover;';
+      image.alt =
+        '';
 
-      avatar.appendChild(img);
+      image.style.cssText =
+        'width:100%;' +
+        'height:100%;' +
+        'object-fit:cover;';
+
+      avatar.appendChild(
+        image
+      );
+
     } else {
-      avatar.textContent = '👤';
+      avatar.textContent =
+        '👤';
     }
   }
 
@@ -338,13 +520,22 @@ function setPrivateChatHeader(user) {
 }
 
 
-/* ---------- STATUS ---------- */
+// ============================================================
+// ONLINE / OFFLINE STATUS
+// ============================================================
 
 function updatePrivateChatStatus() {
   const status =
-    document.getElementById('privateChatStatus');
+    document.getElementById(
+      'privateChatStatus'
+    );
 
-  if (!status || !privateChatSelectedUser) return;
+  if (
+    !status ||
+    !privateChatSelectedUser
+  ) {
+    return;
+  }
 
   const online =
     window.onlineUserIds instanceof Set &&
@@ -354,40 +545,69 @@ function updatePrivateChatStatus() {
 
   status.textContent =
     online
-      ? T('Online', 'Online')
-      : T('Offline', 'Offline');
+      ? T(
+          'Online',
+          'Online'
+        )
+      : T(
+          'Offline',
+          'Offline'
+        );
 
   status.style.color =
-    online ? '#22c55e' : '#ef4444';
+    online
+      ? '#22c55e'
+      : '#ef4444';
 }
 
 
-/* ---------- LOAD MESSAGES ---------- */
+// ============================================================
+// LOAD MESSAGES
+// ============================================================
 
 async function loadPrivateChatMessages() {
   const box =
-    document.getElementById('privateChatMessages');
+    document.getElementById(
+      'privateChatMessages'
+    );
 
-  if (!box || !privateChatConversationId) return;
+  if (
+    !box ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
   box.innerHTML =
     '<div class="loading">' +
-    T('Načítavam správy...', 'Loading messages...') +
+    T(
+      'Načítavam správy...',
+      'Loading messages...'
+    ) +
     '</div>';
 
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient
-      .from('private_messages')
+      .from(
+        'private_messages'
+      )
       .select('*')
       .eq(
         'conversation_id',
         privateChatConversationId
       )
-      .order('created_at', {
-        ascending: true
-      });
+      .order(
+        'created_at',
+        {
+          ascending: true
+        }
+      );
 
-  box.innerHTML = '';
+  box.innerHTML =
+    '';
 
   if (error) {
     box.innerHTML =
@@ -401,8 +621,13 @@ async function loadPrivateChatMessages() {
     return;
   }
 
-  for (const message of data || []) {
-    await renderPrivateChatMessage(message);
+  for (
+    const message
+    of data || []
+  ) {
+    await renderPrivateChatMessage(
+      message
+    );
   }
 
   await loadPrivateConversationEvents();
@@ -411,30 +636,54 @@ async function loadPrivateChatMessages() {
 }
 
 
-/* ---------- RENDER MESSAGE ---------- */
+// ============================================================
+// RENDER MESSAGE
+// ============================================================
 
-async function renderPrivateChatMessage(message) {
+async function renderPrivateChatMessage(
+  message
+) {
   const box =
-    document.getElementById('privateChatMessages');
+    document.getElementById(
+      'privateChatMessages'
+    );
 
-  if (!box || !message) return;
+  if (
+    !box ||
+    !message?.id
+  ) {
+    return;
+  }
 
   if (
     document.getElementById(
-      'private-message-' + message.id
+      'private-message-' +
+      message.id
     )
   ) {
     return;
   }
 
   const mine =
-    message.sender_id === currentUser?.id;
+    message.sender_id ===
+    currentUser?.id;
 
   const item =
-    document.createElement('div');
+    document.createElement(
+      'div'
+    );
 
   item.id =
-    'private-message-' + message.id;
+    'private-message-' +
+    message.id;
+
+  item.dataset.createdAt =
+    message.created_at || '';
+
+  item.dataset.mine =
+    mine
+      ? 'true'
+      : 'false';
 
   item.style.cssText = `
     position:relative;
@@ -449,24 +698,42 @@ async function renderPrivateChatMessage(message) {
     overflow-wrap:anywhere;
   `;
 
+
   if (message.message_text) {
     const text =
-      document.createElement('div');
+      document.createElement(
+        'div'
+      );
+
+    text.className =
+      'private-message-text';
 
     text.textContent =
       message.message_text;
 
-    item.appendChild(text);
+    item.appendChild(
+      text
+    );
   }
+
 
   if (message.image_url) {
     const holder =
-      document.createElement('div');
+      document.createElement(
+        'div'
+      );
+
+    holder.className =
+      'private-photo-holder';
 
     holder.style.marginTop =
-      message.message_text ? '8px' : '0';
+      message.message_text
+        ? '8px'
+        : '0';
 
-    item.appendChild(holder);
+    item.appendChild(
+      holder
+    );
 
     await loadPrivateChatPhoto(
       message.image_url,
@@ -474,8 +741,14 @@ async function renderPrivateChatMessage(message) {
     );
   }
 
+
   const meta =
-    document.createElement('div');
+    document.createElement(
+      'div'
+    );
+
+  meta.className =
+    'private-message-time';
 
   meta.style.cssText = `
     margin-top:5px;
@@ -489,11 +762,16 @@ async function renderPrivateChatMessage(message) {
       message.created_at
     );
 
-  item.appendChild(meta);
+  item.appendChild(
+    meta
+  );
+
 
   if (mine) {
     const receipt =
-      document.createElement('div');
+      document.createElement(
+        'div'
+      );
 
     receipt.className =
       'private-read-receipt';
@@ -507,16 +785,33 @@ async function renderPrivateChatMessage(message) {
 
     receipt.textContent =
       message.read_at
-        ? T('Prečítané', 'Read')
-        : T('Odoslané', 'Sent');
+        ? T(
+            'Prečítané',
+            'Read'
+          )
+        : T(
+            'Odoslané',
+            'Sent'
+          );
 
-    item.appendChild(receipt);
+    item.appendChild(
+      receipt
+    );
+
 
     const deleteButton =
-      document.createElement('button');
+      document.createElement(
+        'button'
+      );
 
-    deleteButton.type = 'button';
-    deleteButton.textContent = '🗑️';
+    deleteButton.type =
+      'button';
+
+    deleteButton.className =
+      'private-delete-btn';
+
+    deleteButton.textContent =
+      '🗑️';
 
     deleteButton.style.cssText = `
       border:0;
@@ -528,40 +823,56 @@ async function renderPrivateChatMessage(message) {
     `;
 
     deleteButton.title =
-      T('Vymazať', 'Delete');
+      T(
+        'Vymazať',
+        'Delete'
+      );
 
     deleteButton.addEventListener(
       'click',
       event => {
         event.stopPropagation();
-        deleteOwnPrivateChatMessage(message);
+
+        deleteOwnPrivateChatMessage(
+          message
+        );
       }
     );
 
-    item.appendChild(deleteButton);
+    item.appendChild(
+      deleteButton
+    );
   }
 
-  box.appendChild(item);
+  box.appendChild(
+    item
+  );
 }
 
 
-/* ---------- SEND TEXT ---------- */
+// ============================================================
+// SEND TEXT
+// Conversation based – one final implementation
+// ============================================================
 
-async function sendPrivateChatText(text) {
+async function sendPrivateChatText(
+  text
+) {
   if (
     !currentUser ||
     !privateChatConversationId ||
     !text
   ) {
-    return;
+    return false;
   }
 
-  const receiverId =
-    privateChatSelectedUser?.user_id || null;
-
-  const { error } =
+  const {
+    error
+  } =
     await supabaseClient
-      .from('private_messages')
+      .from(
+        'private_messages'
+      )
       .insert({
         conversation_id:
           privateChatConversationId,
@@ -570,7 +881,7 @@ async function sendPrivateChatText(text) {
           currentUser.id,
 
         receiver_id:
-          receiverId,
+          null,
 
         message_text:
           text,
@@ -594,13 +905,18 @@ async function sendPrivateChatText(text) {
 }
 
 
-/* ---------- PHOTO PREVIEW ---------- */
+// ============================================================
+// PHOTO PREVIEW
+// ============================================================
 
-let pendingPrivateChatPhoto = null;
-let pendingPrivateChatPreviewUrl = null;
-
-function showPrivateChatPendingPhoto(file) {
-  if (!file?.type?.startsWith('image/')) {
+function showPrivateChatPendingPhoto(
+  file
+) {
+  if (
+    !file?.type?.startsWith(
+      'image/'
+    )
+  ) {
     alert(
       T(
         'Môžete odosielať iba fotografie.',
@@ -611,16 +927,21 @@ function showPrivateChatPendingPhoto(file) {
     return;
   }
 
-  pendingPrivateChatPhoto = file;
+  pendingPrivateChatPhoto =
+    file;
 
-  if (pendingPrivateChatPreviewUrl) {
+  if (
+    pendingPrivateChatPreviewUrl
+  ) {
     URL.revokeObjectURL(
       pendingPrivateChatPreviewUrl
     );
   }
 
   pendingPrivateChatPreviewUrl =
-    URL.createObjectURL(file);
+    URL.createObjectURL(
+      file
+    );
 
   const preview =
     document.getElementById(
@@ -638,20 +959,25 @@ function showPrivateChatPendingPhoto(file) {
   }
 
   if (preview) {
-    preview.style.display = 'block';
+    preview.style.display =
+      'block';
   }
 }
 
 
 function clearPrivateChatPendingPhoto() {
-  pendingPrivateChatPhoto = null;
+  pendingPrivateChatPhoto =
+    null;
 
-  if (pendingPrivateChatPreviewUrl) {
+  if (
+    pendingPrivateChatPreviewUrl
+  ) {
     URL.revokeObjectURL(
       pendingPrivateChatPreviewUrl
     );
 
-    pendingPrivateChatPreviewUrl = null;
+    pendingPrivateChatPreviewUrl =
+      null;
   }
 
   const preview =
@@ -660,7 +986,19 @@ function clearPrivateChatPendingPhoto() {
     );
 
   if (preview) {
-    preview.style.display = 'none';
+    preview.style.display =
+      'none';
+  }
+
+  const image =
+    document.getElementById(
+      'privateChatPendingPhotoImage'
+    );
+
+  if (image) {
+    image.removeAttribute(
+      'src'
+    );
   }
 
   const input =
@@ -669,38 +1007,53 @@ function clearPrivateChatPendingPhoto() {
     );
 
   if (input) {
-    input.value = '';
+    input.value =
+      '';
   }
 }
 
 
-/* ---------- COMPRESS PHOTO ---------- */
+// ============================================================
+// COMPRESS PHOTO
+// ============================================================
 
-async function compressPrivateChatPhoto(file) {
+async function compressPrivateChatPhoto(
+  file
+) {
   const objectUrl =
-    URL.createObjectURL(file);
+    URL.createObjectURL(
+      file
+    );
 
   try {
     const image =
       await new Promise(
-        (resolve, reject) => {
-          const img = new Image();
+        (
+          resolve,
+          reject
+        ) => {
+          const img =
+            new Image();
 
-          img.onload = () =>
-            resolve(img);
+          img.onload =
+            () =>
+              resolve(img);
 
-          img.onerror = () =>
-            reject(
-              new Error(
-                'IMAGE_LOAD_FAILED'
-              )
-            );
+          img.onerror =
+            () =>
+              reject(
+                new Error(
+                  'IMAGE_LOAD_FAILED'
+                )
+              );
 
-          img.src = objectUrl;
+          img.src =
+            objectUrl;
         }
       );
 
-    const maxSide = 1600;
+    const maxSide =
+      1600;
 
     let width =
       image.naturalWidth ||
@@ -711,30 +1064,59 @@ async function compressPrivateChatPhoto(file) {
       image.height;
 
     if (
+      !width ||
+      !height
+    ) {
+      throw new Error(
+        'INVALID_IMAGE_SIZE'
+      );
+    }
+
+    if (
       width > maxSide ||
       height > maxSide
     ) {
       const scale =
         maxSide /
-        Math.max(width, height);
+        Math.max(
+          width,
+          height
+        );
 
       width =
-        Math.round(width * scale);
+        Math.round(
+          width * scale
+        );
 
       height =
-        Math.round(height * scale);
+        Math.round(
+          height * scale
+        );
     }
 
     const canvas =
-      document.createElement('canvas');
+      document.createElement(
+        'canvas'
+      );
 
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width =
+      width;
 
-    const ctx =
-      canvas.getContext('2d');
+    canvas.height =
+      height;
 
-    ctx.drawImage(
+    const context =
+      canvas.getContext(
+        '2d'
+      );
+
+    if (!context) {
+      throw new Error(
+        'CANVAS_NOT_AVAILABLE'
+      );
+    }
+
+    context.drawImage(
       image,
       0,
       0,
@@ -742,45 +1124,62 @@ async function compressPrivateChatPhoto(file) {
       height
     );
 
-    let quality = 0.85;
+    let quality =
+      0.85;
 
     let blob =
-      await new Promise(resolve => {
-        canvas.toBlob(
-          resolve,
-          'image/jpeg',
-          quality
-        );
-      });
-
-    while (
-      blob &&
-      blob.size > 500 * 1024 &&
-      quality > 0.50
-    ) {
-      quality -= 0.05;
-
-      blob =
-        await new Promise(resolve => {
+      await new Promise(
+        resolve => {
           canvas.toBlob(
             resolve,
             'image/jpeg',
             quality
           );
-        });
+        }
+      );
+
+    while (
+      blob &&
+      blob.size >
+        500 * 1024 &&
+      quality > 0.50
+    ) {
+      quality -=
+        0.05;
+
+      blob =
+        await new Promise(
+          resolve => {
+            canvas.toBlob(
+              resolve,
+              'image/jpeg',
+              quality
+            );
+          }
+        );
+    }
+
+    if (!blob) {
+      throw new Error(
+        'PHOTO_COMPRESSION_FAILED'
+      );
     }
 
     return blob;
 
   } finally {
-    URL.revokeObjectURL(objectUrl);
+    URL.revokeObjectURL(
+      objectUrl
+    );
   }
 }
+// ============================================================
+// SEND PHOTO
+// ============================================================
 
-
-/* ---------- SEND PHOTO ---------- */
-
-async function sendPrivateChatPhoto(file) {
+async function sendPrivateChatPhoto(
+  file
+) {
   if (
     !currentUser ||
     !privateChatConversationId ||
@@ -793,7 +1192,10 @@ async function sendPrivateChatPhoto(file) {
 
   try {
     photo =
-      await compressPrivateChatPhoto(file);
+      await compressPrivateChatPhoto(
+        file
+      );
+
   } catch (error) {
     alert(
       T(
@@ -805,10 +1207,14 @@ async function sendPrivateChatPhoto(file) {
     return false;
   }
 
-  if (!photo) return false;
+  if (!photo) {
+    return false;
+  }
 
   const path =
     currentUser.id +
+    '/' +
+    privateChatConversationId +
     '/' +
     Date.now() +
     '-' +
@@ -817,15 +1223,22 @@ async function sendPrivateChatPhoto(file) {
       .slice(2) +
     '.jpg';
 
-  const { error: uploadError } =
+  const {
+    error: uploadError
+  } =
     await supabaseClient.storage
-      .from('private-chat-media')
+      .from(
+        'private-chat-media'
+      )
       .upload(
         path,
         photo,
         {
-          contentType: 'image/jpeg',
-          upsert: false
+          contentType:
+            'image/jpeg',
+
+          upsert:
+            false
         }
       );
 
@@ -840,9 +1253,13 @@ async function sendPrivateChatPhoto(file) {
     return false;
   }
 
-  const { error: messageError } =
+  const {
+    error: messageError
+  } =
     await supabaseClient
-      .from('private_messages')
+      .from(
+        'private_messages'
+      )
       .insert({
         conversation_id:
           privateChatConversationId,
@@ -851,7 +1268,6 @@ async function sendPrivateChatPhoto(file) {
           currentUser.id,
 
         receiver_id:
-          privateChatSelectedUser?.user_id ||
           null,
 
         message_text:
@@ -863,8 +1279,12 @@ async function sendPrivateChatPhoto(file) {
 
   if (messageError) {
     await supabaseClient.storage
-      .from('private-chat-media')
-      .remove([path]);
+      .from(
+        'private-chat-media'
+      )
+      .remove([
+        path
+      ]);
 
     alert(
       T(
@@ -880,15 +1300,29 @@ async function sendPrivateChatPhoto(file) {
 }
 
 
-/* ---------- LOAD PRIVATE PHOTO ---------- */
+// ============================================================
+// LOAD PRIVATE PHOTO
+// ============================================================
 
 async function loadPrivateChatPhoto(
   path,
   container
 ) {
-  const { data, error } =
+  if (
+    !path ||
+    !container
+  ) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
     await supabaseClient.storage
-      .from('private-chat-media')
+      .from(
+        'private-chat-media'
+      )
       .createSignedUrl(
         path,
         3600
@@ -901,21 +1335,24 @@ async function loadPrivateChatPhoto(
     return;
   }
 
-  const img =
-    document.createElement('img');
+  const image =
+    document.createElement(
+      'img'
+    );
 
-  img.src =
+  image.src =
     data.signedUrl;
 
-  img.alt =
+  image.alt =
     T(
       'Fotografia v súkromnom chate',
       'Private chat photo'
     );
 
-  img.loading = 'lazy';
+  image.loading =
+    'lazy';
 
-  img.style.cssText = `
+  image.style.cssText = `
     display:block;
     max-width:100%;
     max-height:360px;
@@ -923,7 +1360,7 @@ async function loadPrivateChatPhoto(
     cursor:pointer;
   `;
 
-  img.addEventListener(
+  image.addEventListener(
     'click',
     () => {
       if (
@@ -937,11 +1374,15 @@ async function loadPrivateChatPhoto(
     }
   );
 
-  container.appendChild(img);
+  container.appendChild(
+    image
+  );
 }
 
 
-/* ---------- SEND TEXT + PHOTO ---------- */
+// ============================================================
+// SEND TEXT + PHOTO
+// ============================================================
 
 async function sendPrivateChatContent() {
   const input =
@@ -955,69 +1396,106 @@ async function sendPrivateChatContent() {
     );
 
   const text =
-    input?.value.trim() || '';
+    input?.value.trim() ||
+    '';
 
   const photo =
     pendingPrivateChatPhoto;
 
-  if (!text && !photo) return;
-
-  if (button) {
-    button.disabled = true;
-  }
-
-  if (text) {
-    const sent =
-      await sendPrivateChatText(text);
-
-    if (sent && input) {
-      input.value = '';
-    }
-  }
-
-  if (photo) {
-    const sent =
-      await sendPrivateChatPhoto(photo);
-
-    if (sent) {
-      clearPrivateChatPendingPhoto();
-    }
-  }
-
-  if (button) {
-    button.disabled = false;
-  }
-}
-
-
-/* ---------- READ ---------- */
-
-async function markPrivateChatRead() {
   if (
-    !currentUser ||
-    !privateChatSelectedUser?.user_id
+    !text &&
+    !photo
   ) {
     return;
   }
 
-  await supabaseClient.rpc(
-    'mark_private_messages_read',
-    {
-      p_sender_id:
-        privateChatSelectedUser.user_id
+  if (button) {
+    button.disabled =
+      true;
+  }
+
+  try {
+    if (text) {
+      const sent =
+        await sendPrivateChatText(
+          text
+        );
+
+      if (
+        sent &&
+        input
+      ) {
+        input.value =
+          '';
+      }
     }
-  );
+
+    if (photo) {
+      const sent =
+        await sendPrivateChatPhoto(
+          photo
+        );
+
+      if (sent) {
+        clearPrivateChatPendingPhoto();
+      }
+    }
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+    }
+  }
 }
 
 
-/* ---------- DELETE OWN MESSAGE / PHOTO ---------- */
+// ============================================================
+// MARK MESSAGES AS READ
+// ============================================================
+
+async function markPrivateChatRead() {
+  if (
+    !currentUser ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
+
+  await supabaseClient
+    .from(
+      'private_messages'
+    )
+    .update({
+      read_at:
+        new Date().toISOString()
+    })
+    .eq(
+      'conversation_id',
+      privateChatConversationId
+    )
+    .neq(
+      'sender_id',
+      currentUser.id
+    )
+    .is(
+      'read_at',
+      null
+    );
+}
+
+
+// ============================================================
+// DELETE OWN MESSAGE / PHOTO
+// ============================================================
 
 async function deleteOwnPrivateChatMessage(
   message
 ) {
   if (
     !currentUser ||
-    message.sender_id !== currentUser.id
+    message?.sender_id !==
+      currentUser.id
   ) {
     return;
   }
@@ -1033,12 +1511,20 @@ async function deleteOwnPrivateChatMessage(
           'Do you really want to delete this message?'
         );
 
-  if (!confirm(question)) return;
+  if (
+    !confirm(question)
+  ) {
+    return;
+  }
 
   if (message.image_url) {
-    const { error: storageError } =
+    const {
+      error: storageError
+    } =
       await supabaseClient.storage
-        .from('private-chat-media')
+        .from(
+          'private-chat-media'
+        )
         .remove([
           message.image_url
         ]);
@@ -1055,11 +1541,18 @@ async function deleteOwnPrivateChatMessage(
     }
   }
 
-  const { error } =
+  const {
+    error
+  } =
     await supabaseClient
-      .from('private_messages')
+      .from(
+        'private_messages'
+      )
       .delete()
-      .eq('id', message.id)
+      .eq(
+        'id',
+        message.id
+      )
       .eq(
         'sender_id',
         currentUser.id
@@ -1085,36 +1578,104 @@ async function deleteOwnPrivateChatMessage(
 }
 
 
-/* ---------- REALTIME ---------- */
+// ============================================================
+// UPDATE READ RECEIPT
+// ============================================================
+
+function updatePrivateChatReadReceipt(
+  message
+) {
+  if (
+    message?.sender_id !==
+      currentUser?.id
+  ) {
+    return;
+  }
+
+  const item =
+    document.getElementById(
+      'private-message-' +
+      message.id
+    );
+
+  const receipt =
+    item?.querySelector(
+      '.private-read-receipt'
+    );
+
+  if (!receipt) {
+    return;
+  }
+
+  receipt.textContent =
+    message.read_at
+      ? T(
+          'Prečítané',
+          'Read'
+        )
+      : T(
+          'Odoslané',
+          'Sent'
+        );
+}
+
+
+// ============================================================
+// REALTIME PRIVATE MESSAGES
+// ============================================================
 
 function subscribePrivateChat() {
-  if (!privateChatConversationId) return;
+  if (
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
-  if (privateChatMessagesChannel) {
+  if (
+    privateChatMessagesChannel
+  ) {
     supabaseClient.removeChannel(
       privateChatMessagesChannel
     );
 
-    privateChatMessagesChannel = null;
+    privateChatMessagesChannel =
+      null;
   }
+
+  const conversationId =
+    privateChatConversationId;
 
   privateChatMessagesChannel =
     supabaseClient
       .channel(
         'private-chat-' +
-        privateChatConversationId
+        conversationId
       )
       .on(
         'postgres_changes',
         {
-          event: '*',
-          schema: 'public',
-          table: 'private_messages',
+          event:
+            '*',
+
+          schema:
+            'public',
+
+          table:
+            'private_messages',
+
           filter:
             'conversation_id=eq.' +
-            privateChatConversationId
+            conversationId
         },
+
         async payload => {
+          if (
+            conversationId !==
+            privateChatConversationId
+          ) {
+            return;
+          }
+
           if (
             payload.eventType ===
             'INSERT'
@@ -1154,59 +1715,39 @@ function subscribePrivateChat() {
             payload.eventType ===
             'DELETE'
           ) {
-            document
-              .getElementById(
-                'private-message-' +
-                payload.old.id
-              )
-              ?.remove();
+            const messageId =
+              payload.old?.id;
+
+            if (messageId) {
+              document
+                .getElementById(
+                  'private-message-' +
+                  messageId
+                )
+                ?.remove();
+            }
           }
         }
       )
       .subscribe();
-
-  subscribePrivateConversationEvents();
 }
 
 
-/* ---------- UPDATE READ RECEIPT ---------- */
+// ============================================================
+// SYSTEM EVENTS
+// ============================================================
 
-function updatePrivateChatReadReceipt(
-  message
-) {
+async function loadPrivateConversationEvents() {
   if (
-    message.sender_id !==
-    currentUser?.id
+    !privateChatConversationId
   ) {
     return;
   }
 
-  const item =
-    document.getElementById(
-      'private-message-' +
-      message.id
-    );
-
-  const receipt =
-    item?.querySelector(
-      '.private-read-receipt'
-    );
-
-  if (!receipt) return;
-
-  receipt.textContent =
-    message.read_at
-      ? T('Prečítané', 'Read')
-      : T('Odoslané', 'Sent');
-}
-
-
-/* ---------- SYSTEM EVENTS ---------- */
-
-async function loadPrivateConversationEvents() {
-  if (!privateChatConversationId) return;
-
-  const { data, error } =
+  const {
+    data,
+    error
+  } =
     await supabaseClient
       .from(
         'private_conversation_events'
@@ -1223,9 +1764,14 @@ async function loadPrivateConversationEvents() {
         }
       );
 
-  if (error) return;
+  if (error) {
+    return;
+  }
 
-  for (const event of data || []) {
+  for (
+    const event
+    of data || []
+  ) {
     await renderPrivateConversationEvent(
       event
     );
@@ -1233,12 +1779,17 @@ async function loadPrivateConversationEvents() {
 }
 
 
+// ============================================================
+// RENDER SYSTEM EVENT
+// ============================================================
+
 async function renderPrivateConversationEvent(
   event
 ) {
   if (
+    !event?.id ||
     event.event_type !==
-    'members_removed'
+      'members_removed'
   ) {
     return;
   }
@@ -1253,14 +1804,23 @@ async function renderPrivateConversationEvent(
   }
 
   const ids =
-    event.affected_user_ids || [];
+    Array.isArray(
+      event.affected_user_ids
+    )
+      ? event.affected_user_ids
+      : [];
 
-  let names = [];
+  let names =
+    [];
 
   if (ids.length) {
-    const { data } =
+    const {
+      data
+    } =
       await supabaseClient
-        .from('user_profiles')
+        .from(
+          'user_profiles'
+        )
         .select(
           'user_id,display_name'
         )
@@ -1285,10 +1845,14 @@ async function renderPrivateConversationEvent(
       'privateChatMessages'
     );
 
-  if (!box) return;
+  if (!box) {
+    return;
+  }
 
   const item =
-    document.createElement('div');
+    document.createElement(
+      'div'
+    );
 
   item.id =
     'private-event-' +
@@ -1303,6 +1867,7 @@ async function renderPrivateConversationEvent(
     background:#334155;
     color:white;
     font-size:13px;
+    white-space:pre-line;
   `;
 
   const removedText =
@@ -1321,50 +1886,76 @@ async function renderPrivateConversationEvent(
       '😄 Tak, dohodnuté! Ďakujeme za pokec, pááá 👋 Vidíme sa!',
       '😄 All agreed! Thanks for the chat, byeee 👋 See you!'
     ) +
-    (names.length
-      ? '\n' +
-        removedText +
-        names.join(', ')
-      : '');
+    (
+      names.length
+        ? '\n' +
+          removedText +
+          names.join(', ')
+        : ''
+    );
 
-  item.style.whiteSpace =
-    'pre-line';
-
-  box.appendChild(item);
+  box.appendChild(
+    item
+  );
 }
 
 
-/* ---------- REALTIME EVENTS ---------- */
+// ============================================================
+// REALTIME SYSTEM EVENTS
+// ============================================================
 
 function subscribePrivateConversationEvents() {
-  if (!privateChatConversationId) return;
+  if (
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
-  if (privateChatEventsChannel) {
+  if (
+    privateChatEventsChannel
+  ) {
     supabaseClient.removeChannel(
       privateChatEventsChannel
     );
 
-    privateChatEventsChannel = null;
+    privateChatEventsChannel =
+      null;
   }
+
+  const conversationId =
+    privateChatConversationId;
 
   privateChatEventsChannel =
     supabaseClient
       .channel(
         'private-events-' +
-        privateChatConversationId
+        conversationId
       )
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
-          schema: 'public',
+          event:
+            'INSERT',
+
+          schema:
+            'public',
+
           table:
             'private_conversation_events',
+
           filter:
             'conversation_id=eq.' +
-            privateChatConversationId
+            conversationId
         },
+
         async payload => {
+          if (
+            conversationId !==
+            privateChatConversationId
+          ) {
+            return;
+          }
+
           await renderPrivateConversationEvent(
             payload.new
           );
@@ -1376,207 +1967,26 @@ function subscribePrivateConversationEvents() {
 }
 
 
-/* ---------- ADD / REMOVE MEMBERS PLACEHOLDER ---------- */
+// ============================================================
+// CREATE ADD MEMBERS PANEL
+// ============================================================
 
-function openPrivateChatMembers() {
-  alert(
-    T(
-      'Výber používateľov do diskusie doplníme v ďalšom kroku.',
-      'User selection for this conversation will be added in the next step.'
-    )
-  );
-}
-
-
-/* ---------- CLOSE ---------- */
-
-function closePrivateChat() {
-  privateChatOpen = false;
-
-  const page =
-    document.getElementById(
-      'privateChatPage'
-    );
-
-  if (page) {
-    page.style.display = 'none';
-  }
-
-  if (privateChatMessagesChannel) {
-    supabaseClient.removeChannel(
-      privateChatMessagesChannel
-    );
-
-    privateChatMessagesChannel = null;
-  }
-
-  if (privateChatEventsChannel) {
-    supabaseClient.removeChannel(
-      privateChatEventsChannel
-    );
-
-    privateChatEventsChannel = null;
-  }
-
-  privateChatConversationId = null;
-  privateChatSelectedUser = null;
-
+function createPrivateMembersPanel() {
   if (
-    typeof window.openPrivateUsers ===
-    'function'
+    document.getElementById(
+      'privateMembersPanel'
+    )
   ) {
-    window.openPrivateUsers();
-  }
-}
-
-
-/* ---------- LANGUAGE ---------- */
-
-function setPrivateChatLanguage() {
-  const input =
-    document.getElementById(
-      'privateChatMessageInput'
-    );
-
-  if (input) {
-    input.placeholder =
-      T(
-        'Napíšte správu...',
-        'Write a message...'
-      );
-  }
-
-  const members =
-    document.getElementById(
-      'privateChatMembersBtn'
-    );
-
-  if (members) {
-    members.title =
-      T(
-        'Pridať používateľov',
-        'Add users'
-      );
-  }
-
-  updatePrivateChatStatus();
-}
-
-
-/* ---------- SCROLL ---------- */
-
-function scrollPrivateChatToBottom() {
-  const box =
-    document.getElementById(
-      'privateChatMessages'
-    );
-
-  if (!box) return;
-
-  requestAnimationFrame(() => {
-    box.scrollTop =
-      box.scrollHeight;
-  });
-}
-
-
-/* ---------- CONNECT EXISTING USER DIRECTORY ---------- */
-
-document.addEventListener(
-  'click',
-  event => {
-    const row =
-      event.target.closest(
-        '#privateUsersList button'
-      );
-
-    if (!row) return;
-
-    /*
-      Existing directory currently has its own
-      onclick alert. We replace that behaviour
-      below after the directory renders.
-    */
-  }
-);
-
-
-function connectPrivateUsersDirectory() {
-  const list =
-    document.getElementById(
-      'privateUsersList'
-    );
-
-  if (!list) return;
-
-  const rows =
-    list.querySelectorAll('button');
-
-  rows.forEach((row, index) => {
-    const user =
-      typeof privateUsers !==
-        'undefined'
-        ? privateUsers[index]
-        : null;
-
-    if (!user) return;
-
-    row.onclick = function () {
-      window.selectedPrivateUser =
-        user;
-
-      openPrivateChatWithUser(
-        user
-      );
-    };
-  });
-}
-
-
-const privateDirectoryObserver =
-  new MutationObserver(() => {
-    connectPrivateUsersDirectory();
-  });
-
-function startPrivateDirectoryObserver() {
-  const list =
-    document.getElementById(
-      'privateUsersList'
-    );
-
-  if (!list) {
-    setTimeout(
-      startPrivateDirectoryObserver,
-      500
-    );
-
     return;
   }
 
-  privateDirectoryObserver.observe(
-    list,
-    {
-      childList: true
-    }
-  );
+  const panel =
+    document.createElement(
+      'div'
+    );
 
-  connectPrivateUsersDirectory();
-}
-
-startPrivateDirectoryObserver();
-
-
-/* ---------- CREATE PAGE ---------- */
-
-createPrivateChatPage();
-/* ===== PRIVATE CHAT – ADD MEMBERS ===== */
-
-function createPrivateMembersPanel() {
-  if (document.getElementById('privateMembersPanel')) return;
-
-  const panel = document.createElement('div');
-
-  panel.id = 'privateMembersPanel';
+  panel.id =
+    'privateMembersPanel';
 
   panel.style.cssText = `
     display:none;
@@ -1635,7 +2045,9 @@ function createPrivateMembersPanel() {
         "
       >
 
-      <div id="privateMembersList"></div>
+      <div
+        id="privateMembersList"
+      ></div>
 
       <button
         type="button"
@@ -1650,67 +2062,109 @@ function createPrivateMembersPanel() {
     </div>
   `;
 
-  document.body.appendChild(panel);
+  document.body.appendChild(
+    panel
+  );
 
   document
-    .getElementById('privateMembersClose')
-    .addEventListener(
+    .getElementById(
+      'privateMembersClose'
+    )
+    ?.addEventListener(
       'click',
       closePrivateMembersPanel
     );
 
   document
-    .getElementById('privateMembersSearch')
-    .addEventListener(
+    .getElementById(
+      'privateMembersSearch'
+    )
+    ?.addEventListener(
       'input',
       renderPrivateMembersCandidates
     );
 
   document
-    .getElementById('privateMembersAddBtn')
-    .addEventListener(
+    .getElementById(
+      'privateMembersAddBtn'
+    )
+    ?.addEventListener(
       'click',
       addSelectedPrivateMembers
     );
 }
 
 
-let privateMemberCandidates = [];
+// ============================================================
+// OPEN ADD MEMBERS
+// ============================================================
 
-
-openPrivateChatMembers = async function () {
-  if (!currentUser || !privateChatConversationId) return;
+async function openPrivateChatMembers() {
+  if (
+    !currentUser ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
   createPrivateMembersPanel();
 
   setPrivateMembersLanguage();
 
   const panel =
-    document.getElementById('privateMembersPanel');
+    document.getElementById(
+      'privateMembersPanel'
+    );
 
-  panel.style.display = 'block';
+  if (panel) {
+    panel.style.display =
+      'block';
+  }
 
-  document.getElementById(
-    'privateMembersSearch'
-  ).value = '';
+  const search =
+    document.getElementById(
+      'privateMembersSearch'
+    );
+
+  if (search) {
+    search.value =
+      '';
+  }
 
   await loadPrivateMembersCandidates();
-};
+}
 
+
+// ============================================================
+// CLOSE ADD MEMBERS
+// ============================================================
 
 function closePrivateMembersPanel() {
   const panel =
-    document.getElementById('privateMembersPanel');
+    document.getElementById(
+      'privateMembersPanel'
+    );
 
   if (panel) {
-    panel.style.display = 'none';
+    panel.style.display =
+      'none';
   }
 }
 
 
+// ============================================================
+// LOAD USERS AVAILABLE TO ADD
+// ============================================================
+
 async function loadPrivateMembersCandidates() {
   const list =
-    document.getElementById('privateMembersList');
+    document.getElementById(
+      'privateMembersList'
+    );
+
+  if (!list) {
+    return;
+  }
 
   list.innerHTML =
     '<div class="loading">' +
@@ -1720,15 +2174,25 @@ async function loadPrivateMembersCandidates() {
     ) +
     '</div>';
 
-  const { data: memberships, error: membershipError } =
+  const {
+    data: memberships,
+    error: membershipError
+  } =
     await supabaseClient
-      .from('private_conversation_memberships')
-      .select('user_id')
+      .from(
+        'private_conversation_memberships'
+      )
+      .select(
+        'user_id'
+      )
       .eq(
         'conversation_id',
         privateChatConversationId
       )
-      .is('left_at', null);
+      .is(
+        'left_at',
+        null
+      );
 
   if (membershipError) {
     list.textContent =
@@ -1736,19 +2200,26 @@ async function loadPrivateMembersCandidates() {
         'Používateľov sa nepodarilo načítať.',
         'Users could not be loaded.'
       );
+
     return;
   }
 
   const activeIds =
     new Set(
       (memberships || []).map(
-        member => member.user_id
+        member =>
+          member.user_id
       )
     );
 
-  const { data: users, error } =
+  const {
+    data: users,
+    error
+  } =
     await supabaseClient
-      .from('user_profiles')
+      .from(
+        'user_profiles'
+      )
       .select(
         'user_id,display_name,avatar_url'
       )
@@ -1758,7 +2229,9 @@ async function loadPrivateMembersCandidates() {
       )
       .order(
         'display_name',
-        { ascending: true }
+        {
+          ascending: true
+        }
       );
 
   if (error) {
@@ -1767,23 +2240,33 @@ async function loadPrivateMembersCandidates() {
         'Používateľov sa nepodarilo načítať.',
         'Users could not be loaded.'
       );
+
     return;
   }
 
   privateMemberCandidates =
     (users || []).filter(
-      user => !activeIds.has(user.user_id)
+      user =>
+        !activeIds.has(
+          user.user_id
+        )
     );
 
   renderPrivateMembersCandidates();
 }
-
+// ============================================================
+// RENDER USERS AVAILABLE TO ADD
+// ============================================================
 
 function renderPrivateMembersCandidates() {
   const list =
-    document.getElementById('privateMembersList');
+    document.getElementById(
+      'privateMembersList'
+    );
 
-  if (!list) return;
+  if (!list) {
+    return;
+  }
 
   const query =
     (
@@ -1797,12 +2280,18 @@ function renderPrivateMembersCandidates() {
   const users =
     privateMemberCandidates.filter(
       user =>
-        (user.display_name || '')
+        (
+          user.display_name ||
+          ''
+        )
           .toLowerCase()
-          .includes(query)
+          .includes(
+            query
+          )
     );
 
-  list.innerHTML = '';
+  list.innerHTML =
+    '';
 
   if (!users.length) {
     list.textContent =
@@ -1810,12 +2299,18 @@ function renderPrivateMembersCandidates() {
         'Žiadni ďalší používatelia.',
         'No other users.'
       );
+
     return;
   }
 
-  users.forEach(user => {
+  for (
+    const user
+    of users
+  ) {
     const label =
-      document.createElement('label');
+      document.createElement(
+        'label'
+      );
 
     label.style.cssText = `
       display:flex;
@@ -1828,16 +2323,26 @@ function renderPrivateMembersCandidates() {
       cursor:pointer;
     `;
 
-    const checkbox =
-      document.createElement('input');
 
-    checkbox.type = 'checkbox';
-    checkbox.value = user.user_id;
+    const checkbox =
+      document.createElement(
+        'input'
+      );
+
+    checkbox.type =
+      'checkbox';
+
+    checkbox.value =
+      user.user_id;
+
     checkbox.className =
       'private-member-add-checkbox';
 
+
     const avatar =
-      document.createElement('div');
+      document.createElement(
+        'div'
+      );
 
     avatar.style.cssText = `
       width:42px;
@@ -1852,29 +2357,49 @@ function renderPrivateMembersCandidates() {
       font-size:22px;
     `;
 
+
     if (user.avatar_url) {
-      const img =
-        document.createElement('img');
+      const image =
+        document.createElement(
+          'img'
+        );
 
-      img.src = user.avatar_url;
-      img.alt = '';
+      image.src =
+        user.avatar_url;
 
-      img.style.cssText =
-        'width:100%;height:100%;object-fit:cover;';
+      image.alt =
+        '';
 
-      avatar.appendChild(img);
+      image.style.cssText =
+        'width:100%;' +
+        'height:100%;' +
+        'object-fit:cover;';
+
+      avatar.appendChild(
+        image
+      );
+
     } else {
-      avatar.textContent = '👤';
+      avatar.textContent =
+        '👤';
     }
 
+
     const name =
-      document.createElement('div');
+      document.createElement(
+        'div'
+      );
 
     name.textContent =
       user.display_name ||
-      T('Používateľ', 'User');
+      T(
+        'Používateľ',
+        'User'
+      );
 
-    name.style.fontWeight = '700';
+    name.style.fontWeight =
+      '700';
+
 
     label.append(
       checkbox,
@@ -1882,20 +2407,32 @@ function renderPrivateMembersCandidates() {
       name
     );
 
-    list.appendChild(label);
-  });
+    list.appendChild(
+      label
+    );
+  }
 }
 
 
+// ============================================================
+// ADD SELECTED MEMBERS
+// ============================================================
+
 async function addSelectedPrivateMembers() {
-  if (!privateChatConversationId) return;
+  if (
+    !currentUser ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
   const selected = [
     ...document.querySelectorAll(
       '.private-member-add-checkbox:checked'
     )
   ].map(
-    checkbox => checkbox.value
+    checkbox =>
+      checkbox.value
   );
 
   if (!selected.length) {
@@ -1905,6 +2442,7 @@ async function addSelectedPrivateMembers() {
         'Select at least one user.'
       )
     );
+
     return;
   }
 
@@ -1913,47 +2451,63 @@ async function addSelectedPrivateMembers() {
       'privateMembersAddBtn'
     );
 
-  button.disabled = true;
-
-  for (const userId of selected) {
-    const { error } =
-      await supabaseClient.rpc(
-        'add_private_conversation_member',
-        {
-          p_conversation_id:
-            privateChatConversationId,
-
-          p_user_id:
-            userId
-        }
-      );
-
-    if (error) {
-      button.disabled = false;
-
-      alert(
-        T(
-          'Niektorého používateľa sa nepodarilo pridať.',
-          'One of the users could not be added.'
-        )
-      );
-
-      return;
-    }
+  if (button) {
+    button.disabled =
+      true;
   }
 
-  button.disabled = false;
+  try {
+    for (
+      const userId
+      of selected
+    ) {
+      const {
+        error
+      } =
+        await supabaseClient.rpc(
+          'add_private_conversation_member',
+          {
+            p_conversation_id:
+              privateChatConversationId,
 
-  closePrivateMembersPanel();
+            p_user_id:
+              userId
+          }
+        );
 
-  alert(
-    T(
-      'Používatelia boli pridaní do diskusie. 😊',
-      'Users were added to the conversation. 😊'
-    )
-  );
+      if (error) {
+        alert(
+          T(
+            'Niektorého používateľa sa nepodarilo pridať.',
+            'One of the users could not be added.'
+          )
+        );
+
+        return;
+      }
+    }
+
+    closePrivateMembersPanel();
+
+    alert(
+      T(
+        'Používatelia boli pridaní do diskusie. 😊',
+        'Users were added to the conversation. 😊'
+      )
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+    }
+  }
 }
 
+
+// ============================================================
+// ADD MEMBERS LANGUAGE
+// ============================================================
 
 function setPrivateMembersLanguage() {
   const title =
@@ -1966,7 +2520,7 @@ function setPrivateMembersLanguage() {
       'privateMembersSearch'
     );
 
-  const add =
+  const addButton =
     document.getElementById(
       'privateMembersAddBtn'
     );
@@ -1987,8 +2541,8 @@ function setPrivateMembersLanguage() {
       );
   }
 
-  if (add) {
-    add.textContent =
+  if (addButton) {
+    addButton.textContent =
       T(
         'Pridať vybraných',
         'Add selected'
@@ -1997,15 +2551,26 @@ function setPrivateMembersLanguage() {
 }
 
 
-createPrivateMembersPanel();
-/* ===== PRIVATE CHAT – REMOVE MEMBERS ===== */
+// ============================================================
+// CREATE REMOVE MEMBERS PANEL
+// ============================================================
 
 function createPrivateRemoveMembersPanel() {
-  if (document.getElementById('privateRemoveMembersPanel')) return;
+  if (
+    document.getElementById(
+      'privateRemoveMembersPanel'
+    )
+  ) {
+    return;
+  }
 
-  const panel = document.createElement('div');
+  const panel =
+    document.createElement(
+      'div'
+    );
 
-  panel.id = 'privateRemoveMembersPanel';
+  panel.id =
+    'privateRemoveMembersPanel';
 
   panel.style.cssText = `
     display:none;
@@ -2026,6 +2591,7 @@ function createPrivateRemoveMembersPanel() {
       border-radius:16px;
       padding:18px;
     ">
+
       <div style="
         display:flex;
         justify-content:space-between;
@@ -2033,7 +2599,10 @@ function createPrivateRemoveMembersPanel() {
         gap:12px;
         margin-bottom:15px;
       ">
-        <h3 id="privateRemoveMembersTitle" style="margin:0;"></h3>
+        <h3
+          id="privateRemoveMembersTitle"
+          style="margin:0;"
+        ></h3>
 
         <button
           type="button"
@@ -2048,62 +2617,111 @@ function createPrivateRemoveMembersPanel() {
         >×</button>
       </div>
 
-      <div id="privateRemoveMembersList"></div>
+      <div
+        id="privateRemoveMembersList"
+      ></div>
 
       <button
         type="button"
         id="privateRemoveMembersBtn"
         class="submit-btn"
-        style="width:100%;margin-top:15px;"
+        style="
+          width:100%;
+          margin-top:15px;
+        "
       ></button>
+
     </div>
   `;
 
-  document.body.appendChild(panel);
+  document.body.appendChild(
+    panel
+  );
 
   document
-    .getElementById('privateRemoveMembersClose')
-    .addEventListener(
+    .getElementById(
+      'privateRemoveMembersClose'
+    )
+    ?.addEventListener(
       'click',
       closePrivateRemoveMembersPanel
     );
 
   document
-    .getElementById('privateRemoveMembersBtn')
-    .addEventListener(
+    .getElementById(
+      'privateRemoveMembersBtn'
+    )
+    ?.addEventListener(
       'click',
       removeSelectedPrivateMembers
     );
 }
 
 
+// ============================================================
+// OPEN REMOVE MEMBERS PANEL
+// ============================================================
+
 async function openPrivateRemoveMembersPanel() {
-  if (!currentUser || !privateChatConversationId) return;
+  if (
+    !currentUser ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
   createPrivateRemoveMembersPanel();
+
   setPrivateRemoveMembersLanguage();
 
-  document.getElementById(
-    'privateRemoveMembersPanel'
-  ).style.display = 'block';
+  const panel =
+    document.getElementById(
+      'privateRemoveMembersPanel'
+    );
+
+  if (panel) {
+    panel.style.display =
+      'block';
+  }
 
   await loadPrivateMembersForRemoval();
 }
 
 
+// ============================================================
+// CLOSE REMOVE MEMBERS PANEL
+// ============================================================
+
 function closePrivateRemoveMembersPanel() {
   const panel =
-    document.getElementById('privateRemoveMembersPanel');
+    document.getElementById(
+      'privateRemoveMembersPanel'
+    );
 
   if (panel) {
-    panel.style.display = 'none';
+    panel.style.display =
+      'none';
   }
 }
 
 
+// ============================================================
+// LOAD MEMBERS AVAILABLE TO REMOVE
+// ============================================================
+
 async function loadPrivateMembersForRemoval() {
   const list =
-    document.getElementById('privateRemoveMembersList');
+    document.getElementById(
+      'privateRemoveMembersList'
+    );
+
+  if (
+    !list ||
+    !currentUser ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
   list.innerHTML =
     '<div class="loading">' +
@@ -2113,15 +2731,25 @@ async function loadPrivateMembersForRemoval() {
     ) +
     '</div>';
 
-  const { data: memberships, error } =
+  const {
+    data: memberships,
+    error
+  } =
     await supabaseClient
-      .from('private_conversation_memberships')
-      .select('user_id')
+      .from(
+        'private_conversation_memberships'
+      )
+      .select(
+        'user_id'
+      )
       .eq(
         'conversation_id',
         privateChatConversationId
       )
-      .is('left_at', null)
+      .is(
+        'left_at',
+        null
+      )
       .neq(
         'user_id',
         currentUser.id
@@ -2133,12 +2761,14 @@ async function loadPrivateMembersForRemoval() {
         'Členov sa nepodarilo načítať.',
         'Members could not be loaded.'
       );
+
     return;
   }
 
   const ids =
     (memberships || []).map(
-      member => member.user_id
+      member =>
+        member.user_id
     );
 
   if (!ids.length) {
@@ -2147,19 +2777,30 @@ async function loadPrivateMembersForRemoval() {
         'V diskusii nie je nikto ďalší.',
         'There is nobody else in this conversation.'
       );
+
     return;
   }
 
-  const { data: users, error: usersError } =
+  const {
+    data: users,
+    error: usersError
+  } =
     await supabaseClient
-      .from('user_profiles')
+      .from(
+        'user_profiles'
+      )
       .select(
         'user_id,display_name,avatar_url'
       )
-      .in('user_id', ids)
+      .in(
+        'user_id',
+        ids
+      )
       .order(
         'display_name',
-        { ascending: true }
+        {
+          ascending: true
+        }
       );
 
   if (usersError) {
@@ -2168,14 +2809,21 @@ async function loadPrivateMembersForRemoval() {
         'Členov sa nepodarilo načítať.',
         'Members could not be loaded.'
       );
+
     return;
   }
 
-  list.innerHTML = '';
+  list.innerHTML =
+    '';
 
-  (users || []).forEach(user => {
+  for (
+    const user
+    of users || []
+  ) {
     const label =
-      document.createElement('label');
+      document.createElement(
+        'label'
+      );
 
     label.style.cssText = `
       display:flex;
@@ -2188,16 +2836,26 @@ async function loadPrivateMembersForRemoval() {
       cursor:pointer;
     `;
 
-    const checkbox =
-      document.createElement('input');
 
-    checkbox.type = 'checkbox';
-    checkbox.value = user.user_id;
+    const checkbox =
+      document.createElement(
+        'input'
+      );
+
+    checkbox.type =
+      'checkbox';
+
+    checkbox.value =
+      user.user_id;
+
     checkbox.className =
       'private-member-remove-checkbox';
 
+
     const avatar =
-      document.createElement('div');
+      document.createElement(
+        'div'
+      );
 
     avatar.style.cssText = `
       width:42px;
@@ -2212,29 +2870,49 @@ async function loadPrivateMembersForRemoval() {
       font-size:22px;
     `;
 
+
     if (user.avatar_url) {
-      const img =
-        document.createElement('img');
+      const image =
+        document.createElement(
+          'img'
+        );
 
-      img.src = user.avatar_url;
-      img.alt = '';
+      image.src =
+        user.avatar_url;
 
-      img.style.cssText =
-        'width:100%;height:100%;object-fit:cover;';
+      image.alt =
+        '';
 
-      avatar.appendChild(img);
+      image.style.cssText =
+        'width:100%;' +
+        'height:100%;' +
+        'object-fit:cover;';
+
+      avatar.appendChild(
+        image
+      );
+
     } else {
-      avatar.textContent = '👤';
+      avatar.textContent =
+        '👤';
     }
 
+
     const name =
-      document.createElement('div');
+      document.createElement(
+        'div'
+      );
 
     name.textContent =
       user.display_name ||
-      T('Používateľ', 'User');
+      T(
+        'Používateľ',
+        'User'
+      );
 
-    name.style.fontWeight = '700';
+    name.style.fontWeight =
+      '700';
+
 
     label.append(
       checkbox,
@@ -2242,20 +2920,32 @@ async function loadPrivateMembersForRemoval() {
       name
     );
 
-    list.appendChild(label);
-  });
+    list.appendChild(
+      label
+    );
+  }
 }
 
 
+// ============================================================
+// REMOVE SELECTED MEMBERS
+// ============================================================
+
 async function removeSelectedPrivateMembers() {
-  if (!privateChatConversationId) return;
+  if (
+    !currentUser ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
 
   const selected = [
     ...document.querySelectorAll(
       '.private-member-remove-checkbox:checked'
     )
   ].map(
-    checkbox => checkbox.value
+    checkbox =>
+      checkbox.value
   );
 
   if (!selected.length) {
@@ -2265,6 +2955,7 @@ async function removeSelectedPrivateMembers() {
         'Select at least one user.'
       )
     );
+
     return;
   }
 
@@ -2276,42 +2967,60 @@ async function removeSelectedPrivateMembers() {
       )
     );
 
-  if (!confirmed) return;
+  if (!confirmed) {
+    return;
+  }
 
   const button =
     document.getElementById(
       'privateRemoveMembersBtn'
     );
 
-  button.disabled = true;
-
-  const { error } =
-    await supabaseClient.rpc(
-      'remove_private_conversation_members',
-      {
-        p_conversation_id:
-          privateChatConversationId,
-
-        p_user_ids:
-          selected
-      }
-    );
-
-  button.disabled = false;
-
-  if (error) {
-    alert(
-      T(
-        'Používateľov sa nepodarilo odobrať.',
-        'The users could not be removed.'
-      )
-    );
-    return;
+  if (button) {
+    button.disabled =
+      true;
   }
 
-  closePrivateRemoveMembersPanel();
+  try {
+    const {
+      error
+    } =
+      await supabaseClient.rpc(
+        'remove_private_conversation_members',
+        {
+          p_conversation_id:
+            privateChatConversationId,
+
+          p_user_ids:
+            selected
+        }
+      );
+
+    if (error) {
+      alert(
+        T(
+          'Používateľov sa nepodarilo odobrať.',
+          'The users could not be removed.'
+        )
+      );
+
+      return;
+    }
+
+    closePrivateRemoveMembersPanel();
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+    }
+  }
 }
 
+
+// ============================================================
+// REMOVE MEMBERS LANGUAGE
+// ============================================================
 
 function setPrivateRemoveMembersLanguage() {
   const title =
@@ -2342,197 +3051,420 @@ function setPrivateRemoveMembersLanguage() {
 }
 
 
-/* Dlhé podržanie 👥 = odobratie účastníkov */
+// ============================================================
+// LONG PRESS MEMBERS BUTTON
+// Tap = add users
+// Long press = remove users
+// ============================================================
 
-const privateMembersMainButton =
-  document.getElementById(
-    'privateChatMembersBtn'
-  );
+function initialisePrivateMembersLongPress(
+  button
+) {
+  if (
+    !button ||
+    button.dataset.privateHoldReady ===
+      'true'
+  ) {
+    return;
+  }
 
-if (privateMembersMainButton) {
-  let privateMembersHoldTimer = null;
-  let privateMembersLongPress = false;
+  button.dataset.privateHoldReady =
+    'true';
 
-  privateMembersMainButton.addEventListener(
+  let holdTimer =
+    null;
+
+  let longPress =
+    false;
+
+
+  button.addEventListener(
     'touchstart',
     () => {
-      privateMembersLongPress = false;
+      longPress =
+        false;
 
-      privateMembersHoldTimer =
-        setTimeout(() => {
-          privateMembersLongPress = true;
-          openPrivateRemoveMembersPanel();
-        }, 650);
+      holdTimer =
+        setTimeout(
+          () => {
+            longPress =
+              true;
+
+            openPrivateRemoveMembersPanel();
+          },
+          650
+        );
     },
-    { passive: true }
+    {
+      passive: true
+    }
   );
 
-  privateMembersMainButton.addEventListener(
+
+  button.addEventListener(
     'touchend',
     event => {
       clearTimeout(
-        privateMembersHoldTimer
+        holdTimer
       );
 
-      if (privateMembersLongPress) {
+      if (longPress) {
         event.preventDefault();
+        event.stopImmediatePropagation();
       }
     }
   );
 
-  privateMembersMainButton.addEventListener(
+
+  button.addEventListener(
+    'touchcancel',
+    () => {
+      clearTimeout(
+        holdTimer
+      );
+    }
+  );
+
+
+  button.addEventListener(
     'contextmenu',
     event => {
       event.preventDefault();
+
       openPrivateRemoveMembersPanel();
     }
   );
 }
 
 
-createPrivateRemoveMembersPanel();
-/* ===== PRIVATE CHAT – CONVERSATION SEND FIX ===== */
+// ============================================================
+// CLOSE PRIVATE CHAT
+// ============================================================
 
-sendPrivateChatText = async function (text) {
-  if (
-    !currentUser ||
-    !privateChatConversationId ||
-    !text
-  ) {
-    return false;
-  }
+function closePrivateChat() {
+  privateChatOpen =
+    false;
 
-  const { error } =
-    await supabaseClient
-      .from('private_messages')
-      .insert({
-        conversation_id:
-          privateChatConversationId,
+  clearPrivateChatPendingPhoto();
 
-        sender_id:
-          currentUser.id,
+  closePrivateMembersPanel();
+  closePrivateRemoveMembersPanel();
 
-        receiver_id:
-          null,
-
-        message_text:
-          text,
-
-        image_url:
-          null
-      });
-
-  if (error) {
-    alert(
-      T(
-        'Správu sa nepodarilo odoslať.',
-        'The message could not be sent.'
-      )
+  const page =
+    document.getElementById(
+      'privateChatPage'
     );
 
-    return false;
+  if (page) {
+    page.style.display =
+      'none';
   }
 
-  return true;
-};
 
-
-sendPrivateChatPhoto = async function (file) {
   if (
-    !currentUser ||
-    !privateChatConversationId ||
-    !file
+    privateChatMessagesChannel
   ) {
-    return false;
-  }
-
-  let photo;
-
-  try {
-    photo =
-      await compressPrivateChatPhoto(file);
-  } catch (error) {
-    alert(
-      T(
-        'Fotografiu sa nepodarilo spracovať.',
-        'The photo could not be processed.'
-      )
+    supabaseClient.removeChannel(
+      privateChatMessagesChannel
     );
 
-    return false;
+    privateChatMessagesChannel =
+      null;
   }
 
-  if (!photo) return false;
 
-  const path =
-    currentUser.id +
-    '/' +
-    privateChatConversationId +
-    '/' +
-    Date.now() +
-    '-' +
-    Math.random()
-      .toString(36)
-      .slice(2) +
-    '.jpg';
+  if (
+    privateChatEventsChannel
+  ) {
+    supabaseClient.removeChannel(
+      privateChatEventsChannel
+    );
 
-  const { error: uploadError } =
-    await supabaseClient.storage
-      .from('private-chat-media')
-      .upload(
-        path,
-        photo,
-        {
-          contentType: 'image/jpeg',
-          upsert: false
-        }
+    privateChatEventsChannel =
+      null;
+  }
+
+
+  privateChatConversationId =
+    null;
+
+  privateChatSelectedUser =
+    null;
+
+
+  if (
+    typeof window.openPrivateUsers ===
+    'function'
+  ) {
+    window.openPrivateUsers();
+  }
+}
+
+
+// ============================================================
+// LANGUAGE
+// ============================================================
+
+function setPrivateChatLanguage() {
+  const input =
+    document.getElementById(
+      'privateChatMessageInput'
+    );
+
+  if (input) {
+    input.placeholder =
+      T(
+        'Napíšte správu...',
+        'Write a message...'
+      );
+  }
+
+
+  const members =
+    document.getElementById(
+      'privateChatMembersBtn'
+    );
+
+  if (members) {
+    members.title =
+      T(
+        'Pridať používateľov',
+        'Add users'
+      );
+  }
+
+
+  const deleteButtons =
+    document.querySelectorAll(
+      '#privateChatMessages .private-delete-btn'
+    );
+
+  deleteButtons.forEach(
+    button => {
+      button.title =
+        T(
+          'Vymazať',
+          'Delete'
+        );
+    }
+  );
+
+
+  const messages =
+    document.querySelectorAll(
+      '#privateChatMessages [id^="private-message-"]'
+    );
+
+  messages.forEach(
+    item => {
+      const receipt =
+        item.querySelector(
+          '.private-read-receipt'
+        );
+
+      if (!receipt) {
+        return;
+      }
+
+      const text =
+        receipt.textContent;
+
+      const wasRead =
+        text === 'Prečítané' ||
+        text === 'Read';
+
+      receipt.textContent =
+        wasRead
+          ? T(
+              'Prečítané',
+              'Read'
+            )
+          : T(
+              'Odoslané',
+              'Sent'
+            );
+    }
+  );
+
+
+  setPrivateMembersLanguage();
+  setPrivateRemoveMembersLanguage();
+
+  updatePrivateChatStatus();
+}
+
+
+// ============================================================
+// SCROLL TO BOTTOM
+// ============================================================
+
+function scrollPrivateChatToBottom() {
+  const box =
+    document.getElementById(
+      'privateChatMessages'
+    );
+
+  if (!box) {
+    return;
+  }
+
+  requestAnimationFrame(
+    () => {
+      box.scrollTop =
+        box.scrollHeight;
+    }
+  );
+}
+
+
+// ============================================================
+// CONNECT EXISTING USERS DIRECTORY
+// ============================================================
+
+function connectPrivateUsersDirectory() {
+  const list =
+    document.getElementById(
+      'privateUsersList'
+    );
+
+  if (!list) {
+    return;
+  }
+
+  const users =
+    typeof privateUsers !==
+      'undefined' &&
+    Array.isArray(
+      privateUsers
+    )
+      ? privateUsers
+      : [];
+
+  const rows =
+    list.querySelectorAll(
+      'button'
+    );
+
+  rows.forEach(
+    (
+      row,
+      index
+    ) => {
+      const user =
+        users[index];
+
+      if (!user) {
+        return;
+      }
+
+      row.onclick =
+        () => {
+          window.selectedPrivateUser =
+            user;
+
+          openPrivateChatWithUser(
+            user
+          );
+        };
+    }
+  );
+}
+
+
+// ============================================================
+// WATCH USERS DIRECTORY
+// ============================================================
+
+let privateDirectoryObserver =
+  null;
+
+let privateDirectoryStartTimer =
+  null;
+
+
+function startPrivateDirectoryObserver() {
+  const list =
+    document.getElementById(
+      'privateUsersList'
+    );
+
+  if (!list) {
+    clearTimeout(
+      privateDirectoryStartTimer
+    );
+
+    privateDirectoryStartTimer =
+      setTimeout(
+        startPrivateDirectoryObserver,
+        500
       );
 
-  if (uploadError) {
-    alert(
-      T(
-        'Fotografiu sa nepodarilo nahrať.',
-        'The photo could not be uploaded.'
-      )
-    );
-
-    return false;
+    return;
   }
 
-  const { error: messageError } =
-    await supabaseClient
-      .from('private_messages')
-      .insert({
-        conversation_id:
-          privateChatConversationId,
+  clearTimeout(
+    privateDirectoryStartTimer
+  );
 
-        sender_id:
-          currentUser.id,
+  connectPrivateUsersDirectory();
 
-        receiver_id:
-          null,
-
-        message_text:
-          null,
-
-        image_url:
-          path
-      });
-
-  if (messageError) {
-    await supabaseClient.storage
-      .from('private-chat-media')
-      .remove([path]);
-
-    alert(
-      T(
-        'Fotografiu sa nepodarilo odoslať.',
-        'The photo could not be sent.'
-      )
-    );
-
-    return false;
+  if (
+    privateDirectoryObserver
+  ) {
+    privateDirectoryObserver.disconnect();
   }
 
-  return true;
-};
+  privateDirectoryObserver =
+    new MutationObserver(
+      () => {
+        connectPrivateUsersDirectory();
+      }
+    );
+
+  privateDirectoryObserver.observe(
+    list,
+    {
+      childList: true,
+      subtree: true
+    }
+  );
+}
+
+
+// ============================================================
+// INITIALISE PRIVATE CHAT
+// ============================================================
+
+function initialisePrivateChat() {
+  createPrivateChatPage();
+
+  createPrivateMembersPanel();
+
+  createPrivateRemoveMembersPanel();
+
+  startPrivateDirectoryObserver();
+
+  setPrivateChatLanguage();
+}
+
+
+if (
+  document.readyState ===
+  'loading'
+) {
+  document.addEventListener(
+    'DOMContentLoaded',
+    initialisePrivateChat,
+    {
+      once: true
+    }
+  );
+
+} else {
+  initialisePrivateChat();
+}
+
+
+// ============================================================
+// END COMMUNITY FOR ALL – PRIVATE-CHAT.JS
+// ============================================================
