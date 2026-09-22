@@ -358,7 +358,7 @@ Registered Charity No. 1216952
 <script>
 const SUPABASE_URL='https://btkblcngijheanyhyiow.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_0f7Y2P49SneR1E_ZZgjsrw_679teyVH';
-const APP_URL='https://tatrycupcio.github.io/community-for-all/';
+const APP_URL='https://tatrycupcio.uk/';
 
 const supabaseClient=window.supabase.createClient(
 SUPABASE_URL,
@@ -598,7 +598,7 @@ return[
 'per_tent_per_night',
 'per_vehicle_per_night'
 ].includes(o.pricing_unit)
-}
+  }
 
 function isDayPricing(o){
 return['per_day','per_person_per_day','per_vehicle_per_day'].includes(o.pricing_unit)
@@ -896,8 +896,7 @@ pp.textContent=childOpt
 :T('Cena detského lôžka nie je dostupná','Child bed price is unavailable');
 }else{
 pp.textContent=T('Vlastné lôžko je zahrnuté v cene izby/chatky.','Own bed is included in the room/lodge price.')
-}
-
+  }
 paid.appendChild(pp);
 const paidAges=document.createElement('div');
 paidAges.className='child-age-list';
@@ -1192,14 +1191,14 @@ return null;
 
 return data||null;
 }
+
 async function getCartItems(id){
 const{data,error}=await supabaseClient
 .from('booking_items')
 .select('*,event_options(option_code,is_accommodation,free_with_accommodation)')
 .eq('booking_id',id)
 .order('created_at');
-
-if(error){
+  if(error){
 alert(
 'GET CART ITEMS ERROR:\n'+
 (error.message||'Unknown error')+
@@ -1211,6 +1210,7 @@ return[];
 
 return data||[];
 }
+
 async function refreshCartBadge(){
 const badge=el('cartBadge');
 if(!currentUser){
@@ -1312,6 +1312,7 @@ box.appendChild(total);
 
 const actions=document.createElement('div');
 actions.className='cart-actions';
+
 const cont=document.createElement('button');
 cont.className='secondary-btn';
 cont.textContent=T('← Pokračovať v rezervácii','← Continue reservation');
@@ -1321,6 +1322,7 @@ const checkout=document.createElement('button');
 checkout.className='checkout-btn';
 checkout.disabled=true;
 checkout.textContent=T('Prejsť k platbe – čoskoro','Proceed to checkout – coming soon');
+
 actions.append(cont,checkout);
 box.appendChild(actions);
 el('cartPageContent').innerHTML='';
@@ -1409,10 +1411,12 @@ alert(T('Online platba ešte nie je aktívna.','Online payment is not active yet
 async function loadPublicDonations(){
 const{data}=await supabaseClient.rpc('get_public_donations');
 el('publicDonations').innerHTML='';
+
 if(!data?.length){
 el('publicDonations').innerHTML=`<div class="small">${T('Zatiaľ tu nie sú žiadne verejné príspevky.','There are no public donations to display yet.')}</div>`;
 return
 }
+
 (data||[]).forEach(d=>{
 const x=document.createElement('div');
 x.className='donation-row';
@@ -1423,11 +1427,14 @@ el('publicDonations').appendChild(x)
 
 el('loginForm').onsubmit=async e=>{
 e.preventDefault();
+
 const{data,error}=await supabaseClient.auth.signInWithPassword({
 email:el('loginEmail').value.trim(),
 password:el('loginPassword').value
 });
+
 if(error)return showMessage('loginMessage',T('Prihlásenie sa nepodarilo.','Sign in failed.'),'error');
+
 currentUser=data.user;
 updateUserButton();
 refreshCartBadge();
@@ -1436,15 +1443,22 @@ showHome()
 
 el('registerForm').onsubmit=async e=>{
 e.preventDefault();
+
 const p=el('registerPassword').value;
+
 if(p!==el('registerPassword2').value){
 return showMessage('registerMessage',T('Heslá sa nezhodujú.','Passwords do not match.'),'error')
 }
+
 const{error}=await supabaseClient.auth.signUp({
 email:el('registerEmail').value.trim(),
 password:p,
-options:{data:{username:el('registerUsername').value.trim()},emailRedirectTo:APP_URL}
+options:{
+data:{username:el('registerUsername').value.trim()},
+emailRedirectTo:APP_URL
+}
 });
+
 showMessage(
 'registerMessage',
 error?error.message:T('Účet bol vytvorený. Skontrolujte e-mail.','Account created. Please check your email.'),
@@ -1453,10 +1467,14 @@ error?'error':'success'
 };
 
 async function saveUsername(){
-const{data,error}=await supabaseClient.auth.updateUser({data:{username:el('accountUsernameInput').value.trim()}});
+const{data,error}=await supabaseClient.auth.updateUser({
+data:{username:el('accountUsernameInput').value.trim()}
+});
+
 if(error){
 return showMessage('usernameMessage',T('Používateľské meno sa nepodarilo uložiť.','Username could not be saved.'),'error')
 }
+
 currentUser=data.user;
 fillAccount();
 updateUserButton();
@@ -1474,10 +1492,12 @@ showHome()
 
 el('forgotForm').onsubmit=async e=>{
 e.preventDefault();
+
 const{error}=await supabaseClient.auth.resetPasswordForEmail(
 el('forgotEmail').value.trim(),
 {redirectTo:APP_URL}
 );
+
 showMessage(
 'forgotMessage',
 error?error.message:T('Odkaz bol odoslaný.','Reset link has been sent.'),
@@ -1487,18 +1507,22 @@ error?'error':'success'
 
 el('resetForm').onsubmit=async e=>{
 e.preventDefault();
+
 if(el('newPassword').value!==el('newPassword2').value){
 return showMessage('resetMessage',T('Heslá sa nezhodujú.','Passwords do not match.'),'error')
 }
-const{error}=await supabaseClient.auth.updateUser({password:el('newPassword').value});
+
+const{error}=await supabaseClient.auth.updateUser({
+password:el('newPassword').value
+});
+
 showMessage(
 'resetMessage',
 error?error.message:T('Nové heslo bolo uložené.','Your new password has been saved.'),
 error?'error':'success'
 )
 };
-
-async function sendForm(form,id,url,sk,en){
+  async function sendForm(form,id,url,sk,en){
 const r=await fetch(
 url,
 {method:'POST',body:new FormData(form),headers:{Accept:'application/json'}}
@@ -1670,6 +1694,7 @@ setLanguage('sk');
 showHome()
 })();
 </script>
+
 <!-- ===== COMMUNITY CHAT ===== -->
 <div id="chatPage" style="display:none;">
 
@@ -1736,8 +1761,9 @@ showHome()
 <!-- ===== END COMMUNITY CHAT ===== -->
 
 <script src="extensions.js?v=20260919-1"></script>
-  <script src="chat.js?v=4"></script>
-  <script>
+<script src="chat.js?v=4"></script>
+
+<script>
 /* ===== PASSWORD RECOVERY FIX ===== */
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -1750,8 +1776,9 @@ supabaseClient.auth.onAuthStateChange((event, session) => {
     }, 100);
   }
 });
-  </script>
-  <script>
+</script>
+
+<script>
 /* ===== PASSWORD SHOW / HIDE ===== */
 
 function addPasswordEye(inputId) {
@@ -1794,83 +1821,11 @@ function addPasswordEye(inputId) {
   'newPassword',
   'newPassword2'
 ].forEach(addPasswordEye);
-  </script>
-  <script>
-/* ===== PASSWORD RECOVERY URL FIX ===== */
+</script>
 
-(function () {
-  const hash = window.location.hash || '';
-  const search = window.location.search || '';
-
-  const isPasswordRecovery =
-    hash.includes('type=recovery') ||
-    search.includes('type=recovery');
-
-  if (!isPasswordRecovery) return;
-
-  let attempts = 0;
-
-  const openPasswordReset = setInterval(() => {
-    attempts++;
-
-    if (
-      typeof showResetPassword === 'function' &&
-      document.getElementById('resetPage')
-    ) {
-      clearInterval(openPasswordReset);
-
-      setTimeout(() => {
-        showResetPassword();
-
-        document.getElementById('newPassword')?.focus();
-      }, 300);
-    }
-
-    if (attempts >= 20) {
-      clearInterval(openPasswordReset);
-    }
-  }, 100);
-})();
-  </script>
-  <script>
-/* ===== PASSWORD RECOVERY FINAL FIX ===== */
-
-let passwordRecoveryActive = false;
-
-supabaseClient.auth.onAuthStateChange((event, session) => {
-  if (event === 'PASSWORD_RECOVERY') {
-    passwordRecoveryActive = true;
-    currentUser = session?.user || null;
-    updateUserButton();
-
-    setTimeout(() => {
-      showResetPassword();
-      document.getElementById('newPassword')?.focus();
-    }, 500);
-  }
-});
-
-setTimeout(async () => {
-  const { data } = await supabaseClient.auth.getSession();
-
-  const recoveryInUrl =
-    location.hash.includes('type=recovery') ||
-    location.search.includes('type=recovery');
-
-  if (passwordRecoveryActive || recoveryInUrl) {
-    currentUser = data?.session?.user || currentUser;
-
-    showResetPassword();
-    document.getElementById('newPassword')?.focus();
-  }
-}, 1000);
-  </script>
-</body>
-</html>
 <script>
-/* ===== PASSWORD RECOVERY – LOCK UNTIL NEW PASSWORD SAVED ===== */
-
-(function () {
+/* ===== PASSWORD RECOVERY URL FIX ===== */
+  (function () {
   let recoveryLocked = false;
 
   function openRecoveryScreen() {
@@ -1889,7 +1844,6 @@ setTimeout(async () => {
     document.getElementById('newPassword')?.focus();
   }
 
-  /* Zachytí recovery udalosť zo Supabase */
   supabaseClient.auth.onAuthStateChange((event, session) => {
     if (event === 'PASSWORD_RECOVERY') {
       sessionStorage.setItem('passwordRecoveryPending', 'true');
@@ -1900,7 +1854,6 @@ setTimeout(async () => {
     }
   });
 
-  /* Recovery môže byť zachytené už pri načítaní stránky */
   if (
     location.hash.includes('type=recovery') ||
     location.search.includes('type=recovery')
@@ -1912,7 +1865,6 @@ setTimeout(async () => {
     openRecoveryScreen();
   }
 
-  /* Nedovolí ostatnému kódu prekryť reset obrazovku */
   const originalShowHome = window.showHome;
 
   window.showHome = function () {
@@ -1927,7 +1879,6 @@ setTimeout(async () => {
     return originalShowHome.apply(this, arguments);
   };
 
-  /* Vlastné dokončenie resetu */
   const resetForm = document.getElementById('resetForm');
 
   if (resetForm) {
@@ -1935,23 +1886,27 @@ setTimeout(async () => {
       e.preventDefault();
 
       const password =
-        document.getElementById('newPassword').value;
+        document.getElementById('newPassword')?.value || '';
 
       const password2 =
-        document.getElementById('newPassword2').value;
+        document.getElementById('newPassword2')?.value || '';
 
       if (password !== password2) {
         showMessage(
           'resetMessage',
-          T('Heslá sa nezhodujú.', 'Passwords do not match.'),
+          T(
+            'Heslá sa nezhodujú.',
+            'Passwords do not match.'
+          ),
           'error'
         );
+
         return;
       }
 
       const { error } =
         await supabaseClient.auth.updateUser({
-          password: password
+          password
         });
 
       if (error) {
@@ -1960,15 +1915,21 @@ setTimeout(async () => {
           error.message,
           'error'
         );
+
         return;
       }
 
-      /* AŽ TERAZ odomkneme normálny vstup */
-      sessionStorage.removeItem('passwordRecoveryPending');
       recoveryLocked = false;
 
-      document.getElementById('newPassword').value = '';
-      document.getElementById('newPassword2').value = '';
+      sessionStorage.removeItem(
+        'passwordRecoveryPending'
+      );
+
+      history.replaceState(
+        {},
+        document.title,
+        location.pathname
+      );
 
       showMessage(
         'resetMessage',
@@ -1981,268 +1942,370 @@ setTimeout(async () => {
 
       setTimeout(() => {
         originalShowHome();
-      }, 700);
+      }, 1200);
     };
   }
 })();
 </script>
+
 <script>
 /* ===== EVENTS – PRIVATE TEST MODE ===== */
 
-const EVENTS_TESTER_USER_ID =
-  '5dd44b46-dcf5-4935-abca-d6c220875b20';
-
-const originalShowEventsPrivateTest = showEvents;
-
-showEvents = async function () {
-
-  await refreshCurrentUser();
-
-  /* Michaela – plný prístup */
-  if (
-    currentUser &&
-    currentUser.id === EVENTS_TESTER_USER_ID
-  ) {
-    return originalShowEventsPrivateTest.apply(this, arguments);
-  }
-
-  /* Verejnosť – iba pripravujeme */
-  hidePages();
-
-  const eventsPage = document.getElementById('eventsPage');
-
-  if (!eventsPage) return;
-
-  eventsPage.style.display = 'block';
-
-  eventsPage.innerHTML = `
-    <div style="
-      min-height:60vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:30px;
-    ">
-      <div>
-        <div style="font-size:48px;margin-bottom:18px;">✨</div>
-
-        <h2>
-          ${T('Pripravujeme...', 'Coming soon...')}
-        </h2>
-
-        <p>
-          ${T(
-            'Nové podujatia už čoskoro.',
-            'New events are coming soon.'
-          )}
-        </p>
-
-        <button
-          class="submit-btn"
-          type="button"
-          onclick="showHome()"
-          style="margin-top:20px;"
-        >
-          ${T('Späť', 'Back')}
-        </button>
-      </div>
-    </div>
-  `;
-
-  window.scrollTo(0, 0);
-};
-</script>
-<script>
-/* ===== MY BOOKINGS – LANGUAGE FIX ===== */
-
 (function () {
 
-  const originalSetLanguageBookingsFix = setLanguage;
+  const originalShowEventsPrivate =
+    window.showEvents;
 
-  setLanguage = function (lang) {
+  window.showEvents = async function () {
 
-    originalSetLanguageBookingsFix.apply(this, arguments);
+    go('eventsPage');
 
-    const bookingsBtn =
-      document.getElementById('bookingsBtn');
+    el('eventsList').innerHTML = '';
 
-    if (bookingsBtn) {
-      bookingsBtn.textContent =
-        lang === 'en'
-          ? '🎟️ My Bookings'
-          : '🎟️ Moje rezervácie';
+    el('eventsLoading').textContent =
+      T(
+        'Načítavam podujatia...',
+        'Loading events...'
+      );
+
+    const { data, error } =
+      await supabaseClient
+        .from('events')
+        .select('*')
+        .in(
+          'status',
+          ['published', 'private']
+        )
+        .order('start_date');
+
+    el('eventsLoading').textContent = '';
+
+    if (error) {
+
+      showMessage(
+        'eventsMessage',
+        T(
+          'Podujatia sa nepodarilo načítať.',
+          'Events could not be loaded.'
+        ),
+        'error'
+      );
+
+      return;
+    }
+
+    const visibleEvents =
+      (data || []).filter(event => {
+
+        if (event.status === 'published') {
+          return true;
+        }
+
+        if (
+          event.status === 'private' &&
+          currentUser
+        ) {
+          return true;
+        }
+
+        return false;
+      });
+
+    visibleEvents.forEach(event => {
+
+      const card =
+        document.createElement('div');
+
+      card.className = 'event-card';
+
+      const privateBadge =
+        event.status === 'private'
+          ? `
+            <div
+              style="
+                display:inline-block;
+                margin-bottom:8px;
+                padding:4px 8px;
+                border-radius:999px;
+                background:#7c2d12;
+                color:#fed7aa;
+                font-size:11px;
+                font-weight:800;
+              "
+            >
+              🔒 ${T(
+                'SÚKROMNÉ TESTOVANIE',
+                'PRIVATE TESTING'
+              )}
+            </div>
+          `
+          : '';
+
+      card.innerHTML = `
+        ${privateBadge}
+
+        <div class="event-title">
+          ${escapeHtml(event.title)}
+        </div>
+
+        <div class="event-info">
+          📅 ${formatDate(event.start_date)}
+          ${
+            event.end_date &&
+            event.end_date !== event.start_date
+              ? ' – ' + formatDate(event.end_date)
+              : ''
+          }
+        </div>
+
+        ${
+          event.venue_name
+            ? `
+              <div class="event-info">
+                📍 ${escapeHtml(event.venue_name)}
+              </div>
+            `
+            : ''
+        }
+
+        ${
+          event.short_description
+            ? `
+              <p>
+                ${escapeHtml(
+                  event.short_description
+                )}
+              </p>
+            `
+            : ''
+        }
+
+        <div class="small">
+          ${T(
+            'Kliknite pre detail podujatia a rezervácie →',
+            'Open event details and reservations →'
+          )}
+        </div>
+      `;
+
+      card.onclick =
+        () => showEventDetail(event.id);
+
+      el('eventsList').appendChild(card);
+    });
+
+    if (!visibleEvents.length) {
+
+      el('eventsList').innerHTML = `
+        <div class="card">
+          ${T(
+            'Momentálne nie sú dostupné žiadne podujatia.',
+            'There are currently no events available.'
+          )}
+        </div>
+      `;
     }
   };
 
 })();
 </script>
+
 <script>
 /* ===== PRIVATE MESSAGES – USERS DIRECTORY ===== */
 
 (function () {
 
-  /* ---------- CREATE HOME BUTTON ---------- */
+  let privateUsers = [];
 
   function createPrivateMessagesButton() {
-    if (document.getElementById('privateMessagesBtn')) return;
 
-    const contactBtn = document.getElementById('contactBtn');
-    if (!contactBtn) return;
+    if (
+      document.getElementById(
+        'privateMessagesBtn'
+      )
+    ) {
+      return;
+    }
 
-    const button = document.createElement('button');
+    const home =
+      document.getElementById('homePage');
+
+    if (!home) return;
+
+    const button =
+      document.createElement('button');
 
     button.id = 'privateMessagesBtn';
-    button.className = 'menu-btn';
+
     button.type = 'button';
 
-    button.onclick = openPrivateUsers;
+    button.className =
+      'menu-btn bookings';
 
-    contactBtn.insertAdjacentElement('afterend', button);
+    button.style.background = '#475569';
 
-    updatePrivateMessagesLanguage();
+    button.textContent =
+      currentLanguage === 'en'
+        ? '💬 Private Messages'
+        : '💬 Súkromné správy';
+
+    button.onclick =
+      openPrivateUsers;
+
+    home.appendChild(button);
   }
 
-
-  /* ---------- CREATE USERS PAGE ---------- */
-
   function createPrivateUsersPage() {
-    if (document.getElementById('privateUsersPage')) return;
 
-    const page = document.createElement('div');
+    if (
+      document.getElementById(
+        'privateUsersPage'
+      )
+    ) {
+      return;
+    }
+
+    const page =
+      document.createElement('div');
 
     page.id = 'privateUsersPage';
+
     page.className = 'page';
-    page.style.display = 'none';
 
     page.innerHTML = `
-      <h2 id="privateUsersTitle"></h2>
+      <button
+        type="button"
+        class="back-btn"
+        id="privateUsersBackBtn"
+      >
+        ← Späť
+      </button>
+
+      <h2 id="privateUsersTitle">
+        💬 Súkromné správy
+      </h2>
 
       <div class="card">
 
         <input
           id="privateUserSearch"
           type="search"
+          placeholder="Hľadať používateľa..."
           autocomplete="off"
-          style="width:100%;margin-bottom:16px;"
         >
 
-        <div id="privateUsersList"></div>
+        <div
+          id="privateUsersList"
+          style="margin-top:15px;"
+        ></div>
 
       </div>
-
-      <button
-        type="button"
-        class="submit-btn"
-        id="privateUsersBackBtn"
-        style="margin-top:16px;"
-      ></button>
     `;
 
-    document.body.appendChild(page);
+    document
+      .querySelector('.container')
+      ?.appendChild(page);
 
     document
-      .getElementById('privateUserSearch')
-      .addEventListener('input', renderPrivateUsers);
+      .getElementById(
+        'privateUsersBackBtn'
+      )
+      .onclick = showHome;
 
     document
-      .getElementById('privateUsersBackBtn')
-      .onclick = function () {
-        document.getElementById('privateUsersPage').style.display = 'none';
-        showHome();
-      };
+      .getElementById(
+        'privateUserSearch'
+      )
+      .addEventListener(
+        'input',
+        renderPrivateUsers
+      );
 
     updatePrivateMessagesLanguage();
   }
 
-
-  /* ---------- LANGUAGE ---------- */
-
   function updatePrivateMessagesLanguage() {
 
     const button =
-      document.getElementById('privateMessagesBtn');
+      document.getElementById(
+        'privateMessagesBtn'
+      );
 
     if (button) {
       button.textContent =
         currentLanguage === 'en'
-          ? 'Private Messages'
-          : 'Súkromné správy';
+          ? '💬 Private Messages'
+          : '💬 Súkromné správy';
+    }
+
+    const back =
+      document.getElementById(
+        'privateUsersBackBtn'
+      );
+
+    if (back) {
+      back.textContent =
+        currentLanguage === 'en'
+          ? '← Back'
+          : '← Späť';
     }
 
     const title =
-      document.getElementById('privateUsersTitle');
+      document.getElementById(
+        'privateUsersTitle'
+      );
 
     if (title) {
       title.textContent =
         currentLanguage === 'en'
-          ? 'Private Messages'
-          : 'Súkromné správy';
+          ? '💬 Private Messages'
+          : '💬 Súkromné správy';
     }
 
     const search =
-      document.getElementById('privateUserSearch');
+      document.getElementById(
+        'privateUserSearch'
+      );
 
     if (search) {
       search.placeholder =
         currentLanguage === 'en'
           ? 'Search users...'
-          : 'Vyhľadať používateľa...';
-    }
-
-    const back =
-      document.getElementById('privateUsersBackBtn');
-
-    if (back) {
-      back.textContent =
-        currentLanguage === 'en'
-          ? 'Back'
-          : 'Späť';
+          : 'Hľadať používateľa...';
     }
   }
-
-
-  /* ---------- OPEN DIRECTORY ---------- */
 
   async function openPrivateUsers() {
 
-    if (!currentUser) {
-      if (typeof requireLogin === 'function') {
-        requireLogin();
-      }
-      return;
-    }
+    if (!requireLogin()) return;
 
-    createPrivateUsersPage();
+    hidePages();
 
-    if (typeof hidePages === 'function') {
-      hidePages();
-    }
+    const page =
+      document.getElementById(
+        'privateUsersPage'
+      );
 
-    document.getElementById('privateUsersPage').style.display = 'block';
+    if (!page) return;
 
-    document.getElementById('privateUserSearch').value = '';
-
-    updatePrivateMessagesLanguage();
-
-    await loadPrivateUsers();
+    page.style.display = 'block';
 
     window.scrollTo(0, 0);
+
+    await loadPrivateUsers();
   }
 
-  window.openPrivateUsers = openPrivateUsers;
-
-
-  /* ---------- LOAD USERS ---------- */
-
-  let privateUsers = [];
+  window.openPrivateUsers =
+    openPrivateUsers;
 
   async function loadPrivateUsers() {
 
     const list =
-      document.getElementById('privateUsersList');
+      document.getElementById(
+        'privateUsersList'
+      );
 
-    if (!list) return;
+    if (!list || !currentUser) return;
 
     list.innerHTML =
       `<div class="loading">${
@@ -2254,17 +2317,27 @@ showEvents = async function () {
     const { data, error } =
       await supabaseClient
         .from('user_profiles')
-        .select('user_id,display_name,avatar_url')
-        .neq('user_id', currentUser.id)
-        .order('display_name', { ascending: true });
+        .select(
+          'user_id,display_name,avatar_url'
+        )
+        .neq(
+          'user_id',
+          currentUser.id
+        )
+        .order(
+          'display_name',
+          { ascending: true }
+        );
 
     if (error) {
+
       list.innerHTML =
         `<div>${
           currentLanguage === 'en'
             ? 'Users could not be loaded.'
             : 'Používateľov sa nepodarilo načítať.'
         }</div>`;
+
       return;
     }
 
@@ -2272,6 +2345,7 @@ showEvents = async function () {
 
     renderPrivateUsers();
   }
+    }
 
 
   /* ---------- RENDER USERS ---------- */
@@ -2396,16 +2470,11 @@ showEvents = async function () {
 
       /* NEXT STEP: OPEN PRIVATE CHAT */
 
-      row.onclick = function () {
-
+      row.onclick = async function () {
         window.selectedPrivateUser = user;
-
-        alert(
-          currentLanguage === 'en'
-            ? `Private chat with ${user.display_name} will open here.`
-            : `Tu sa otvorí súkromný chat s používateľom ${user.display_name}.`
-        );
-
+        if (typeof window.openPrivateChatWithUser === 'function') {
+          await window.openPrivateChatWithUser(user);
+        }
       };
 
 
@@ -2445,6 +2514,7 @@ showEvents = async function () {
 
 })();
 </script>
+
 <script>
 /* ===== PROFILE AVATAR – MY ACCOUNT ===== */
 
@@ -2703,6 +2773,11 @@ showEvents = async function () {
 
 })();
 </script>
+    updateAvatarLanguage();
+
+})();
+</script>
+
 <script>
 /* ===== PRIVATE USERS – MOVE INTO CHAT ===== */
 
@@ -2816,6 +2891,7 @@ showEvents = async function () {
 
 })();
 </script>
+
 <script>
 /* ===== PROFILE AVATAR – CROP, RESIZE, SAVE, CHANGE, DELETE ===== */
 
@@ -3003,9 +3079,11 @@ showEvents = async function () {
     }
 
 
-    function pointerEnd() {
+    function pointerEnd(e) {
 
       dragging = false;
+
+      canvas.releasePointerCapture?.(e.pointerId);
 
       canvas.style.cursor = 'grab';
     }
@@ -3032,14 +3110,14 @@ showEvents = async function () {
     );
 
 
-    document.getElementById(
-      'avatarCropCancel'
-    ).onclick = closeAvatarEditor;
+    document
+      .getElementById('avatarCropCancel')
+      .onclick = closeAvatarEditor;
 
 
-    document.getElementById(
-      'avatarCropSave'
-    ).onclick = saveCroppedAvatar;
+    document
+      .getElementById('avatarCropSave')
+      .onclick = saveCroppedAvatar;
 
 
     updateAvatarEditorLanguage();
@@ -3051,6 +3129,18 @@ showEvents = async function () {
     const title =
       document.getElementById('avatarCropTitle');
 
+    const help =
+      document.getElementById('avatarCropHelp');
+
+    const zoom =
+      document.getElementById('avatarZoomLabel');
+
+    const cancel =
+      document.getElementById('avatarCropCancel');
+
+    const save =
+      document.getElementById('avatarCropSave');
+
     if (title) {
       title.textContent =
         A(
@@ -3059,33 +3149,20 @@ showEvents = async function () {
         );
     }
 
-
-    const help =
-      document.getElementById('avatarCropHelp');
-
     if (help) {
       help.textContent =
         A(
-          'Posuňte fotografiu prstom alebo myšou a nastavte výrez.',
-          'Move the photo with your finger or mouse and position the crop.'
+          'Posuňte fotografiu prstom alebo myšou a nastavte priblíženie.',
+          'Move the photo with your finger or mouse and adjust the zoom.'
         );
     }
-
-
-    const zoom =
-      document.getElementById('avatarZoomLabel');
-
-    if (zoom) {
+        if (zoom) {
       zoom.textContent =
         A(
           'Priblíženie',
           'Zoom'
         );
     }
-
-
-    const cancel =
-      document.getElementById('avatarCropCancel');
 
     if (cancel) {
       cancel.textContent =
@@ -3095,33 +3172,17 @@ showEvents = async function () {
         );
     }
 
-
-    const save =
-      document.getElementById('avatarCropSave');
-
     if (save) {
       save.textContent =
         A(
-          '💾 Uložiť',
-          '💾 Save'
+          'Uložiť',
+          'Save'
         );
     }
   }
 
 
   function openAvatarEditor(file) {
-
-    if (!file) return;
-
-    if (!file.type.startsWith('image/')) {
-      alert(
-        A(
-          'Vyberte fotografiu.',
-          'Please select a photo.'
-        )
-      );
-      return;
-    }
 
     avatarFile = file;
 
@@ -3130,147 +3191,46 @@ showEvents = async function () {
 
     reader.onload = function (event) {
 
-      const image =
+      const img =
         new Image();
 
-      image.onload = function () {
+      img.onload = function () {
 
-        avatarImage = image;
+        avatarImage = img;
 
         const canvasSize = 280;
 
         const baseScale =
           Math.max(
-            canvasSize / image.width,
-            canvasSize / image.height
+            canvasSize / img.width,
+            canvasSize / img.height
           );
-
-        avatarImage.baseScale = baseScale;
 
         avatarScale = 1;
 
-        document.getElementById(
-          'avatarZoom'
-        ).value = '1';
-
-        const width =
-          image.width * baseScale;
-
-        const height =
-          image.height * baseScale;
-
         avatarX =
-          (canvasSize - width) / 2;
+          (canvasSize -
+            img.width * baseScale) / 2;
 
         avatarY =
-          (canvasSize - height) / 2;
+          (canvasSize -
+            img.height * baseScale) / 2;
+
+        document
+          .getElementById('avatarZoom')
+          .value = '1';
+
+        document
+          .getElementById('avatarCropOverlay')
+          .style.display = 'flex';
 
         drawAvatarCrop();
-
-        const overlay =
-          document.getElementById(
-            'avatarCropOverlay'
-          );
-
-        overlay.style.display = 'flex';
-
       };
 
-      image.src = event.target.result;
-
+      img.src = event.target.result;
     };
 
     reader.readAsDataURL(file);
-  }
-
-
-  function keepAvatarInside() {
-
-    if (!avatarImage) return;
-
-    const size = 280;
-
-    const scale =
-      avatarImage.baseScale *
-      avatarScale;
-
-    const width =
-      avatarImage.width * scale;
-
-    const height =
-      avatarImage.height * scale;
-
-
-    if (avatarX > 0) {
-      avatarX = 0;
-    }
-
-    if (avatarY > 0) {
-      avatarY = 0;
-    }
-
-    if (avatarX + width < size) {
-      avatarX = size - width;
-    }
-
-    if (avatarY + height < size) {
-      avatarY = size - height;
-    }
-  }
-
-
-  function drawAvatarCrop() {
-
-    if (!avatarImage) return;
-
-    const canvas =
-      document.getElementById(
-        'avatarCropCanvas'
-      );
-
-    const ctx =
-      canvas.getContext('2d');
-
-    const size = 280;
-
-    ctx.clearRect(
-      0,
-      0,
-      size,
-      size
-    );
-
-
-    ctx.save();
-
-    ctx.beginPath();
-
-    ctx.arc(
-      size / 2,
-      size / 2,
-      size / 2,
-      0,
-      Math.PI * 2
-    );
-
-    ctx.clip();
-
-
-    const scale =
-      avatarImage.baseScale *
-      avatarScale;
-
-
-    ctx.drawImage(
-      avatarImage,
-      avatarX,
-      avatarY,
-      avatarImage.width * scale,
-      avatarImage.height * scale
-    );
-
-
-    ctx.restore();
   }
 
 
@@ -3285,20 +3245,105 @@ showEvents = async function () {
       overlay.style.display = 'none';
     }
 
-    const input =
-      document.getElementById(
-        'profileAvatarInput'
+    avatarFile = null;
+    avatarImage = null;
+  }
+
+
+  function avatarBaseScale() {
+
+    if (!avatarImage) return 1;
+
+    return Math.max(
+      280 / avatarImage.width,
+      280 / avatarImage.height
+    );
+  }
+
+
+  function keepAvatarInside() {
+
+    if (!avatarImage) return;
+
+    const scale =
+      avatarBaseScale() *
+      avatarScale;
+
+    const width =
+      avatarImage.width *
+      scale;
+
+    const height =
+      avatarImage.height *
+      scale;
+
+    const minX =
+      280 - width;
+
+    const minY =
+      280 - height;
+
+    avatarX =
+      Math.min(
+        0,
+        Math.max(
+          minX,
+          avatarX
+        )
       );
 
-    if (input) {
-      input.value = '';
-    }
+    avatarY =
+      Math.min(
+        0,
+        Math.max(
+          minY,
+          avatarY
+        )
+      );
+  }
+
+
+  function drawAvatarCrop() {
+
+    if (!avatarImage) return;
+
+    const canvas =
+      document.getElementById(
+        'avatarCropCanvas'
+      );
+
+    if (!canvas) return;
+
+    const ctx =
+      canvas.getContext('2d');
+
+    ctx.clearRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const scale =
+      avatarBaseScale() *
+      avatarScale;
+
+    ctx.drawImage(
+      avatarImage,
+      avatarX,
+      avatarY,
+      avatarImage.width * scale,
+      avatarImage.height * scale
+    );
   }
 
 
   async function saveCroppedAvatar() {
 
-    if (!currentUser || !avatarImage) {
+    if (
+      !avatarImage ||
+      !currentUser
+    ) {
       return;
     }
 
@@ -3307,13 +3352,28 @@ showEvents = async function () {
         'avatarCropSave'
       );
 
-    saveButton.disabled = true;
-
-    saveButton.textContent =
-      A(
-        'Ukladám...',
-        'Saving...'
+    const message =
+      document.getElementById(
+        'profileAvatarMessage'
       );
+
+    if (saveButton) {
+      saveButton.disabled = true;
+
+      saveButton.textContent =
+        A(
+          'Ukladám...',
+          'Saving...'
+        );
+    }
+
+    if (message) {
+      message.textContent =
+        A(
+          'Ukladám profilovú fotografiu...',
+          'Saving profile photo...'
+        );
+    }
 
 
     const sourceCanvas =
@@ -3321,18 +3381,16 @@ showEvents = async function () {
         'avatarCropCanvas'
       );
 
-
-    const finalCanvas =
+    const output =
       document.createElement('canvas');
 
-    finalCanvas.width = 512;
-    finalCanvas.height = 512;
+    output.width = 500;
+    output.height = 500;
 
+    const outputCtx =
+      output.getContext('2d');
 
-    const ctx =
-      finalCanvas.getContext('2d');
-
-    ctx.drawImage(
+    outputCtx.drawImage(
       sourceCanvas,
       0,
       0,
@@ -3340,146 +3398,192 @@ showEvents = async function () {
       280,
       0,
       0,
-      512,
-      512
+      500,
+      500
     );
 
 
-    finalCanvas.toBlob(
-      async function (blob) {
+    const blob =
+      await new Promise(resolve => {
 
-        if (!blob) {
+        output.toBlob(
+          resolve,
+          'image/jpeg',
+          0.88
+        );
 
-          saveButton.disabled = false;
-
-          updateAvatarEditorLanguage();
-
-          return;
-        }
-
-
-        const filePath =
-          `${currentUser.id}/avatar.webp`;
+      });
 
 
-        const { error: uploadError } =
-          await supabaseClient.storage
-            .from('profile-avatars')
-            .upload(
-              filePath,
-              blob,
-              {
-                contentType: 'image/webp',
-                upsert: true,
-                cacheControl: '0'
-              }
-            );
+    if (!blob) {
 
-
-        if (uploadError) {
-
-          saveButton.disabled = false;
-
-          updateAvatarEditorLanguage();
-
-          alert(
-            A(
-              'Fotografiu sa nepodarilo nahrať.',
-              'The photo could not be uploaded.'
-            )
-          );
-
-          return;
-        }
-
-
-        const { data } =
-          supabaseClient.storage
-            .from('profile-avatars')
-            .getPublicUrl(filePath);
-
-
-        const avatarUrl =
-          data.publicUrl +
-          '?v=' +
-          Date.now();
-
-
-        const { error: profileError } =
-          await supabaseClient
-            .from('user_profiles')
-            .update({
-              avatar_url: avatarUrl,
-              updated_at:
-                new Date().toISOString()
-            })
-            .eq(
-              'user_id',
-              currentUser.id
-            );
-
-
-        if (profileError) {
-
-          saveButton.disabled = false;
-
-          updateAvatarEditorLanguage();
-
-          alert(
-            A(
-              'Profilovú fotografiu sa nepodarilo uložiť.',
-              'The profile photo could not be saved.'
-            )
-          );
-
-          return;
-        }
-
-
-        closeAvatarEditor();
-
-        await refreshAvatarControls();
-
-        alert(
+      if (message) {
+        message.textContent =
           A(
-            'Profilová fotografia bola uložená.',
-            'Profile photo has been saved.'
-          )
+            'Fotografiu sa nepodarilo spracovať.',
+            'The photo could not be processed.'
+          );
+      }
+
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.textContent =
+          A(
+            'Uložiť',
+            'Save'
+          );
+      }
+
+      return;
+    }
+
+
+    const filePath =
+      `${currentUser.id}/avatar.jpg`;
+
+
+    const { error: uploadError } =
+      await supabaseClient.storage
+        .from('profile-avatars')
+        .upload(
+          filePath,
+          blob,
+          {
+            contentType: 'image/jpeg',
+            upsert: true
+          }
         );
 
 
+    if (uploadError) {
+
+      if (message) {
+        message.textContent =
+          A(
+            'Fotografiu sa nepodarilo nahrať.',
+            'The photo could not be uploaded.'
+          );
+      }
+
+      if (saveButton) {
         saveButton.disabled = false;
+        saveButton.textContent =
+          A(
+            'Uložiť',
+            'Save'
+          );
+      }
 
-        updateAvatarEditorLanguage();
+      return;
+    }
 
-      },
-      'image/webp',
-      0.9
-    );
+
+    const { data: publicData } =
+      supabaseClient.storage
+        .from('profile-avatars')
+        .getPublicUrl(filePath);
+
+
+    const avatarUrl =
+      publicData.publicUrl +
+      '?v=' +
+      Date.now();
+
+
+    const { error: profileError } =
+      await supabaseClient
+        .from('user_profiles')
+        .update({
+          avatar_url: avatarUrl,
+          updated_at:
+            new Date().toISOString()
+        })
+        .eq(
+          'user_id',
+          currentUser.id
+        );
+
+
+    if (profileError) {
+
+      if (message) {
+        message.textContent =
+          A(
+            'Profilovú fotografiu sa nepodarilo uložiť.',
+            'The profile photo could not be saved.'
+          );
+      }
+
+      if (saveButton) {
+        saveButton.disabled = false;
+        saveButton.textContent =
+          A(
+            'Uložiť',
+            'Save'
+          );
+      }
+
+      return;
+    }
+
+
+    closeAvatarEditor();
+
+    await refreshAvatarControls();
+
+    if (message) {
+      message.textContent =
+        A(
+          'Profilová fotografia bola uložená.',
+          'Profile photo saved.'
+        );
+    }
+
+    if (saveButton) {
+      saveButton.disabled = false;
+
+      saveButton.textContent =
+        A(
+          'Uložiť',
+          'Save'
+        );
+    }
   }
 
 
-  async function deleteAvatar() {
+  async function deleteProfileAvatar() {
 
     if (!currentUser) return;
-
 
     const confirmed =
       confirm(
         A(
-          'Naozaj chcete vymazať profilovú fotografiu?',
-          'Are you sure you want to delete your profile photo?'
+          'Naozaj chcete odstrániť profilovú fotografiu?',
+          'Do you really want to remove your profile photo?'
         )
       );
 
-
     if (!confirmed) return;
+
+
+    const message =
+      document.getElementById(
+        'profileAvatarMessage'
+      );
+
+    if (message) {
+      message.textContent =
+        A(
+          'Odstraňujem...',
+          'Removing...'
+        );
+    }
 
 
     await supabaseClient.storage
       .from('profile-avatars')
       .remove([
-        `${currentUser.id}/avatar.webp`
+        `${currentUser.id}/avatar.jpg`
       ]);
 
 
@@ -3499,38 +3603,33 @@ showEvents = async function () {
 
     if (error) {
 
-      alert(
-        A(
-          'Fotografiu sa nepodarilo vymazať.',
-          'The photo could not be deleted.'
-        )
-      );
+      if (message) {
+        message.textContent =
+          A(
+            'Fotografiu sa nepodarilo odstrániť.',
+            'The photo could not be removed.'
+          );
+      }
 
       return;
     }
 
 
     await refreshAvatarControls();
+
+    if (message) {
+      message.textContent =
+        A(
+          'Profilová fotografia bola odstránená.',
+          'Profile photo removed.'
+        );
+    }
   }
 
 
   async function refreshAvatarControls() {
 
     if (!currentUser) return;
-
-
-    const preview =
-      document.getElementById(
-        'profileAvatarPreview'
-      );
-
-    const uploadButton =
-      document.getElementById(
-        'profileAvatarButton'
-      );
-
-    if (!preview || !uploadButton) return;
-
 
     const { data } =
       await supabaseClient
@@ -3543,142 +3642,222 @@ showEvents = async function () {
         .maybeSingle();
 
 
-    const oldDelete =
+    const preview =
+      document.getElementById(
+        'profileAvatarPreview'
+      );
+
+    const button =
+      document.getElementById(
+        'profileAvatarButton'
+      );
+
+    let deleteButton =
       document.getElementById(
         'profileAvatarDeleteButton'
       );
 
-    if (oldDelete) {
-      oldDelete.remove();
+
+    if (preview) {
+
+      if (data?.avatar_url) {
+
+        preview.innerHTML = `
+          <img
+            src="${data.avatar_url}"
+            alt=""
+            style="
+              width:100%;
+              height:100%;
+              object-fit:cover;
+            "
+          >
+        `;
+
+      } else {
+
+        preview.innerHTML = '👤';
+
+      }
+    }
+
+
+    if (button) {
+
+      button.textContent =
+        data?.avatar_url
+          ? A(
+              '📷 Zmeniť fotografiu',
+              '📷 Change photo'
+            )
+          : A(
+              '📷 Nahrať profilovú fotku',
+              '📷 Upload profile photo'
+            );
+
     }
 
 
     if (data?.avatar_url) {
 
-      preview.innerHTML = '';
+      if (!deleteButton && button) {
 
-      const image =
-        document.createElement('img');
+        deleteButton =
+          document.createElement(
+            'button'
+          );
 
-      image.src =
-        data.avatar_url;
+        deleteButton.id =
+          'profileAvatarDeleteButton';
 
-      image.alt = '';
+        deleteButton.type =
+          'button';
 
-      image.style.cssText = `
-        width:100%;
-        height:100%;
-        object-fit:cover;
-      `;
+        deleteButton.className =
+          'secondary-btn';
 
-      preview.appendChild(image);
+        deleteButton.style.marginTop =
+          '10px';
 
-
-      uploadButton.textContent =
-        A(
-          '🔄 Zmeniť profilovú fotku',
-          '🔄 Change profile photo'
+        button.insertAdjacentElement(
+          'afterend',
+          deleteButton
         );
+      }
 
+      if (deleteButton) {
 
-      const deleteButton =
-        document.createElement('button');
+        deleteButton.style.display =
+          'inline-block';
 
-      deleteButton.id =
-        'profileAvatarDeleteButton';
+        deleteButton.textContent =
+          A(
+            '🗑️ Odstrániť fotografiu',
+            '🗑️ Remove photo'
+          );
 
-      deleteButton.type = 'button';
+        deleteButton.onclick =
+          deleteProfileAvatar;
+      }
 
-      deleteButton.className =
-        'secondary-btn';
+    } else if (deleteButton) {
 
-      deleteButton.style.marginTop =
-        '10px';
+      deleteButton.style.display =
+        'none';
 
-      deleteButton.textContent =
-        A(
-          '🗑️ Vymazať profilovú fotku',
-          '🗑️ Delete profile photo'
-        );
-
-      deleteButton.onclick =
-        deleteAvatar;
-
-
-      uploadButton.insertAdjacentElement(
-        'afterend',
-        deleteButton
-      );
-
-
-    } else {
-
-      preview.textContent = '👤';
-
-      uploadButton.textContent =
-        A(
-          '📷 Nahrať profilovú fotku',
-          '📷 Upload profile photo'
-        );
     }
   }
+    function connectAvatarInput() {
 
+    const input =
+      document.getElementById(
+        'profileAvatarInput'
+      );
 
-  createAvatarEditor();
+    if (!input) return;
 
-
-  const avatarInput =
-    document.getElementById(
-      'profileAvatarInput'
-    );
-
-
-  if (avatarInput) {
-
-    /* Nahradí staré okamžité nahrávanie */
-    avatarInput.onchange =
+    input.onchange =
       function (event) {
 
         const file =
           event.target.files?.[0];
 
-        if (file) {
-          openAvatarEditor(file);
+        if (!file) return;
+
+
+        if (
+          ![
+            'image/jpeg',
+            'image/png',
+            'image/webp'
+          ].includes(file.type)
+        ) {
+
+          const message =
+            document.getElementById(
+              'profileAvatarMessage'
+            );
+
+          if (message) {
+            message.textContent =
+              A(
+                'Použite fotografiu JPG, PNG alebo WEBP.',
+                'Please use a JPG, PNG or WEBP image.'
+              );
+          }
+
+          event.target.value = '';
+
+          return;
         }
+
+
+        if (
+          file.size >
+          10 * 1024 * 1024
+        ) {
+
+          const message =
+            document.getElementById(
+              'profileAvatarMessage'
+            );
+
+          if (message) {
+            message.textContent =
+              A(
+                'Fotografia je príliš veľká.',
+                'The photo is too large.'
+              );
+          }
+
+          event.target.value = '';
+
+          return;
+        }
+
+
+        openAvatarEditor(file);
+
+        event.target.value = '';
       };
   }
 
 
-  const originalAvatarShowAccount =
+  const originalShowAccountCrop =
     window.showAccount;
-
 
   window.showAccount =
     function () {
 
       const result =
-        originalAvatarShowAccount.apply(
+        originalShowAccountCrop.apply(
           this,
           arguments
         );
 
-      setTimeout(
-        refreshAvatarControls,
-        50
-      );
+      setTimeout(() => {
+
+        createAvatarEditor();
+
+        connectAvatarInput();
+
+        refreshAvatarControls();
+
+        updateAvatarEditorLanguage();
+
+      }, 0);
 
       return result;
     };
 
 
-  const originalAvatarSetLanguage =
+  const originalCropLanguage =
     window.setLanguage;
-
 
   window.setLanguage =
     function (lang) {
 
-      originalAvatarSetLanguage.apply(
+      originalCropLanguage.apply(
         this,
         arguments
       );
@@ -3687,2142 +3866,56 @@ showEvents = async function () {
 
         updateAvatarEditorLanguage();
 
-        if (currentUser) {
-          refreshAvatarControls();
-        }
+        refreshAvatarControls();
 
       }, 0);
     };
 
 
-  updateAvatarEditorLanguage();
+  createAvatarEditor();
 
-})();
-              </script>
-<script>
-/* ===== PROFILE AVATAR – POSITION CONTROLS ===== */
-
-(function () {
-
-  function addAvatarPositionControls() {
-
-    if (document.getElementById('avatarPositionControls')) return;
-
-    const zoom =
-      document.getElementById('avatarZoom');
-
-    if (!zoom) return;
-
-    const box = document.createElement('div');
-
-    box.id = 'avatarPositionControls';
-
-    box.style.cssText = `
-      margin-top:16px;
-    `;
-
-    box.innerHTML = `
-      <div
-        id="avatarHorizontalLabel"
-        style="font-size:13px;color:#cbd5e1;margin-bottom:6px;"
-      ></div>
-
-      <input
-        id="avatarHorizontal"
-        type="range"
-        min="-100"
-        max="100"
-        step="1"
-        value="0"
-      >
-
-      <div
-        id="avatarVerticalLabel"
-        style="font-size:13px;color:#cbd5e1;margin:14px 0 6px;"
-      ></div>
-
-      <input
-        id="avatarVertical"
-        type="range"
-        min="-100"
-        max="100"
-        step="1"
-        value="0"
-      >
-    `;
-
-    zoom.parentElement.insertAdjacentElement(
-      'afterend',
-      box
-    );
-
-    const horizontal =
-      document.getElementById('avatarHorizontal');
-
-    const vertical =
-      document.getElementById('avatarVertical');
-
-
-    horizontal.oninput = function () {
-
-      if (!avatarImage) return;
-
-      const size = 280;
-
-      const scale =
-        avatarImage.baseScale * avatarScale;
-
-      const width =
-        avatarImage.width * scale;
-
-      const available =
-        Math.max(0, width - size);
-
-      avatarX =
-        -(available / 2) +
-        (Number(this.value) / 100) *
-        (available / 2);
-
-      keepAvatarInside();
-      drawAvatarCrop();
-    };
-
-
-    vertical.oninput = function () {
-
-      if (!avatarImage) return;
-
-      const size = 280;
-
-      const scale =
-        avatarImage.baseScale * avatarScale;
-
-      const height =
-        avatarImage.height * scale;
-
-      const available =
-        Math.max(0, height - size);
-
-      avatarY =
-        -(available / 2) +
-        (Number(this.value) / 100) *
-        (available / 2);
-
-      keepAvatarInside();
-      drawAvatarCrop();
-    };
-
-
-    updatePositionLanguage();
-  }
-
-
-  function updatePositionLanguage() {
-
-    const horizontal =
-      document.getElementById('avatarHorizontalLabel');
-
-    const vertical =
-      document.getElementById('avatarVerticalLabel');
-
-    if (horizontal) {
-      horizontal.textContent =
-        currentLanguage === 'en'
-          ? '↔ Move left / right'
-          : '↔ Posun doľava / doprava';
-    }
-
-    if (vertical) {
-      vertical.textContent =
-        currentLanguage === 'en'
-          ? '↕ Move up / down'
-          : '↕ Posun hore / dole';
-    }
-  }
-
-
-  addAvatarPositionControls();
-
-
-  const oldPositionLanguage =
-    window.setLanguage;
-
-  window.setLanguage = function (lang) {
-
-    oldPositionLanguage.apply(this, arguments);
-
-    setTimeout(
-      updatePositionLanguage,
-      0
-    );
-  };
+  connectAvatarInput();
 
 })();
 </script>
-<script>
-/* ===== PROFILE AVATAR – HORIZONTAL / VERTICAL MOVE FIX ===== */
 
-(function () {
-
-  function applyAvatarSliderPosition() {
-
-    if (!avatarImage) return;
-
-    const horizontal =
-      document.getElementById('avatarHorizontal');
-
-    const vertical =
-      document.getElementById('avatarVertical');
-
-    if (!horizontal || !vertical) return;
-
-    const size = 280;
-
-    const scale =
-      avatarImage.baseScale * avatarScale;
-
-    const width =
-      avatarImage.width * scale;
-
-    const height =
-      avatarImage.height * scale;
-
-    const extraX =
-      Math.max(0, width - size);
-
-    const extraY =
-      Math.max(0, height - size);
-
-    const h =
-      Number(horizontal.value);
-
-    const v =
-      Number(vertical.value);
-
-    /* -100 = úplne vľavo, +100 = úplne vpravo */
-    avatarX =
-      -(extraX / 2) +
-      (h / 100) * (extraX / 2);
-
-    /* -100 = úplne hore, +100 = úplne dole */
-    avatarY =
-      -(extraY / 2) +
-      (v / 100) * (extraY / 2);
-
-    keepAvatarInside();
-    drawAvatarCrop();
-  }
-
-
-  const horizontal =
-    document.getElementById('avatarHorizontal');
-
-  const vertical =
-    document.getElementById('avatarVertical');
-
-  const zoom =
-    document.getElementById('avatarZoom');
-
-
-  if (horizontal) {
-    horizontal.oninput =
-      applyAvatarSliderPosition;
-  }
-
-
-  if (vertical) {
-    vertical.oninput =
-      applyAvatarSliderPosition;
-  }
-
-
-  if (zoom) {
-
-    zoom.oninput = function () {
-
-      avatarScale =
-        Number(this.value);
-
-      applyAvatarSliderPosition();
-    };
-  }
-
-})();
-</script>
-<script>
-/* ===== PROFILE AVATAR – REMOVE EXTRA POSITION SLIDERS ===== */
-
-(function () {
-
-  const controls =
-    document.getElementById('avatarPositionControls');
-
-  if (controls) {
-    controls.remove();
-  }
-
-})();
-</script>
-<script>
-/* ===== PROFILE AVATAR – SHOW EXACT UPLOAD ERROR ===== */
-
-(function () {
-
-  const originalAlert = window.alert;
-
-  window.alert = function (message) {
-
-    if (
-      message === 'Fotografiu sa nepodarilo nahrať.' ||
-      message === 'The photo could not be uploaded.'
-    ) {
-
-      const lastError =
-        window.profileAvatarLastUploadError;
-
-      if (lastError) {
-        return originalAlert(
-          'UPLOAD ERROR:\n\n' +
-          (lastError.message || JSON.stringify(lastError))
-        );
-      }
-    }
-
-    return originalAlert(message);
-  };
-
-
-  const storageBucket =
-    supabaseClient.storage.from('profile-avatars');
-
-  const originalUpload =
-    storageBucket.upload.bind(storageBucket);
-
-
-  storageBucket.upload = async function () {
-
-    const result =
-      await originalUpload(...arguments);
-
-    if (result.error) {
-      window.profileAvatarLastUploadError =
-        result.error;
-    }
-
-    return result;
-  };
-
-})();
-</script>
-<script>
-/* ===== PROFILE AVATAR – REAL UPLOAD ERROR ===== */
-
-(function () {
-
-  const originalConsoleError = console.error;
-
-  console.error = function () {
-    originalConsoleError.apply(console, arguments);
-  };
-
-
-  const originalFetch = window.fetch;
-
-  window.fetch = async function () {
-
-    const response =
-      await originalFetch.apply(this, arguments);
-
-    try {
-
-      const url =
-        String(arguments[0]?.url || arguments[0] || '');
-
-      if (
-        url.includes('/storage/v1/object/profile-avatars/')
-        && !response.ok
-      ) {
-
-        const clone =
-          response.clone();
-
-        const text =
-          await clone.text();
-
-        window.profileAvatarLastUploadErrorText =
-          text || ('HTTP ' + response.status);
-
-      }
-
-    } catch (e) {}
-
-    return response;
-  };
-
-
-  const oldAlert =
-    window.alert;
-
-  window.alert = function (message) {
-
-    if (
-      message === 'Fotografiu sa nepodarilo nahrať.' ||
-      message === 'The photo could not be uploaded.'
-    ) {
-
-      const exact =
-        window.profileAvatarLastUploadErrorText;
-
-      if (exact) {
-
-        return oldAlert(
-          'UPLOAD ERROR:\n\n' +
-          exact
-        );
-
-      }
-    }
-
-    return oldAlert(message);
-  };
-
-})();
-</script>
-<style>
-/* ===== PRIVATE CHAT V2 ===== */
-
-#privateMessagesBtn{
-  display:none !important;
-}
-
-.private-user-info{
-  flex:1;
-  min-width:0;
-}
-
-.private-user-name{
-  font-weight:800;
-  font-size:16px;
-}
-
-.private-user-status{
-  font-size:12px;
-  margin-top:4px;
-  font-weight:700;
-}
-
-.private-user-status.online{color:#22c55e;}
-.private-user-status.offline{color:#ef4444;}
-
-#privateChatPage{
-  display:none;
-  position:fixed;
-  inset:0;
-  z-index:5000;
-  background:#111827;
-  color:#fff;
-  flex-direction:column;
-}
-
-.private-chat-header{
-  min-height:64px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:8px 12px;
-  background:#1e293b;
-  border-bottom:1px solid #334155;
-}
-
-.private-chat-back{
-  border:0;
-  background:transparent;
-  color:white;
-  font-size:34px;
-  padding:2px 8px;
-}
-
-.private-chat-avatar{
-  width:42px;
-  height:42px;
-  min-width:42px;
-  border-radius:50%;
-  overflow:hidden;
-  background:#334155;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:23px;
-}
-
-.private-chat-avatar img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
-
-.private-chat-person{
-  min-width:0;
-  flex:1;
-}
-
-.private-chat-person-name{
-  font-weight:800;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.private-chat-person-status{
-  font-size:12px;
-  font-weight:700;
-  margin-top:2px;
-}
-
-#privateChatMessages{
-  flex:1;
-  overflow-y:auto;
-  padding:15px 12px 95px;
-}
-
-.private-message-row{
-  display:flex;
-  margin:8px 0;
-}
-
-.private-message-row.mine{
-  justify-content:flex-end;
-}
-
-.private-message-bubble{
-  max-width:82%;
-  background:#334155;
-  border-radius:15px;
-  padding:9px 11px;
-  overflow-wrap:anywhere;
-}
-
-.private-message-row.mine .private-message-bubble{
-  background:#075985;
-}
-
-.private-message-photo{
-  display:block;
-  max-width:100%;
-  max-height:360px;
-  border-radius:10px;
-  margin-bottom:5px;
-}
-
-.private-message-meta{
-  display:flex;
-  align-items:center;
-  justify-content:flex-end;
-  gap:7px;
-  margin-top:5px;
-  color:#cbd5e1;
-  font-size:10px;
-}
-
-.private-message-delete{
-  border:0;
-  background:transparent;
-  color:#fca5a5;
-  padding:1px 3px;
-  font-size:14px;
-}
-
-.private-chat-compose{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  z-index:5001;
-  display:flex;
-  align-items:flex-end;
-  gap:8px;
-  padding:10px 12px;
-  background:#1e293b;
-  border-top:1px solid #334155;
-}
-
-#privateChatInput{
-  flex:1;
-  min-height:44px;
-  max-height:110px;
-  resize:none;
-}
-
-.private-chat-photo-btn,
-.private-chat-send-btn{
-  width:44px;
-  height:44px;
-  min-width:44px;
-  border:0;
-  border-radius:50%;
-  color:#fff;
-  font-size:21px;
-}
-
-.private-chat-photo-btn{background:#334155;}
-.private-chat-send-btn{background:#0891b2;}
-
-#userTopBtn .top-user-avatar{
-  width:27px;
-  height:27px;
-  border-radius:50%;
-  object-fit:cover;
-  vertical-align:middle;
-  margin-right:6px;
-}
-</style>
-
-<script>
-/* ===== PRIVATE CHAT V2 – COMPLETE ===== */
-
-(function () {
-
-  let users = [];
-  let selectedUser = null;
-  let onlineIds = new Set();
-  let presenceChannel = null;
-  let privateMessageChannel = null;
-
-  const PC = (sk, en) =>
-    currentLanguage === 'en' ? en : sk;
-
-
-  /* =========================================================
-     HOME BUTTON
-  ========================================================= */
-
-  function removeOldPrivateButton() {
-    const button =
-      document.getElementById('privateMessagesBtn');
-
-    if (button) {
-      button.style.display = 'none';
-    }
-  }
-
-
-  /* =========================================================
-     TOP PROFILE PHOTO
-  ========================================================= */
-
-  async function refreshTopAvatar() {
-
-    const button =
-      document.getElementById('userTopBtn');
-
-    if (!button) return;
-
-    if (!currentUser) {
-      button.textContent =
-        PC('👤 Prihlásiť sa', '👤 Sign In');
-      return;
-    }
-
-    const { data } =
-      await supabaseClient
-        .from('user_profiles')
-        .select('display_name,avatar_url')
-        .eq('user_id', currentUser.id)
-        .maybeSingle();
-
-    const name =
-      data?.display_name ||
-      getUsername(currentUser) ||
-      PC('Môj účet', 'My Account');
-
-    button.innerHTML = '';
-
-    if (data?.avatar_url) {
-
-      const image =
-        document.createElement('img');
-
-      image.src = data.avatar_url;
-      image.alt = '';
-      image.className = 'top-user-avatar';
-
-      button.appendChild(image);
-
-    } else {
-
-      const icon =
-        document.createElement('span');
-
-      icon.textContent = '👤 ';
-      button.appendChild(icon);
-    }
-
-    button.appendChild(
-      document.createTextNode(name)
-    );
-  }
-
-
-  /* =========================================================
-     CREATE PRIVATE CHAT PAGE
-  ========================================================= */
-
-  function createPrivateChatPage() {
-
-    if (document.getElementById('privateChatPage')) return;
-
-    const page = document.createElement('div');
-
-    page.id = 'privateChatPage';
-
-    page.innerHTML = `
-      <div class="private-chat-header">
-
-        <button
-          type="button"
-          id="privateChatBack"
-          class="private-chat-back"
-        >‹</button>
-
-        <div
-          id="privateChatHeaderAvatar"
-          class="private-chat-avatar"
-        >👤</div>
-
-        <div class="private-chat-person">
-
-          <div
-            id="privateChatHeaderName"
-            class="private-chat-person-name"
-          ></div>
-
-          <div
-            id="privateChatHeaderStatus"
-            class="private-chat-person-status"
-          ></div>
-
-        </div>
-
-      </div>
-
-      <div id="privateChatMessages"></div>
-
-      <div class="private-chat-compose">
-
-        <input
-          id="privateChatPhotoInput"
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          hidden
-        >
-
-        <button
-          type="button"
-          id="privateChatPhotoBtn"
-          class="private-chat-photo-btn"
-        >📷</button>
-
-        <textarea
-          id="privateChatInput"
-          rows="1"
-          maxlength="1500"
-        ></textarea>
-
-        <button
-          type="button"
-          id="privateChatSendBtn"
-          class="private-chat-send-btn"
-        >➤</button>
-
-      </div>
-    `;
-
-    document.body.appendChild(page);
-
-    document.getElementById(
-      'privateChatBack'
-    ).onclick = openDirectory;
-
-    document.getElementById(
-      'privateChatPhotoBtn'
-    ).onclick = function () {
-
-      document.getElementById(
-        'privateChatPhotoInput'
-      ).click();
-    };
-
-    document.getElementById(
-      'privateChatPhotoInput'
-    ).onchange = sendPrivatePhoto;
-
-    document.getElementById(
-      'privateChatSendBtn'
-    ).onclick = sendPrivateText;
-
-    document.getElementById(
-      'privateChatInput'
-    ).addEventListener(
-      'keydown',
-      function (event) {
-
-        if (
-          event.key === 'Enter' &&
-          !event.shiftKey
-        ) {
-          event.preventDefault();
-          sendPrivateText();
-        }
-      }
-    );
-
-    updatePrivateChatLanguage();
-  }
-
-
-  function updatePrivateChatLanguage() {
-
-    const input =
-      document.getElementById('privateChatInput');
-
-    if (input) {
-      input.placeholder =
-        PC(
-          'Napíšte správu...',
-          'Write a message...'
-        );
-    }
-
-    updatePrivateHeader();
-  }
-
-
-  /* =========================================================
-     PRESENCE – ONLINE / OFFLINE
-  ========================================================= */
-
-  async function startPresence() {
-
-    if (!currentUser) return;
-
-    if (presenceChannel) {
-      await supabaseClient.removeChannel(
-        presenceChannel
-      );
-    }
-
-    presenceChannel =
-      supabaseClient.channel(
-        'community-online-users',
-        {
-          config: {
-            presence: {
-              key: currentUser.id
-            }
-          }
-        }
-      );
-
-    presenceChannel.on(
-      'presence',
-      { event:'sync' },
-      function () {
-
-        const state =
-          presenceChannel.presenceState();
-
-        onlineIds =
-          new Set(Object.keys(state));
-
-        renderUsers();
-        updatePrivateHeader();
-      }
-    );
-
-    presenceChannel.subscribe(
-      async status => {
-
-        if (status === 'SUBSCRIBED') {
-
-          await presenceChannel.track({
-            user_id: currentUser.id,
-            online_at:
-              new Date().toISOString()
-          });
-        }
-      }
-    );
-  }
-
-
-  /* =========================================================
-     DIRECTORY
-  ========================================================= */
-
-  async function loadUsers() {
-
-    if (!currentUser) return;
-
-    const list =
-      document.getElementById(
-        'privateUsersList'
-      );
-
-    if (list) {
-      list.innerHTML =
-        `<div class="loading">${
-          PC(
-            'Načítavam používateľov...',
-            'Loading users...'
-          )
-        }</div>`;
-    }
-
-    const { data, error } =
-      await supabaseClient
-        .from('user_profiles')
-        .select(
-          'user_id,display_name,avatar_url'
-        )
-        .neq(
-          'user_id',
-          currentUser.id
-        )
-        .order(
-          'display_name',
-          { ascending:true }
-        );
-
-    if (error) {
-
-      if (list) {
-        list.textContent =
-          PC(
-            'Používateľov sa nepodarilo načítať.',
-            'Users could not be loaded.'
-          );
-      }
-
-      return;
-    }
-
-    users = data || [];
-
-    renderUsers();
-  }
-
-
-  function prepareDirectorySearch() {
-
-    const oldSearch =
-      document.getElementById(
-        'privateUserSearch'
-      );
-
-    if (!oldSearch) return;
-
-    if (
-      oldSearch.dataset.privateV2 === 'true'
-    ) return;
-
-    const search =
-      oldSearch.cloneNode(true);
-
-    search.dataset.privateV2 = 'true';
-
-    oldSearch.replaceWith(search);
-
-    search.addEventListener(
-      'input',
-      renderUsers
-    );
-  }
-
-
-  function renderUsers() {
-
-    const list =
-      document.getElementById(
-        'privateUsersList'
-      );
-
-    if (!list) return;
-
-    const search =
-      (
-        document.getElementById(
-          'privateUserSearch'
-        )?.value || ''
-      )
-      .trim()
-      .toLowerCase();
-
-    const filtered =
-      users.filter(user =>
-        (user.display_name || '')
-          .toLowerCase()
-          .includes(search)
-      );
-
-    list.innerHTML = '';
-
-    if (!filtered.length) {
-
-      list.textContent =
-        PC(
-          'Nenašli sa žiadni používatelia.',
-          'No users found.'
-        );
-
-      return;
-    }
-
-    filtered.forEach(user => {
-
-      const row =
-        document.createElement('button');
-
-      row.type = 'button';
-
-      row.style.cssText = `
-        width:100%;
-        display:flex;
-        align-items:center;
-        gap:14px;
-        padding:12px;
-        margin:8px 0;
-        text-align:left;
-        border:1px solid #334155;
-        border-radius:12px;
-        background:#172033;
-        color:white;
-      `;
-
-
-      const avatar =
-        document.createElement('div');
-
-      avatar.className =
-        'private-chat-avatar';
-
-      if (user.avatar_url) {
-
-        const image =
-          document.createElement('img');
-
-        image.src = user.avatar_url;
-        image.alt = '';
-
-        avatar.appendChild(image);
-
-      } else {
-
-        avatar.textContent = '👤';
-      }
-
-
-      const info =
-        document.createElement('div');
-
-      info.className =
-        'private-user-info';
-
-
-      const name =
-        document.createElement('div');
-
-      name.className =
-        'private-user-name';
-
-      name.textContent =
-        user.display_name ||
-        PC('Používateľ', 'User');
-
-
-      const status =
-        document.createElement('div');
-
-      const isOnline =
-        onlineIds.has(user.user_id);
-
-      status.className =
-        'private-user-status ' +
-        (isOnline ? 'online' : 'offline');
-
-      status.textContent =
-        isOnline
-          ? 'Online'
-          : 'Offline';
-
-
-      info.append(name, status);
-
-      row.append(avatar, info);
-
-      row.onclick =
-        () => openPrivateChat(user);
-
-      list.appendChild(row);
-    });
-  }
-
-
-  async function openDirectory() {
-
-    if (!currentUser) {
-      requireLogin();
-      return;
-    }
-
-    createPrivateChatPage();
-
-    const privateChat =
-      document.getElementById(
-        'privateChatPage'
-      );
-
-    if (privateChat) {
-      privateChat.style.display = 'none';
-    }
-
-    const publicChat =
-      document.getElementById(
-        'chatPage'
-      );
-
-    if (publicChat) {
-      publicChat.style.display = 'none';
-    }
-
-    hidePages();
-
-    const directory =
-      document.getElementById(
-        'privateUsersPage'
-      );
-
-    if (!directory) return;
-
-    directory.style.display = 'block';
-
-    prepareDirectorySearch();
-
-    const search =
-      document.getElementById(
-        'privateUserSearch'
-      );
-
-    if (search) {
-
-      search.placeholder =
-        PC(
-          'Vyhľadať používateľa...',
-          'Search users...'
-        );
-    }
-
-    const title =
-      document.getElementById(
-        'privateUsersTitle'
-      );
-
-    if (title) {
-
-      title.textContent =
-        PC(
-          'Súkromné správy',
-          'Private Messages'
-        );
-    }
-
-    const back =
-      document.getElementById(
-        'privateUsersBackBtn'
-      );
-
-    if (back) {
-
-      back.textContent =
-        PC('← CHAT', '← CHAT');
-
-      back.onclick = function () {
-
-        directory.style.display = 'none';
-
-        if (
-          typeof openCommunityChat ===
-          'function'
-        ) {
-          openCommunityChat();
-        }
-      };
-    }
-
-    await loadUsers();
-
-    window.scrollTo(0,0);
-  }
-
-
-  /* =========================================================
-     OPEN CHAT
-  ========================================================= */
-
-  async function openPrivateChat(user) {
-
-    if (!currentUser || !user) return;
-
-    selectedUser = user;
-
-    window.selectedPrivateUser = user;
-
-    document.getElementById(
-      'privateUsersPage'
-    ).style.display = 'none';
-
-    const publicChat =
-      document.getElementById(
-        'chatPage'
-      );
-
-    if (publicChat) {
-      publicChat.style.display = 'none';
-    }
-
-    const page =
-      document.getElementById(
-        'privateChatPage'
-      );
-
-    page.style.display = 'flex';
-
-    updatePrivateHeader();
-
-    await markConversationRead();
-
-    await loadPrivateMessages();
-
-    subscribePrivateMessages();
-
-    setTimeout(() => {
-
-      document.getElementById(
-        'privateChatInput'
-      )?.focus();
-
-    }, 100);
-  }
-
-
-  function updatePrivateHeader() {
-
-    if (!selectedUser) return;
-
-    const name =
-      document.getElementById(
-        'privateChatHeaderName'
-      );
-
-    const status =
-      document.getElementById(
-        'privateChatHeaderStatus'
-      );
-
-    const avatar =
-      document.getElementById(
-        'privateChatHeaderAvatar'
-      );
-
-    if (name) {
-
-      name.textContent =
-        selectedUser.display_name ||
-        PC('Používateľ', 'User');
-    }
-
-    const isOnline =
-      onlineIds.has(
-        selectedUser.user_id
-      );
-
-    if (status) {
-
-      status.textContent =
-        isOnline
-          ? 'Online'
-          : 'Offline';
-
-      status.style.color =
-        isOnline
-          ? '#22c55e'
-          : '#ef4444';
-    }
-
-    if (avatar) {
-
-      avatar.innerHTML = '';
-
-      if (selectedUser.avatar_url) {
-
-        const image =
-          document.createElement('img');
-
-        image.src =
-          selectedUser.avatar_url;
-
-        image.alt = '';
-
-        avatar.appendChild(image);
-
-      } else {
-
-        avatar.textContent = '👤';
-      }
-    }
-  }
-
-
-  /* =========================================================
-     LOAD MESSAGES
-  ========================================================= */
-
-  async function loadPrivateMessages() {
-
-    if (
-      !currentUser ||
-      !selectedUser
-    ) return;
-
-    const box =
-      document.getElementById(
-        'privateChatMessages'
-      );
-
-    box.innerHTML =
-      `<div class="loading">${
-        PC(
-          'Načítavam správy...',
-          'Loading messages...'
-        )
-      }</div>`;
-
-
-    const me =
-      currentUser.id;
-
-    const other =
-      selectedUser.user_id;
-
-
-    const { data, error } =
-      await supabaseClient
-        .from('private_messages')
-        .select('*')
-        .or(
-          `and(sender_id.eq.${me},receiver_id.eq.${other}),and(sender_id.eq.${other},receiver_id.eq.${me})`
-        )
-        .order(
-          'created_at',
-          { ascending:true }
-        );
-
-
-    if (error) {
-
-      box.textContent =
-        PC(
-          'Správy sa nepodarilo načítať.',
-          'Messages could not be loaded.'
-        );
-
-      return;
-    }
-
-
-    box.innerHTML = '';
-
-
-    for (const message of data || []) {
-
-      await renderMessage(message);
-    }
-
-
-    scrollPrivateChatBottom();
-  }
-
-
-  async function renderMessage(message) {
-
-    const box =
-      document.getElementById(
-        'privateChatMessages'
-      );
-
-    if (!box) return;
-
-
-    const mine =
-      message.sender_id ===
-      currentUser.id;
-
-
-    const row =
-      document.createElement('div');
-
-    row.className =
-      'private-message-row' +
-      (mine ? ' mine' : '');
-
-    row.dataset.messageId =
-      String(message.id);
-
-
-    const bubble =
-      document.createElement('div');
-
-    bubble.className =
-      'private-message-bubble';
-
-
-    if (message.image_url) {
-
-      const image =
-        document.createElement('img');
-
-      image.className =
-        'private-message-photo';
-
-      image.alt = '';
-
-      const { data } =
-        await supabaseClient.storage
-          .from('private-chat-media')
-          .createSignedUrl(
-            message.image_url,
-            3600
-          );
-
-      if (data?.signedUrl) {
-
-        image.src =
-          data.signedUrl;
-
-        bubble.appendChild(image);
-      }
-    }
-
-
-    if (message.message_text) {
-
-      const text =
-        document.createElement('div');
-
-      text.textContent =
-        message.message_text;
-
-      bubble.appendChild(text);
-    }
-
-
-    const meta =
-      document.createElement('div');
-
-    meta.className =
-      'private-message-meta';
-
-
-    const time =
-      document.createElement('span');
-
-    time.textContent =
-      new Date(
-        message.created_at
-      ).toLocaleTimeString(
-        currentLanguage === 'en'
-          ? 'en-GB'
-          : 'sk-SK',
-        {
-          hour:'2-digit',
-          minute:'2-digit'
-        }
-      );
-
-    meta.appendChild(time);
-
-
-    if (mine) {
-
-      const read =
-        document.createElement('span');
-
-      read.textContent =
-        message.read_at
-          ? '✓✓'
-          : '✓';
-
-      meta.appendChild(read);
-
-
-      const remove =
-        document.createElement('button');
-
-      remove.type = 'button';
-
-      remove.className =
-        'private-message-delete';
-
-      remove.textContent = '🗑️';
-
-      remove.setAttribute(
-        'aria-label',
-        PC(
-          'Vymazať správu',
-          'Delete message'
-        )
-      );
-
-      remove.onclick =
-        () => deletePrivateMessage(
-          message
-        );
-
-      meta.appendChild(remove);
-    }
-
-
-    bubble.appendChild(meta);
-
-    row.appendChild(bubble);
-
-    box.appendChild(row);
-  }
-
-
-  /* =========================================================
-     SEND TEXT
-  ========================================================= */
-
-  async function sendPrivateText() {
-
-    if (
-      !currentUser ||
-      !selectedUser
-    ) return;
-
-
-    const input =
-      document.getElementById(
-        'privateChatInput'
-      );
-
-    const text =
-      input.value.trim();
-
-    if (!text) return;
-
-
-    input.value = '';
-
-
-    const { error } =
-      await supabaseClient
-        .from('private_messages')
-        .insert({
-          sender_id:
-            currentUser.id,
-
-          receiver_id:
-            selectedUser.user_id,
-
-          message_text:
-            text,
-
-          image_url:
-            null
-        });
-
-
-    if (error) {
-
-      input.value = text;
-
-      alert(
-        PC(
-          'Správu sa nepodarilo odoslať.',
-          'The message could not be sent.'
-        )
-      );
-
-      return;
-    }
-
-
-    await loadPrivateMessages();
-  }
-
-
-  /* =========================================================
-     SEND PHOTO
-  ========================================================= */
-
-  async function sendPrivatePhoto(event) {
-
-    if (
-      !currentUser ||
-      !selectedUser
-    ) return;
-
-
-    const input =
-      event.target;
-
-    const file =
-      input.files?.[0];
-
-    if (!file) return;
-
-
-    if (
-      ![
-        'image/jpeg',
-        'image/png',
-        'image/webp'
-      ].includes(file.type)
-    ) {
-
-      alert(
-        PC(
-          'Vyberte fotografiu JPG, PNG alebo WEBP.',
-          'Select a JPG, PNG or WEBP photo.'
-        )
-      );
-
-      input.value = '';
-
-      return;
-    }
-
-
-    if (
-      file.size >
-      5 * 1024 * 1024
-    ) {
-
-      alert(
-        PC(
-          'Fotografia môže mať maximálne 5 MB.',
-          'The photo can be a maximum of 5 MB.'
-        )
-      );
-
-      input.value = '';
-
-      return;
-    }
-
-
-    const extension =
-      file.type === 'image/png'
-        ? 'png'
-        : file.type === 'image/webp'
-          ? 'webp'
-          : 'jpg';
-
-
-    const unique =
-      (
-        crypto.randomUUID
-          ? crypto.randomUUID()
-          : Date.now() +
-            '-' +
-            Math.random()
-              .toString(36)
-              .slice(2)
-      );
-
-
-    const path =
-      `${currentUser.id}/${unique}.${extension}`;
-
-
-    const { error: uploadError } =
-      await supabaseClient.storage
-        .from('private-chat-media')
-        .upload(
-          path,
-          file,
-          {
-            contentType:file.type,
-            upsert:false
-          }
-        );
-
-
-    if (uploadError) {
-
-      alert(
-        PC(
-          'Fotografiu sa nepodarilo odoslať.',
-          'The photo could not be sent.'
-        )
-      );
-
-      input.value = '';
-
-      return;
-    }
-
-
-    const { error: messageError } =
-      await supabaseClient
-        .from('private_messages')
-        .insert({
-          sender_id:
-            currentUser.id,
-
-          receiver_id:
-            selectedUser.user_id,
-
-          message_text:
-            null,
-
-          image_url:
-            path
-        });
-
-
-    if (messageError) {
-
-      await supabaseClient.storage
-        .from('private-chat-media')
-        .remove([path]);
-
-      alert(
-        PC(
-          'Fotografiu sa nepodarilo odoslať.',
-          'The photo could not be sent.'
-        )
-      );
-
-      input.value = '';
-
-      return;
-    }
-
-
-    input.value = '';
-
-    await loadPrivateMessages();
-  }
-
-
-  /* =========================================================
-     READ
-  ========================================================= */
-
-  async function markConversationRead() {
-
-    if (
-      !currentUser ||
-      !selectedUser
-    ) return;
-
-
-    await supabaseClient.rpc(
-      'mark_private_messages_read',
-      {
-        p_sender_id:
-          selectedUser.user_id
-      }
-    );
-  }
-
-
-  /* =========================================================
-     DELETE OWN MESSAGE / PHOTO
-  ========================================================= */
-
-  async function deletePrivateMessage(
-    message
-  ) {
-
-    if (
-      !currentUser ||
-      message.sender_id !==
-        currentUser.id
-    ) return;
-
-
-    const confirmed =
-      confirm(
-        message.image_url
-          ? PC(
-              'Vymazať túto fotografiu?',
-              'Delete this photo?'
-            )
-          : PC(
-              'Vymazať túto správu?',
-              'Delete this message?'
-            )
-      );
-
-
-    if (!confirmed) return;
-
-
-    if (message.image_url) {
-
-      const { error: storageError } =
-        await supabaseClient.storage
-          .from('private-chat-media')
-          .remove([
-            message.image_url
-          ]);
-
-
-      if (storageError) {
-
-        alert(
-          PC(
-            'Fotografiu sa nepodarilo vymazať.',
-            'The photo could not be deleted.'
-          )
-        );
-
-        return;
-      }
-    }
-
-
-    const { error } =
-      await supabaseClient
-        .from('private_messages')
-        .delete()
-        .eq(
-          'id',
-          message.id
-        )
-        .eq(
-          'sender_id',
-          currentUser.id
-        );
-
-
-    if (error) {
-
-      alert(
-        PC(
-          'Správu sa nepodarilo vymazať.',
-          'The message could not be deleted.'
-        )
-      );
-
-      return;
-    }
-
-
-    document.querySelector(
-      `[data-message-id="${message.id}"]`
-    )?.remove();
-  }
-
-
-  /* =========================================================
-     REALTIME
-  ========================================================= */
-
-  async function subscribePrivateMessages() {
-
-    if (!currentUser) return;
-
-
-    if (privateMessageChannel) {
-
-      await supabaseClient.removeChannel(
-        privateMessageChannel
-      );
-    }
-
-
-    privateMessageChannel =
-      supabaseClient
-        .channel(
-          'private-messages-' +
-          currentUser.id
-        )
-        .on(
-          'postgres_changes',
-          {
-            event:'*',
-            schema:'public',
-            table:'private_messages'
-          },
-          async payload => {
-
-            if (!selectedUser) return;
-
-
-            const message =
-              payload.new?.id
-                ? payload.new
-                : payload.old;
-
-
-            if (!message) return;
-
-
-            const belongs =
-              (
-                message.sender_id ===
-                  currentUser.id &&
-                message.receiver_id ===
-                  selectedUser.user_id
-              )
-              ||
-              (
-                message.sender_id ===
-                  selectedUser.user_id &&
-                message.receiver_id ===
-                  currentUser.id
-              );
-
-
-            if (!belongs) return;
-
-
-            if (
-              payload.eventType ===
-              'INSERT'
-            ) {
-
-              if (
-                message.receiver_id ===
-                currentUser.id
-              ) {
-
-                await markConversationRead();
-              }
-
-              await loadPrivateMessages();
-            }
-
-
-            if (
-              payload.eventType ===
-              'UPDATE'
-            ) {
-
-              await loadPrivateMessages();
-            }
-
-
-            if (
-              payload.eventType ===
-              'DELETE'
-            ) {
-
-              document.querySelector(
-                `[data-message-id="${message.id}"]`
-              )?.remove();
-            }
-          }
-        )
-        .subscribe();
-  }
-
-
-  function scrollPrivateChatBottom() {
-
-    const box =
-      document.getElementById(
-        'privateChatMessages'
-      );
-
-    if (!box) return;
-
-    requestAnimationFrame(() => {
-      box.scrollTop =
-        box.scrollHeight;
-    });
-  }
-
-
-  /* =========================================================
-     👥 BUTTON
-  ========================================================= */
-
-  function connectUsersButton() {
-
-    const button =
-      document.getElementById(
-        'chatUsersBtn'
-      );
-
-    if (!button) return;
-
-    button.onclick =
-      openDirectory;
-  }
-
-
-  /* =========================================================
-     LANGUAGE
-  ========================================================= */
-
-  const oldLanguage =
-    window.setLanguage;
-
-  window.setLanguage =
-    function (lang) {
-
-      oldLanguage.apply(
-        this,
-        arguments
-      );
-
-      setTimeout(() => {
-
-        removeOldPrivateButton();
-
-        refreshTopAvatar();
-
-        renderUsers();
-
-        updatePrivateChatLanguage();
-
-        connectUsersButton();
-
-      }, 0);
-    };
-
-
-  /* =========================================================
-     AUTH
-  ========================================================= */
-
-  supabaseClient.auth
-    .onAuthStateChange(
-      (event, session) => {
-
-        setTimeout(async () => {
-
-          currentUser =
-            session?.user || null;
-
-          removeOldPrivateButton();
-
-          await refreshTopAvatar();
-
-          if (currentUser) {
-
-            await startPresence();
-
-          } else {
-
-            onlineIds.clear();
-
-            if (presenceChannel) {
-
-              await supabaseClient
-                .removeChannel(
-                  presenceChannel
-                );
-
-              presenceChannel = null;
-            }
-          }
-
-        }, 100);
-      }
-    );
-
-
-  /* =========================================================
-     START
-  ========================================================= */
-
-  createPrivateChatPage();
-
-  removeOldPrivateButton();
-
-  connectUsersButton();
-
-
-  setTimeout(async () => {
-
-    removeOldPrivateButton();
-
-    connectUsersButton();
-
-    await refreshTopAvatar();
-
-    if (currentUser) {
-      await startPresence();
-    }
-
-  }, 700);
-
-
-  window.openPrivateUsersV2 =
-    openDirectory;
-
-  window.openPrivateChatV2 =
-    openPrivateChat;
-
-})();
-    </script>
 <script src="private-chat.js"></script>
+
 <script>
-/* ===== MY BOOKINGS – LANGUAGE FIX ===== */
-
-function fixMyBookingsLanguage() {
-  const btn = document.getElementById('myBookingsBtn');
-
-  if (!btn) return;
-
-  btn.textContent =
-    typeof currentLang !== 'undefined' && currentLang === 'en'
-      ? 'My Bookings'
-      : 'Moje rezervácie';
-}
-
-document.addEventListener('click', () => {
-  setTimeout(fixMyBookingsLanguage, 50);
-});
-
-window.addEventListener('load', fixMyBookingsLanguage);
-
-setTimeout(fixMyBookingsLanguage, 300);
-</script>
-<script>
-/* ===== COMMUNITY FOR ALL – STEP BY STEP BACK NAVIGATION ===== */
+/* ===== APP NAVIGATION – CLEAN BROWSER BACK ===== */
 
 (function () {
+  let internalBack = false;
 
-  let appBackStack = [];
-  let handlingBack = false;
-
-  function getVisibleAppPage() {
-    const pages = [
+  function visiblePage() {
+    const ids = [
       'privateChatPage',
       'privateUsersPage',
       'chatPage',
-      'myBookingsPage',
-      'bookingPage',
-      'eventsPage',
       'eventDetailPage',
-      'profilePage',
+      'eventsPage',
+      'cartPage',
+      'bookingsPage',
+      'donatePage',
+      'loginPage',
+      'registerPage',
+      'accountPage',
+      'forgotPage',
+      'resetPage',
+      'aboutPage',
       'contactPage',
-      'aboutPage'
+      'fatraPage',
+      'facePage'
     ];
 
-    for (const id of pages) {
-      const page = document.getElementById(id);
+    for (const id of ids) {
+      const node =
+        document.getElementById(id);
 
       if (
-        page &&
-        getComputedStyle(page).display !== 'none'
+        node &&
+        getComputedStyle(node).display !==
+          'none'
       ) {
         return id;
       }
@@ -5832,186 +3925,127 @@ setTimeout(fixMyBookingsLanguage, 300);
   }
 
 
-  function rememberCurrentPage() {
-    if (handlingBack) return;
+  function recordPage() {
 
-    const page = getVisibleAppPage();
-
-    const last =
-      appBackStack[
-        appBackStack.length - 1
-      ];
-
-    if (page !== last) {
-      appBackStack.push(page);
-    }
-  }
-
-
-  function showAppPage(pageId) {
-    handlingBack = true;
-
-    if (typeof hidePages === 'function') {
-      hidePages();
-    }
-
-    if (pageId === 'HOME') {
-      if (typeof showHome === 'function') {
-        showHome();
-      } else {
-        const home =
-          document.getElementById('homePage') ||
-          document.getElementById('home');
-
-        if (home) {
-          home.style.display = 'block';
-        }
-      }
-
-      handlingBack = false;
-      return;
-    }
+    if (internalBack) return;
 
     const page =
-      document.getElementById(pageId);
+      visiblePage();
 
-    if (page) {
-      page.style.display = 'block';
+    if (
+      history.state?.cfaPage !==
+      page
+    ) {
+
+      history.pushState(
+        {
+          cfaPage: page
+        },
+        '',
+        location.href
+      );
+
     }
-
-    handlingBack = false;
   }
 
 
-  function pushBrowserGuard() {
-    history.pushState(
-      { communityForAllApp: true },
-      '',
-      location.href
+  function openState(page) {
+
+    internalBack = true;
+
+    if (
+      page === 'HOME' ||
+      !page
+    ) {
+
+      showHome();
+
+    } else if (
+      page === 'eventsPage'
+    ) {
+
+      showEvents();
+
+    } else if (
+      page === 'bookingsPage'
+    ) {
+
+      showBookings();
+
+    } else if (
+      page === 'cartPage'
+    ) {
+
+      showCartPage();
+
+    } else {
+
+      if (
+        typeof hidePages ===
+        'function'
+      ) {
+        hidePages();
+      }
+
+      const node =
+        document.getElementById(page);
+
+      if (node) {
+
+        node.style.display =
+          page === 'privateChatPage'
+            ? 'block'
+            : 'block';
+
+      } else {
+
+        showHome();
+
+      }
+    }
+
+    setTimeout(
+      () => {
+        internalBack = false;
+      },
+      0
     );
   }
 
 
+  history.replaceState(
+    {
+      cfaPage:
+        visiblePage()
+    },
+    '',
+    location.href
+  );
+
+
   document.addEventListener(
     'click',
-    function () {
+    () =>
       setTimeout(
-        rememberCurrentPage,
-        80
-      );
-    },
+        recordPage,
+        120
+      ),
     true
   );
 
 
   window.addEventListener(
     'popstate',
-    function () {
-
-      const current =
-        getVisibleAppPage();
-
-      if (
-        !appBackStack.length
-      ) {
-        appBackStack.push('HOME');
-      }
-
-      while (
-        appBackStack.length &&
-        appBackStack[
-          appBackStack.length - 1
-        ] === current
-      ) {
-        appBackStack.pop();
-      }
-
-      const previous =
-        appBackStack.length
-          ? appBackStack.pop()
-          : 'HOME';
-
-      showAppPage(previous);
-
-      /*
-        Pokiaľ ešte nie sme na HOME,
-        Chrome nesmie aplikáciu opustiť.
-      */
-      if (previous !== 'HOME') {
-        pushBrowserGuard();
-      }
-    }
-  );
-
-
-  window.addEventListener(
-    'load',
-    function () {
-      appBackStack = ['HOME'];
-
-      setTimeout(
-        rememberCurrentPage,
-        100
-      );
-
-      pushBrowserGuard();
-    }
+    event =>
+      openState(
+        event.state?.cfaPage ||
+        'HOME'
+      )
   );
 
 })();
 </script>
-<script>
-/* ===== PRIVATE USERS – OPEN REAL PRIVATE CHAT FIX ===== */
 
-document.addEventListener('click', function(event) {
+</body>
+</html>
 
-  const row = event.target.closest(
-    '#privateUsersList button'
-  );
-
-  if (!row) return;
-
-  event.preventDefault();
-  event.stopPropagation();
-  event.stopImmediatePropagation();
-
-  const name =
-    row.textContent.trim();
-
-  if (!name || !currentUser) return;
-
-  (async function() {
-
-    const { data, error } =
-      await supabaseClient
-        .from('user_profiles')
-        .select(
-          'user_id,display_name,avatar_url'
-        )
-        .neq(
-          'user_id',
-          currentUser.id
-        );
-
-    if (error || !data) return;
-
-    const user =
-      data.find(item =>
-        (item.display_name || '').trim() === name
-      );
-
-    if (!user) return;
-
-    window.selectedPrivateUser = user;
-
-    if (
-      typeof window.openPrivateChatWithUser ===
-      'function'
-    ) {
-      await window.openPrivateChatWithUser(user);
-    }
-
-  })();
-
-}, true);
-</script>
