@@ -3699,3 +3699,163 @@ showEvents = async function () {
 
 })();
               </script>
+<script>
+/* ===== PROFILE AVATAR – POSITION CONTROLS ===== */
+
+(function () {
+
+  function addAvatarPositionControls() {
+
+    if (document.getElementById('avatarPositionControls')) return;
+
+    const zoom =
+      document.getElementById('avatarZoom');
+
+    if (!zoom) return;
+
+    const box = document.createElement('div');
+
+    box.id = 'avatarPositionControls';
+
+    box.style.cssText = `
+      margin-top:16px;
+    `;
+
+    box.innerHTML = `
+      <div
+        id="avatarHorizontalLabel"
+        style="font-size:13px;color:#cbd5e1;margin-bottom:6px;"
+      ></div>
+
+      <input
+        id="avatarHorizontal"
+        type="range"
+        min="-100"
+        max="100"
+        step="1"
+        value="0"
+      >
+
+      <div
+        id="avatarVerticalLabel"
+        style="font-size:13px;color:#cbd5e1;margin:14px 0 6px;"
+      ></div>
+
+      <input
+        id="avatarVertical"
+        type="range"
+        min="-100"
+        max="100"
+        step="1"
+        value="0"
+      >
+    `;
+
+    zoom.parentElement.insertAdjacentElement(
+      'afterend',
+      box
+    );
+
+    const horizontal =
+      document.getElementById('avatarHorizontal');
+
+    const vertical =
+      document.getElementById('avatarVertical');
+
+
+    horizontal.oninput = function () {
+
+      if (!avatarImage) return;
+
+      const size = 280;
+
+      const scale =
+        avatarImage.baseScale * avatarScale;
+
+      const width =
+        avatarImage.width * scale;
+
+      const available =
+        Math.max(0, width - size);
+
+      avatarX =
+        -(available / 2) +
+        (Number(this.value) / 100) *
+        (available / 2);
+
+      keepAvatarInside();
+      drawAvatarCrop();
+    };
+
+
+    vertical.oninput = function () {
+
+      if (!avatarImage) return;
+
+      const size = 280;
+
+      const scale =
+        avatarImage.baseScale * avatarScale;
+
+      const height =
+        avatarImage.height * scale;
+
+      const available =
+        Math.max(0, height - size);
+
+      avatarY =
+        -(available / 2) +
+        (Number(this.value) / 100) *
+        (available / 2);
+
+      keepAvatarInside();
+      drawAvatarCrop();
+    };
+
+
+    updatePositionLanguage();
+  }
+
+
+  function updatePositionLanguage() {
+
+    const horizontal =
+      document.getElementById('avatarHorizontalLabel');
+
+    const vertical =
+      document.getElementById('avatarVerticalLabel');
+
+    if (horizontal) {
+      horizontal.textContent =
+        currentLanguage === 'en'
+          ? '↔ Move left / right'
+          : '↔ Posun doľava / doprava';
+    }
+
+    if (vertical) {
+      vertical.textContent =
+        currentLanguage === 'en'
+          ? '↕ Move up / down'
+          : '↕ Posun hore / dole';
+    }
+  }
+
+
+  addAvatarPositionControls();
+
+
+  const oldPositionLanguage =
+    window.setLanguage;
+
+  window.setLanguage = function (lang) {
+
+    oldPositionLanguage.apply(this, arguments);
+
+    setTimeout(
+      updatePositionLanguage,
+      0
+    );
+  };
+
+})();
+</script>
