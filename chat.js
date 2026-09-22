@@ -112,8 +112,18 @@ function closeCommunityChat() {
 }
 
 
-function closeCommunityChatView() {
+async function closeCommunityChatView() {
   communityChatOpen = false;
+
+  if (currentUser) {
+    await supabaseClient
+      .from('user_profiles')
+      .update({
+        presence_status: 'logged_in',
+        last_active_at: new Date().toISOString()
+      })
+      .eq('user_id', currentUser.id);
+  }
 
   clearPendingCommunityChatPhoto();
 
