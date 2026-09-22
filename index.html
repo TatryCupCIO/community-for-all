@@ -506,10 +506,41 @@ fillAccount();
 go('accountPage')
 }
 
-function updateUserButton(){
-el('userTopBtn').textContent=currentUser
-?'👤 '+(getUsername(currentUser)||T('Môj účet','My Account'))
-:T('👤 Prihlásiť sa','👤 Sign In')
+async function updateUserButton(){
+  const button = el('userTopBtn');
+  if(!button) return;
+
+  if(!currentUser){
+    button.innerHTML = T('👤 Prihlásiť sa','👤 Sign In');
+    return;
+  }
+
+  const { data } = await supabaseClient
+    .from('user_profiles')
+    .select('avatar_url')
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
+
+  if(data?.avatar_url){
+    button.innerHTML = `
+      <img
+        src="${data.avatar_url}"
+        alt=""
+        style="
+          width:34px;
+          height:34px;
+          border-radius:50%;
+          object-fit:cover;
+          vertical-align:middle;
+          margin-right:7px;
+        "
+      >
+      ${T('Môj účet','My Account')}
+    `;
+  }else{
+    button.innerHTML =
+      '👤 ' + T('Môj účet','My Account');
+  }
 }
 
 function fillAccount(){
