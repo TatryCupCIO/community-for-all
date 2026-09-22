@@ -1986,3 +1986,70 @@ setTimeout(async () => {
   }
 })();
 </script>
+<script>
+/* ===== EVENTS – PRIVATE TEST MODE ===== */
+
+const EVENTS_TESTER_USER_ID =
+  '5dd44b46-dcf5-4935-abca-d6c220875b20';
+
+const originalShowEventsPrivateTest = showEvents;
+
+showEvents = async function () {
+
+  await refreshCurrentUser();
+
+  /* Michaela – plný prístup */
+  if (
+    currentUser &&
+    currentUser.id === EVENTS_TESTER_USER_ID
+  ) {
+    return originalShowEventsPrivateTest.apply(this, arguments);
+  }
+
+  /* Verejnosť – iba pripravujeme */
+  hidePages();
+
+  const eventsPage = document.getElementById('eventsPage');
+
+  if (!eventsPage) return;
+
+  eventsPage.style.display = 'block';
+
+  eventsPage.innerHTML = `
+    <div style="
+      min-height:60vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:30px;
+    ">
+      <div>
+        <div style="font-size:48px;margin-bottom:18px;">✨</div>
+
+        <h2>
+          ${T('Pripravujeme...', 'Coming soon...')}
+        </h2>
+
+        <p>
+          ${T(
+            'Nové podujatia už čoskoro.',
+            'New events are coming soon.'
+          )}
+        </p>
+
+        <button
+          class="submit-btn"
+          type="button"
+          onclick="showHome()"
+          style="margin-top:20px;"
+        >
+          ${T('Späť', 'Back')}
+        </button>
+      </div>
+    </div>
+  `;
+
+  window.scrollTo(0, 0);
+};
+</script>
