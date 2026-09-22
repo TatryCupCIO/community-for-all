@@ -2559,25 +2559,6 @@ if (
   startCommunityChatWhenReady();
 }
 
-
-// ============================================================
-// PERIODIC READ RECEIPT REFRESH
-// Only while public chat is open
-// ============================================================
-
-setInterval(
-  () => {
-    if (
-      communityChatOpen &&
-      currentUser
-    ) {
-      refreshCommunityChatReadReceipts();
-    }
-  },
-  2000
-);
-
-
 // ============================================================
 // END COMMUNITY FOR ALL – CHAT.JS
 // ============================================================
