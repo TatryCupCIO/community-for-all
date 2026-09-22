@@ -2816,3 +2816,886 @@ showEvents = async function () {
 
 })();
 </script>
+<script>
+/* ===== PROFILE AVATAR – CROP, RESIZE, SAVE, CHANGE, DELETE ===== */
+
+(function () {
+
+  let avatarFile = null;
+  let avatarImage = null;
+  let avatarScale = 1;
+  let avatarX = 0;
+  let avatarY = 0;
+  let dragging = false;
+  let dragStartX = 0;
+  let dragStartY = 0;
+  let imageStartX = 0;
+  let imageStartY = 0;
+
+  function A(sk, en) {
+    return currentLanguage === 'en' ? en : sk;
+  }
+
+  function createAvatarEditor() {
+
+    if (document.getElementById('avatarCropOverlay')) return;
+
+    const overlay = document.createElement('div');
+
+    overlay.id = 'avatarCropOverlay';
+
+    overlay.style.cssText = `
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:99999;
+      background:rgba(0,0,0,.88);
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    `;
+
+    overlay.innerHTML = `
+      <div style="
+        width:100%;
+        max-width:390px;
+        background:#1e293b;
+        border:1px solid #475569;
+        border-radius:18px;
+        padding:20px;
+        text-align:center;
+      ">
+
+        <h3 id="avatarCropTitle" style="margin-top:0;"></h3>
+
+        <div id="avatarCropHelp"
+          style="
+            color:#cbd5e1;
+            font-size:13px;
+            margin-bottom:15px;
+          ">
+        </div>
+
+        <div style="
+          width:280px;
+          height:280px;
+          max-width:100%;
+          margin:auto;
+          position:relative;
+        ">
+
+          <canvas
+            id="avatarCropCanvas"
+            width="280"
+            height="280"
+            style="
+              width:280px;
+              height:280px;
+              max-width:100%;
+              border-radius:50%;
+              background:#0f172a;
+              touch-action:none;
+              cursor:grab;
+            "
+          ></canvas>
+
+        </div>
+
+        <div style="margin-top:18px;">
+
+          <div id="avatarZoomLabel"
+            style="
+              font-size:13px;
+              color:#cbd5e1;
+              margin-bottom:7px;
+            ">
+          </div>
+
+          <input
+            id="avatarZoom"
+            type="range"
+            min="1"
+            max="3"
+            step="0.01"
+            value="1"
+          >
+
+        </div>
+
+        <div style="
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:10px;
+          margin-top:18px;
+        ">
+
+          <button
+            id="avatarCropCancel"
+            type="button"
+            class="secondary-btn"
+          ></button>
+
+          <button
+            id="avatarCropSave"
+            type="button"
+            class="submit-btn"
+            style="margin:0;"
+          ></button>
+
+        </div>
+
+      </div>
+    `;
+
+    document.body.appendChild(overlay);
+
+    const canvas =
+      document.getElementById('avatarCropCanvas');
+
+    const zoom =
+      document.getElementById('avatarZoom');
+
+
+    zoom.addEventListener('input', function () {
+
+      avatarScale = Number(this.value);
+
+      keepAvatarInside();
+
+      drawAvatarCrop();
+
+    });
+
+
+    function pointerStart(e) {
+
+      if (!avatarImage) return;
+
+      dragging = true;
+
+      canvas.setPointerCapture?.(e.pointerId);
+
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+
+      imageStartX = avatarX;
+      imageStartY = avatarY;
+
+      canvas.style.cursor = 'grabbing';
+    }
+
+
+    function pointerMove(e) {
+
+      if (!dragging || !avatarImage) return;
+
+      avatarX =
+        imageStartX +
+        (e.clientX - dragStartX);
+
+      avatarY =
+        imageStartY +
+        (e.clientY - dragStartY);
+
+      keepAvatarInside();
+
+      drawAvatarCrop();
+    }
+
+
+    function pointerEnd() {
+
+      dragging = false;
+
+      canvas.style.cursor = 'grab';
+    }
+
+
+    canvas.addEventListener(
+      'pointerdown',
+      pointerStart
+    );
+
+    canvas.addEventListener(
+      'pointermove',
+      pointerMove
+    );
+
+    canvas.addEventListener(
+      'pointerup',
+      pointerEnd
+    );
+
+    canvas.addEventListener(
+      'pointercancel',
+      pointerEnd
+    );
+
+
+    document.getElementById(
+      'avatarCropCancel'
+    ).onclick = closeAvatarEditor;
+
+
+    document.getElementById(
+      'avatarCropSave'
+    ).onclick = saveCroppedAvatar;
+
+
+    updateAvatarEditorLanguage();
+  }
+
+
+  function updateAvatarEditorLanguage() {
+
+    const title =
+      document.getElementById('avatarCropTitle');
+
+    if (title) {
+      title.textContent =
+        A(
+          'Upraviť profilovú fotku',
+          'Edit profile photo'
+        );
+    }
+
+
+    const help =
+      document.getElementById('avatarCropHelp');
+
+    if (help) {
+      help.textContent =
+        A(
+          'Posuňte fotografiu prstom alebo myšou a nastavte výrez.',
+          'Move the photo with your finger or mouse and position the crop.'
+        );
+    }
+
+
+    const zoom =
+      document.getElementById('avatarZoomLabel');
+
+    if (zoom) {
+      zoom.textContent =
+        A(
+          'Priblíženie',
+          'Zoom'
+        );
+    }
+
+
+    const cancel =
+      document.getElementById('avatarCropCancel');
+
+    if (cancel) {
+      cancel.textContent =
+        A(
+          'Zrušiť',
+          'Cancel'
+        );
+    }
+
+
+    const save =
+      document.getElementById('avatarCropSave');
+
+    if (save) {
+      save.textContent =
+        A(
+          '💾 Uložiť',
+          '💾 Save'
+        );
+    }
+  }
+
+
+  function openAvatarEditor(file) {
+
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert(
+        A(
+          'Vyberte fotografiu.',
+          'Please select a photo.'
+        )
+      );
+      return;
+    }
+
+    avatarFile = file;
+
+    const reader =
+      new FileReader();
+
+    reader.onload = function (event) {
+
+      const image =
+        new Image();
+
+      image.onload = function () {
+
+        avatarImage = image;
+
+        const canvasSize = 280;
+
+        const baseScale =
+          Math.max(
+            canvasSize / image.width,
+            canvasSize / image.height
+          );
+
+        avatarImage.baseScale = baseScale;
+
+        avatarScale = 1;
+
+        document.getElementById(
+          'avatarZoom'
+        ).value = '1';
+
+        const width =
+          image.width * baseScale;
+
+        const height =
+          image.height * baseScale;
+
+        avatarX =
+          (canvasSize - width) / 2;
+
+        avatarY =
+          (canvasSize - height) / 2;
+
+        drawAvatarCrop();
+
+        const overlay =
+          document.getElementById(
+            'avatarCropOverlay'
+          );
+
+        overlay.style.display = 'flex';
+
+      };
+
+      image.src = event.target.result;
+
+    };
+
+    reader.readAsDataURL(file);
+  }
+
+
+  function keepAvatarInside() {
+
+    if (!avatarImage) return;
+
+    const size = 280;
+
+    const scale =
+      avatarImage.baseScale *
+      avatarScale;
+
+    const width =
+      avatarImage.width * scale;
+
+    const height =
+      avatarImage.height * scale;
+
+
+    if (avatarX > 0) {
+      avatarX = 0;
+    }
+
+    if (avatarY > 0) {
+      avatarY = 0;
+    }
+
+    if (avatarX + width < size) {
+      avatarX = size - width;
+    }
+
+    if (avatarY + height < size) {
+      avatarY = size - height;
+    }
+  }
+
+
+  function drawAvatarCrop() {
+
+    if (!avatarImage) return;
+
+    const canvas =
+      document.getElementById(
+        'avatarCropCanvas'
+      );
+
+    const ctx =
+      canvas.getContext('2d');
+
+    const size = 280;
+
+    ctx.clearRect(
+      0,
+      0,
+      size,
+      size
+    );
+
+
+    ctx.save();
+
+    ctx.beginPath();
+
+    ctx.arc(
+      size / 2,
+      size / 2,
+      size / 2,
+      0,
+      Math.PI * 2
+    );
+
+    ctx.clip();
+
+
+    const scale =
+      avatarImage.baseScale *
+      avatarScale;
+
+
+    ctx.drawImage(
+      avatarImage,
+      avatarX,
+      avatarY,
+      avatarImage.width * scale,
+      avatarImage.height * scale
+    );
+
+
+    ctx.restore();
+  }
+
+
+  function closeAvatarEditor() {
+
+    const overlay =
+      document.getElementById(
+        'avatarCropOverlay'
+      );
+
+    if (overlay) {
+      overlay.style.display = 'none';
+    }
+
+    const input =
+      document.getElementById(
+        'profileAvatarInput'
+      );
+
+    if (input) {
+      input.value = '';
+    }
+  }
+
+
+  async function saveCroppedAvatar() {
+
+    if (!currentUser || !avatarImage) {
+      return;
+    }
+
+    const saveButton =
+      document.getElementById(
+        'avatarCropSave'
+      );
+
+    saveButton.disabled = true;
+
+    saveButton.textContent =
+      A(
+        'Ukladám...',
+        'Saving...'
+      );
+
+
+    const sourceCanvas =
+      document.getElementById(
+        'avatarCropCanvas'
+      );
+
+
+    const finalCanvas =
+      document.createElement('canvas');
+
+    finalCanvas.width = 512;
+    finalCanvas.height = 512;
+
+
+    const ctx =
+      finalCanvas.getContext('2d');
+
+    ctx.drawImage(
+      sourceCanvas,
+      0,
+      0,
+      280,
+      280,
+      0,
+      0,
+      512,
+      512
+    );
+
+
+    finalCanvas.toBlob(
+      async function (blob) {
+
+        if (!blob) {
+
+          saveButton.disabled = false;
+
+          updateAvatarEditorLanguage();
+
+          return;
+        }
+
+
+        const filePath =
+          `${currentUser.id}/avatar.webp`;
+
+
+        const { error: uploadError } =
+          await supabaseClient.storage
+            .from('profile-avatars')
+            .upload(
+              filePath,
+              blob,
+              {
+                contentType: 'image/webp',
+                upsert: true,
+                cacheControl: '0'
+              }
+            );
+
+
+        if (uploadError) {
+
+          saveButton.disabled = false;
+
+          updateAvatarEditorLanguage();
+
+          alert(
+            A(
+              'Fotografiu sa nepodarilo nahrať.',
+              'The photo could not be uploaded.'
+            )
+          );
+
+          return;
+        }
+
+
+        const { data } =
+          supabaseClient.storage
+            .from('profile-avatars')
+            .getPublicUrl(filePath);
+
+
+        const avatarUrl =
+          data.publicUrl +
+          '?v=' +
+          Date.now();
+
+
+        const { error: profileError } =
+          await supabaseClient
+            .from('user_profiles')
+            .update({
+              avatar_url: avatarUrl,
+              updated_at:
+                new Date().toISOString()
+            })
+            .eq(
+              'user_id',
+              currentUser.id
+            );
+
+
+        if (profileError) {
+
+          saveButton.disabled = false;
+
+          updateAvatarEditorLanguage();
+
+          alert(
+            A(
+              'Profilovú fotografiu sa nepodarilo uložiť.',
+              'The profile photo could not be saved.'
+            )
+          );
+
+          return;
+        }
+
+
+        closeAvatarEditor();
+
+        await refreshAvatarControls();
+
+        alert(
+          A(
+            'Profilová fotografia bola uložená.',
+            'Profile photo has been saved.'
+          )
+        );
+
+
+        saveButton.disabled = false;
+
+        updateAvatarEditorLanguage();
+
+      },
+      'image/webp',
+      0.9
+    );
+  }
+
+
+  async function deleteAvatar() {
+
+    if (!currentUser) return;
+
+
+    const confirmed =
+      confirm(
+        A(
+          'Naozaj chcete vymazať profilovú fotografiu?',
+          'Are you sure you want to delete your profile photo?'
+        )
+      );
+
+
+    if (!confirmed) return;
+
+
+    await supabaseClient.storage
+      .from('profile-avatars')
+      .remove([
+        `${currentUser.id}/avatar.webp`
+      ]);
+
+
+    const { error } =
+      await supabaseClient
+        .from('user_profiles')
+        .update({
+          avatar_url: null,
+          updated_at:
+            new Date().toISOString()
+        })
+        .eq(
+          'user_id',
+          currentUser.id
+        );
+
+
+    if (error) {
+
+      alert(
+        A(
+          'Fotografiu sa nepodarilo vymazať.',
+          'The photo could not be deleted.'
+        )
+      );
+
+      return;
+    }
+
+
+    await refreshAvatarControls();
+  }
+
+
+  async function refreshAvatarControls() {
+
+    if (!currentUser) return;
+
+
+    const preview =
+      document.getElementById(
+        'profileAvatarPreview'
+      );
+
+    const uploadButton =
+      document.getElementById(
+        'profileAvatarButton'
+      );
+
+    if (!preview || !uploadButton) return;
+
+
+    const { data } =
+      await supabaseClient
+        .from('user_profiles')
+        .select('avatar_url')
+        .eq(
+          'user_id',
+          currentUser.id
+        )
+        .maybeSingle();
+
+
+    const oldDelete =
+      document.getElementById(
+        'profileAvatarDeleteButton'
+      );
+
+    if (oldDelete) {
+      oldDelete.remove();
+    }
+
+
+    if (data?.avatar_url) {
+
+      preview.innerHTML = '';
+
+      const image =
+        document.createElement('img');
+
+      image.src =
+        data.avatar_url;
+
+      image.alt = '';
+
+      image.style.cssText = `
+        width:100%;
+        height:100%;
+        object-fit:cover;
+      `;
+
+      preview.appendChild(image);
+
+
+      uploadButton.textContent =
+        A(
+          '🔄 Zmeniť profilovú fotku',
+          '🔄 Change profile photo'
+        );
+
+
+      const deleteButton =
+        document.createElement('button');
+
+      deleteButton.id =
+        'profileAvatarDeleteButton';
+
+      deleteButton.type = 'button';
+
+      deleteButton.className =
+        'secondary-btn';
+
+      deleteButton.style.marginTop =
+        '10px';
+
+      deleteButton.textContent =
+        A(
+          '🗑️ Vymazať profilovú fotku',
+          '🗑️ Delete profile photo'
+        );
+
+      deleteButton.onclick =
+        deleteAvatar;
+
+
+      uploadButton.insertAdjacentElement(
+        'afterend',
+        deleteButton
+      );
+
+
+    } else {
+
+      preview.textContent = '👤';
+
+      uploadButton.textContent =
+        A(
+          '📷 Nahrať profilovú fotku',
+          '📷 Upload profile photo'
+        );
+    }
+  }
+
+
+  createAvatarEditor();
+
+
+  const avatarInput =
+    document.getElementById(
+      'profileAvatarInput'
+    );
+
+
+  if (avatarInput) {
+
+    /* Nahradí staré okamžité nahrávanie */
+    avatarInput.onchange =
+      function (event) {
+
+        const file =
+          event.target.files?.[0];
+
+        if (file) {
+          openAvatarEditor(file);
+        }
+      };
+  }
+
+
+  const originalAvatarShowAccount =
+    window.showAccount;
+
+
+  window.showAccount =
+    function () {
+
+      const result =
+        originalAvatarShowAccount.apply(
+          this,
+          arguments
+        );
+
+      setTimeout(
+        refreshAvatarControls,
+        50
+      );
+
+      return result;
+    };
+
+
+  const originalAvatarSetLanguage =
+    window.setLanguage;
+
+
+  window.setLanguage =
+    function (lang) {
+
+      originalAvatarSetLanguage.apply(
+        this,
+        arguments
+      );
+
+      setTimeout(() => {
+
+        updateAvatarEditorLanguage();
+
+        if (currentUser) {
+          refreshAvatarControls();
+        }
+
+      }, 0);
+    };
+
+
+  updateAvatarEditorLanguage();
+
+})();
+              </script>
