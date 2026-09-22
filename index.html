@@ -2091,24 +2091,23 @@ function addPasswordEye(inputId) {
   }
 
   async function openPrivateUsers() {
+  if (!requireLogin()) return;
 
-    if (!requireLogin()) return;
+  hidePages();
 
-    hidePages();
-
-    const page =
-      document.getElementById(
-        'privateUsersPage'
-      );
-
-    if (!page) return;
-
-    page.style.display = 'block';
-
-    window.scrollTo(0, 0);
-
-    await loadPrivateUsers();
+  const chatPage = document.getElementById('chatPage');
+  if (chatPage) {
+    chatPage.style.display = 'none';
   }
+
+  const page = document.getElementById('privateUsersPage');
+  if (!page) return;
+
+  page.style.display = 'block';
+  window.scrollTo(0, 0);
+
+  await loadPrivateUsers();
+}
 
   window.openPrivateUsers =
     openPrivateUsers;
