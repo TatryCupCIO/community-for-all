@@ -2132,8 +2132,8 @@ function addPasswordEye(inputId) {
       await supabaseClient
         .from('user_profiles')
         .select(
-          'user_id,display_name,avatar_url'
-        )
+  'user_id,display_name,avatar_url,presence_status,last_active_at'
+)
         .neq(
           'user_id',
           currentUser.id
