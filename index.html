@@ -5960,3 +5960,58 @@ setTimeout(fixMyBookingsLanguage, 300);
 
 })();
 </script>
+<script>
+/* ===== PRIVATE USERS – OPEN REAL PRIVATE CHAT FIX ===== */
+
+document.addEventListener('click', function(event) {
+
+  const row = event.target.closest(
+    '#privateUsersList button'
+  );
+
+  if (!row) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
+
+  const name =
+    row.textContent.trim();
+
+  if (!name || !currentUser) return;
+
+  (async function() {
+
+    const { data, error } =
+      await supabaseClient
+        .from('user_profiles')
+        .select(
+          'user_id,display_name,avatar_url'
+        )
+        .neq(
+          'user_id',
+          currentUser.id
+        );
+
+    if (error || !data) return;
+
+    const user =
+      data.find(item =>
+        (item.display_name || '').trim() === name
+      );
+
+    if (!user) return;
+
+    window.selectedPrivateUser = user;
+
+    if (
+      typeof window.openPrivateChatWithUser ===
+      'function'
+    ) {
+      await window.openPrivateChatWithUser(user);
+    }
+
+  })();
+
+}, true);
+</script>
