@@ -2318,7 +2318,7 @@ function addPasswordEye(inputId) {
       return;
     }
 
-    privateUsers = data || [];
+    window.privateUsers = data || [];
 
     renderPrivateUsers();
   }
@@ -2342,7 +2342,7 @@ function addPasswordEye(inputId) {
       .toLowerCase();
 
     const users =
-      privateUsers.filter(user =>
+      window.privateUsers.filter(user =>
         (user.display_name || '')
           .toLowerCase()
           .includes(query)
