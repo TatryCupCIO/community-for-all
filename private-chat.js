@@ -521,7 +521,7 @@ function setPrivateChatHeader(
 
 
 // ============================================================
-// ONLINE / OFFLINE STATUS
+// PRIVATE CHAT – USER STATUS
 // ============================================================
 
 function updatePrivateChatStatus() {
@@ -537,27 +537,28 @@ function updatePrivateChatStatus() {
     return;
   }
 
-  const online =
-    window.onlineUserIds instanceof Set &&
-    window.onlineUserIds.has(
-      privateChatSelectedUser.user_id
-    );
+  const presence =
+    privateChatSelectedUser.presence_status ||
+    'offline';
 
-  status.textContent =
-    online
-      ? T(
-          'Online',
-          'Online'
-        )
-      : T(
-          'Offline',
-          'Offline'
-        );
+  if (presence === 'online') {
+    status.textContent = 'Online';
+    status.style.color = '#22c55e';
+    return;
+  }
 
-  status.style.color =
-    online
-      ? '#22c55e'
-      : '#ef4444';
+  if (presence === 'logged_in') {
+    status.textContent =
+      currentLanguage === 'en'
+        ? 'Logged in'
+        : 'Prihlásený';
+
+    status.style.color = '#f59e0b';
+    return;
+  }
+
+  status.textContent = 'Offline';
+  status.style.color = '#ef4444';
 }
 
 
