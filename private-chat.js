@@ -3382,16 +3382,66 @@ function scrollPrivateChatToBottom() {
 // CONNECT EXISTING USERS DIRECTORY
 // ============================================================
 
-row.onclick = async function () {
-  window.selectedPrivateUser = user;
+function connectPrivateUsersDirectory() {
 
-  if (
-    typeof window.openPrivateChatWithUser === 'function'
-  ) {
-    await window.openPrivateChatWithUser(user);
-  }
-};
+  const list =
+    document.getElementById(
+      'privateUsersList'
+    );
 
+  if (!list) return;
+
+  const rows =
+    list.querySelectorAll(
+      '[data-user-id]'
+    );
+
+  rows.forEach(row => {
+
+    if (row.dataset.privateChatConnected === '1') {
+      return;
+    }
+
+    row.dataset.privateChatConnected = '1';
+
+    row.addEventListener(
+      'click',
+      async function () {
+
+        const userId =
+          row.dataset.userId;
+
+        if (!userId) return;
+
+        const { data: user, error } =
+          await supabaseClient
+            .from('user_profiles')
+            .select(
+              'user_id,display_name,avatar_url,presence_status,last_active_at'
+            )
+            .eq(
+              'user_id',
+              userId
+            )
+            .single();
+
+        if (error || !user) {
+          console.error(
+            'Private user load:',
+            error
+          );
+          return;
+        }
+
+        window.selectedPrivateUser = user;
+
+        await window.openPrivateChatWithUser(
+          user
+        );
+      }
+    );
+  });
+}
 
 // ============================================================
 // WATCH USERS DIRECTORY
