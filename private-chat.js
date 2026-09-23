@@ -569,7 +569,49 @@ function updatePrivateChatStatus() {
   status.style.color = '#ef4444';
 }
 
+let privateChatPresenceChannel = null;
 
+function startPrivateChatPresenceRealtime() {
+
+  if (privateChatPresenceChannel) {
+    supabaseClient.removeChannel(
+      privateChatPresenceChannel
+    );
+  }
+
+  privateChatPresenceChannel =
+    supabaseClient
+      .channel('private-chat-presence')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles'
+        },
+        payload => {
+
+          if (
+            !privateChatSelectedUser ||
+            payload.new.user_id !==
+              privateChatSelectedUser.user_id
+          ) {
+            return;
+          }
+
+          privateChatSelectedUser.presence_status =
+            payload.new.presence_status;
+
+          privateChatSelectedUser.last_active_at =
+            payload.new.last_active_at;
+
+          updatePrivateChatStatus();
+        }
+      )
+      .subscribe();
+}
+
+startPrivateChatPresenceRealtime();
 // ============================================================
 // LOAD MESSAGES
 // ============================================================
