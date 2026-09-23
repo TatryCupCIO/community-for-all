@@ -3442,7 +3442,72 @@ function connectPrivateUsersDirectory() {
     );
   });
 }
+function startPrivateInboxRealtime() {
 
+  if (!currentUser || privateInboxChannel) {
+    return;
+  }
+
+  privateInboxChannel =
+    supabaseClient
+      .channel(
+        'private-inbox-' + currentUser.id
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'private_messages'
+        },
+        async payload => {
+
+          const message = payload.new;
+
+          if (
+            !message ||
+            message.sender_id === currentUser.id
+          ) {
+            return;
+          }
+
+          const { data: membership } =
+            await supabaseClient
+              .from('private_conversation_memberships')
+              .select('conversation_id')
+              .eq(
+                'conversation_id',
+                message.conversation_id
+              )
+              .eq(
+                'user_id',
+                currentUser.id
+              )
+              .is('left_at', null)
+              .maybeSingle();
+
+          if (!membership) {
+            return;
+          }
+
+          if (
+            privateChatOpen &&
+            Number(privateChatConversationId) ===
+              Number(message.conversation_id)
+          ) {
+            return;
+          }
+
+          alert(
+            A(
+              '💬 Máte novú súkromnú správu.',
+              '💬 You have a new private message.'
+            )
+          );
+        }
+      )
+      .subscribe();
+}
 // ============================================================
 // WATCH USERS DIRECTORY
 // ============================================================
