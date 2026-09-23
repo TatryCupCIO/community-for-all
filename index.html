@@ -3706,13 +3706,31 @@ navigationObserver.observe(
 
 
   window.addEventListener(
-    'popstate',
-    event =>
-      openState(
-        event.state?.cfaPage ||
-        'HOME'
-      )
-  );
+  'popstate',
+  event => {
+
+    const page =
+      event.state?.cfaPage;
+
+    if (
+      !page ||
+      page === 'HOME_GUARD'
+    ) {
+      history.pushState(
+        {
+          cfaPage: 'HOME'
+        },
+        '',
+        location.href
+      );
+
+      openState('HOME');
+      return;
+    }
+
+    openState(page);
+  }
+);
 
 })();
 </script>
