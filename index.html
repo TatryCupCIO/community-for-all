@@ -249,6 +249,45 @@ textarea{min-height:130px}
 <div class="card">
 <div class="account-name" id="accountUsername"></div>
 <div class="account-email" id="accountEmail"></div>
+  <div
+  id="profileAvatarPreview"
+  style="
+    width:120px;
+    height:120px;
+    margin:20px auto 15px;
+    border-radius:50%;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#334155;
+    font-size:55px;
+  "
+>
+  👤
+</div>
+
+<input
+  id="profileAvatarInput"
+  type="file"
+  accept="image/jpeg,image/png,image/webp"
+  hidden
+>
+
+<button
+  id="profileAvatarButton"
+  type="button"
+  class="secondary-btn"
+  onclick="document.getElementById('profileAvatarInput').click()"
+>
+  📷 Nahrať profilovú fotku
+</button>
+
+<div
+  id="profileAvatarMessage"
+  class="small"
+  style="text-align:center;margin-top:10px;"
+></div>
 <label id="accountUsernameLabel"></label>
 <input id="accountUsernameInput">
 <button class="submit-btn" id="saveUsernameBtn" onclick="saveUsername()"></button>
