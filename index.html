@@ -3263,8 +3263,9 @@ await updateUserButton();
     await supabaseClient.storage
       .from('profile-avatars')
       .remove([
-        `${currentUser.id}/avatar.jpg`
-      ]);
+  `${currentUser.id}/avatar.jpg`,
+  `${currentUser.id}/avatar.webp`
+]);
 
   if (storageError) {
     console.error(
