@@ -3683,14 +3683,18 @@ await updateUserButton();
   );
 
 
-  document.addEventListener(
-  'click',
-  () =>
-    setTimeout(
-      recordPage,
-      120
-    ),
-  true
+  const navigationObserver =
+  new MutationObserver(() => {
+    recordPage();
+  });
+
+navigationObserver.observe(
+  document.body,
+  {
+    attributes: true,
+    attributeFilter: ['style'],
+    subtree: true
+  }
 );
 
 
