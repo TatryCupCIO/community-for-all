@@ -94,7 +94,32 @@ textarea{min-height:130px}
 
 <body>
 <div class="container">
+<!-- GLOBAL NOTIFICATIONS -->
+<div id="globalNotifications">
+  <button
+    id="notificationBellBtn"
+    type="button"
+    aria-label="Notifications"
+    onclick="toggleNotificationPanel()"
+  >
+    🔔
+    <span
+      id="notificationBadge"
+      style="display:none;"
+    >0</span>
+  </button>
 
+  <div
+    id="notificationPanel"
+    style="display:none;"
+  >
+    <div id="notificationPanelTitle">
+      Upozornenia
+    </div>
+
+    <div id="notificationList"></div>
+  </div>
+</div>
 <div class="topbar">
 <div class="top-left">
 <button class="donate-top-btn" id="donateTopBtn" onclick="showDonate()">❤️ Podporte nás</button>
