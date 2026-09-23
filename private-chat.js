@@ -3340,54 +3340,15 @@ function scrollPrivateChatToBottom() {
 // CONNECT EXISTING USERS DIRECTORY
 // ============================================================
 
-function connectPrivateUsersDirectory() {
-  const list =
-    document.getElementById(
-      'privateUsersList'
-    );
+row.onclick = async function () {
+  window.selectedPrivateUser = user;
 
-  if (!list) {
-    return;
+  if (
+    typeof window.openPrivateChatWithUser === 'function'
+  ) {
+    await window.openPrivateChatWithUser(user);
   }
-
-  const users =
-    typeof privateUsers !==
-      'undefined' &&
-    Array.isArray(
-      privateUsers
-    )
-      ? privateUsers
-      : [];
-
-  const rows =
-    list.querySelectorAll(
-      'button'
-    );
-
-  rows.forEach(
-    (
-      row,
-      index
-    ) => {
-      const user =
-        users[index];
-
-      if (!user) {
-        return;
-      }
-
-      row.onclick =
-        () => {
-          window.selectedPrivateUser =
-            user;
-
-          openPrivateChatWithUser(
-            user
-          );
-        };
-    }
-  );
-}
+};
 
 
 // ============================================================
