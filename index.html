@@ -3208,79 +3208,82 @@ await updateUserButton();
 
   async function deleteProfileAvatar() {
 
-    if (!currentUser) return;
+  if (!currentUser) return;
 
-    const confirmed =
-      confirm(
-        A(
-          'Naozaj chcete odstrániť profilovú fotografiu?',
-          'Do you really want to remove your profile photo?'
-        )
+  const confirmed = confirm(
+    A(
+      'Naozaj chcete odstrániť profilovú fotografiu?',
+      'Do you really want to remove your profile photo?'
+    )
+  );
+
+  if (!confirmed) return;
+
+  const message =
+    document.getElementById(
+      'profileAvatarMessage'
+    );
+
+  if (message) {
+    message.textContent =
+      A(
+        'Odstraňujem...',
+        'Removing...'
       );
+  }
 
-    if (!confirmed) return;
-
-
-    const message =
-      document.getElementById(
-        'profileAvatarMessage'
-      );
-
-    if (message) {
-      message.textContent =
-        A(
-          'Odstraňujem...',
-          'Removing...'
-        );
-    }
-
-
+  const { error: storageError } =
     await supabaseClient.storage
       .from('profile-avatars')
       .remove([
         `${currentUser.id}/avatar.jpg`
       ]);
 
+  if (storageError) {
+    console.error(
+      'Avatar storage delete:',
+      storageError
+    );
+  }
 
-    const { error } =
-      await supabaseClient
-        .from('user_profiles')
-        .update({
-          avatar_url: null,
-          updated_at:
-            new Date().toISOString()
-        })
-        .eq(
-          'user_id',
-          currentUser.id
-        );
+  const { error: profileError } =
+    await supabaseClient
+      .from('user_profiles')
+      .update({
+        avatar_url: null,
+        updated_at:
+          new Date().toISOString()
+      })
+      .eq(
+        'user_id',
+        currentUser.id
+      );
 
+  if (profileError) {
 
-    if (error) {
-
-      if (message) {
-        message.textContent =
-          A(
-            'Fotografiu sa nepodarilo odstrániť.',
-            'The photo could not be removed.'
-          );
-      }
-
-      return;
-    }
-
-
-    await refreshAvatarControls();
-await updateUserButton();
-await loadPrivateUsers();
     if (message) {
       message.textContent =
         A(
-          'Profilová fotografia bola odstránená.',
-          'Profile photo removed.'
+          'Fotografiu sa nepodarilo odstrániť.',
+          'The photo could not be removed.'
         );
     }
+
+    return;
   }
+
+  await refreshAvatarControls();
+  await updateUserButton();
+  await loadPrivateUsers();
+
+  if (message) {
+    message.textContent =
+      A(
+        'Profilová fotografia bola odstránená.',
+        'Profile photo removed.'
+      );
+  }
+}
 
 
   async function refreshAvatarControls() {
