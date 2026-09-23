@@ -3674,13 +3674,20 @@ await updateUserButton();
 
 
   history.replaceState(
-    {
-      cfaPage:
-        visiblePage()
-    },
-    '',
-    location.href
-  );
+  {
+    cfaPage: 'HOME_GUARD'
+  },
+  '',
+  location.href
+);
+
+history.pushState(
+  {
+    cfaPage: visiblePage()
+  },
+  '',
+  location.href
+);
 
 
   const navigationObserver =
