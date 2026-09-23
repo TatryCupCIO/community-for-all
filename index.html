@@ -2205,7 +2205,34 @@ function addPasswordEye(inputId) {
     renderPrivateUsers();
   }
   
+let privateUsersPresenceChannel = null;
 
+function startPrivateUsersPresenceRealtime() {
+
+  if (privateUsersPresenceChannel) {
+    supabaseClient.removeChannel(
+      privateUsersPresenceChannel
+    );
+  }
+
+  privateUsersPresenceChannel =
+    supabaseClient
+      .channel('private-users-presence')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'user_profiles'
+        },
+        async () => {
+          await loadPrivateUsers();
+        }
+      )
+      .subscribe();
+}
+
+startPrivateUsersPresenceRealtime();
 
   /* ---------- RENDER USERS ---------- */
 
