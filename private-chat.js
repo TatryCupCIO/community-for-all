@@ -3580,7 +3580,7 @@ function initialisePrivateChat() {
   createPrivateRemoveMembersPanel();
 
   startPrivateDirectoryObserver();
-
+startPrivateInboxRealtime();
   setPrivateChatLanguage();
 }
 
