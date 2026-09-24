@@ -1513,26 +1513,37 @@ async function markPrivateChatRead() {
     return;
   }
 
-  await supabaseClient
-    .from(
-      'private_messages'
-    )
-    .update({
-      read_at:
-        new Date().toISOString()
-    })
-    .eq(
-      'conversation_id',
-      privateChatConversationId
-    )
-    .neq(
-      'sender_id',
-      currentUser.id
-    )
-    .is(
-      'read_at',
-      null
-    );
+  const { data: messages, error } =
+    await supabaseClient
+      .from('private_messages')
+      .select('id')
+      .eq(
+        'conversation_id',
+        privateChatConversationId
+      )
+      .neq(
+        'sender_id',
+        currentUser.id
+      );
+
+  if (error || !messages) {
+    return;
+  }
+
+  for (const message of messages) {
+    await supabaseClient
+      .from('private_message_reads')
+      .upsert(
+        {
+          message_id: message.id,
+          user_id: currentUser.id,
+          read_at: new Date().toISOString()
+        },
+        {
+          onConflict: 'message_id,user_id'
+        }
+      );
+  }
 }
 
 
