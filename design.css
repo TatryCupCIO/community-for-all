@@ -745,12 +745,9 @@ body {
    COMMUNITY CHAT HOME BUTTON
    ========================================================= */
 
-top: 121px !important;
-right: 72px !important;
-  position: absolute !important;
-
-top: 70px !important;
-  right: 22px !important;
+position: absolute !important;
+top: 115px !important;
+right: 78px !important;
 
   z-index: 50 !important;
 
