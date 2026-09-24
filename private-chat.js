@@ -3566,16 +3566,252 @@ function connectPrivateUsersDirectory() {
     );
   });
 }
-function startPrivateInboxRealtime() {
+async function refreshPrivateMessageNotifications() {
+  if (!currentUser) return;
 
-  if (!currentUser || privateInboxChannel) {
+  const badge =
+    document.getElementById(
+      'notificationBadge'
+    );
+
+  const list =
+    document.getElementById(
+      'notificationList'
+    );
+
+  if (!badge || !list) return;
+
+  const { data: memberships, error: membershipError } =
+    await supabaseClient
+      .from('private_conversation_memberships')
+      .select('conversation_id')
+      .eq('user_id', currentUser.id)
+      .is('left_at', null);
+
+  if (membershipError || !memberships) {
+    console.error(
+      'Private notification memberships:',
+      membershipError
+    );
     return;
   }
+
+  const conversationIds =
+    memberships.map(
+      item => item.conversation_id
+    );
+
+  if (conversationIds.length === 0) {
+    badge.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  const { data: messages, error: messageError } =
+    await supabaseClient
+      .from('private_messages')
+      .select(
+        'id,conversation_id,sender_id,message_text,created_at'
+      )
+      .in(
+        'conversation_id',
+        conversationIds
+      )
+      .neq(
+        'sender_id',
+        currentUser.id
+      )
+      .order(
+        'created_at',
+        { ascending: false }
+      );
+
+  if (messageError || !messages) {
+    console.error(
+      'Private notifications:',
+      messageError
+    );
+    return;
+  }
+
+  const messageIds =
+    messages.map(
+      message => message.id
+    );
+
+  let readIds = new Set();
+
+  if (messageIds.length > 0) {
+    const { data: reads, error: readsError } =
+      await supabaseClient
+        .from('private_message_reads')
+        .select('message_id')
+        .eq(
+          'user_id',
+          currentUser.id
+        )
+        .in(
+          'message_id',
+          messageIds
+        );
+
+    if (!readsError && reads) {
+      readIds = new Set(
+        reads.map(
+          item => item.message_id
+        )
+      );
+    }
+  }
+
+  const unread =
+    messages.filter(
+      message =>
+        !readIds.has(message.id)
+    );
+
+  const grouped = new Map();
+
+  for (const message of unread) {
+    if (!grouped.has(message.conversation_id)) {
+      grouped.set(
+        message.conversation_id,
+        {
+          conversationId:
+            message.conversation_id,
+          senderId:
+            message.sender_id,
+          count: 0,
+          latest:
+            message.created_at
+        }
+      );
+    }
+
+    grouped.get(
+      message.conversation_id
+    ).count++;
+  }
+
+  list.innerHTML = '';
+
+  for (const item of grouped.values()) {
+    const { data: sender } =
+      await supabaseClient
+        .from('user_profiles')
+        .select(
+          'user_id,display_name,avatar_url,presence_status,last_active_at'
+        )
+        .eq(
+          'user_id',
+          item.senderId
+        )
+        .maybeSingle();
+
+    const row =
+      document.createElement(
+        'button'
+      );
+
+    row.type = 'button';
+
+    row.style.cssText = `
+      display:block;
+      width:100%;
+      padding:10px;
+      margin:0 0 6px 0;
+      text-align:left;
+      border:0;
+      border-radius:8px;
+      cursor:pointer;
+    `;
+
+    const name =
+      sender?.display_name ||
+      T(
+        'Používateľ',
+        'User'
+      );
+
+    row.textContent =
+      '💬 ' +
+      name +
+      ' (' +
+      item.count +
+      ')';
+
+    row.onclick =
+      async () => {
+        if (
+          sender &&
+          typeof window.openPrivateChatWithUser ===
+            'function'
+        ) {
+          const panel =
+            document.getElementById(
+              'notificationPanel'
+            );
+
+          if (panel) {
+            panel.style.display =
+              'none';
+          }
+
+          await window.openPrivateChatWithUser(
+            sender
+          );
+
+          await refreshPrivateMessageNotifications();
+        }
+      };
+
+    list.appendChild(row);
+  }
+
+  badge.textContent =
+    String(unread.length);
+
+  badge.style.display =
+    unread.length > 0
+      ? 'inline-block'
+      : 'none';
+}
+
+
+window.toggleNotificationsPanel =
+  async function () {
+    const panel =
+      document.getElementById(
+        'notificationPanel'
+      );
+
+    if (!panel) return;
+
+    await refreshPrivateMessageNotifications();
+
+    panel.style.display =
+      panel.style.display === 'none' ||
+      !panel.style.display
+        ? 'block'
+        : 'none';
+  };
+
+
+function startPrivateInboxRealtime() {
+  if (
+    !currentUser ||
+    privateInboxChannel
+  ) {
+    return;
+  }
+
+  refreshPrivateMessageNotifications();
 
   privateInboxChannel =
     supabaseClient
       .channel(
-        'private-inbox-' + currentUser.id
+        'private-inbox-' +
+          currentUser.id
       )
       .on(
         'postgres_changes',
@@ -3585,20 +3821,25 @@ function startPrivateInboxRealtime() {
           table: 'private_messages'
         },
         async payload => {
-
-          const message = payload.new;
+          const message =
+            payload.new;
 
           if (
             !message ||
-            message.sender_id === currentUser.id
+            message.sender_id ===
+              currentUser.id
           ) {
             return;
           }
 
           const { data: membership } =
             await supabaseClient
-              .from('private_conversation_memberships')
-              .select('conversation_id')
+              .from(
+                'private_conversation_memberships'
+              )
+              .select(
+                'conversation_id'
+              )
               .eq(
                 'conversation_id',
                 message.conversation_id
@@ -3607,27 +3848,25 @@ function startPrivateInboxRealtime() {
                 'user_id',
                 currentUser.id
               )
-              .is('left_at', null)
+              .is(
+                'left_at',
+                null
+              )
               .maybeSingle();
 
           if (!membership) {
             return;
           }
 
-          if (
-            privateChatOpen &&
-            Number(privateChatConversationId) ===
-              Number(message.conversation_id)
-          ) {
-            return;
-          }
+          await refreshPrivateMessageNotifications();
 
-          alert(
-            A(
-              '💬 Máte novú súkromnú správu.',
-              '💬 You have a new private message.'
-            )
-          );
+          if (
+            chatNotificationsEnabled &&
+            typeof playCommunityChatSound ===
+              'function'
+          ) {
+            playCommunityChatSound();
+          }
         }
       )
       .subscribe();
