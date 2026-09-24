@@ -1644,33 +1644,47 @@ async function deleteOwnPrivateChatMessage(
 // UPDATE READ RECEIPT
 // ============================================================
 
-function updatePrivateChatReadReceipt(
-  message
-) {
+async function updatePrivateChatReadReceipt(message) {
   if (
-    message?.sender_id !==
-      currentUser?.id
+    !message ||
+    !currentUser ||
+    message.sender_id !== currentUser.id
   ) {
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from('private_message_reads')
+      .select('user_id,read_at')
+      .eq('message_id', message.id)
+      .neq('user_id', currentUser.id)
+      .limit(1);
+
+  if (error) {
+    console.error(
+      'Private message read receipt:',
+      error
+    );
     return;
   }
 
   const item =
     document.getElementById(
-      'private-message-' +
-      message.id
+      'private-message-' + message.id
     );
 
+  if (!item) return;
+
   const receipt =
-    item?.querySelector(
+    item.querySelector(
       '.private-read-receipt'
     );
 
-  if (!receipt) {
-    return;
-  }
+  if (!receipt) return;
 
   receipt.textContent =
-    message.read_at
+    data && data.length > 0
       ? T(
           'Prečítané',
           'Read'
@@ -1680,7 +1694,6 @@ function updatePrivateChatReadReceipt(
           'Sent'
         );
 }
-
 
 // ============================================================
 // REALTIME PRIVATE MESSAGES
