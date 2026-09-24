@@ -14,6 +14,7 @@ let privateChatConversationId = null;
 let privateChatSelectedUser = null;
 
 let privateChatMessagesChannel = null;
+let privateChatReadsChannel = null;
 let privateChatEventsChannel = null;
 let privateInboxChannel = null;
 let pendingPrivateChatPhoto = null;
