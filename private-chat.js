@@ -1813,7 +1813,91 @@ function subscribePrivateChat() {
       .subscribe();
 }
 
+// ============================================================
+// REALTIME PRIVATE MESSAGE READS
+// ============================================================
 
+function subscribePrivateChatReads() {
+  if (
+    !currentUser ||
+    !privateChatConversationId
+  ) {
+    return;
+  }
+
+  if (privateChatReadsChannel) {
+    supabaseClient.removeChannel(
+      privateChatReadsChannel
+    );
+
+    privateChatReadsChannel =
+      null;
+  }
+
+  const conversationId =
+    privateChatConversationId;
+
+  privateChatReadsChannel =
+    supabaseClient
+      .channel(
+        'private-reads-' +
+        conversationId +
+        '-' +
+        currentUser.id
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'private_message_reads'
+        },
+        async payload => {
+          if (
+            conversationId !==
+              privateChatConversationId ||
+            !payload.new?.message_id ||
+            payload.new.user_id ===
+              currentUser.id
+          ) {
+            return;
+          }
+
+          const {
+            data: message,
+            error
+          } =
+            await supabaseClient
+              .from('private_messages')
+              .select(
+                'id,sender_id,conversation_id'
+              )
+              .eq(
+                'id',
+                payload.new.message_id
+              )
+              .eq(
+                'conversation_id',
+                conversationId
+              )
+              .maybeSingle();
+
+          if (
+            error ||
+            !message ||
+            message.sender_id !==
+              currentUser.id
+          ) {
+            return;
+          }
+
+          await updatePrivateChatReadReceipt(
+            message
+          );
+        }
+      )
+      .subscribe();
+}
 // ============================================================
 // SYSTEM EVENTS
 // ============================================================
