@@ -899,6 +899,11 @@ async function renderPrivateChatMessage(
   box.appendChild(
     item
   );
+    if (mine) {
+    await updatePrivateChatReadReceipt(
+      message
+    );
+    }
 }
 
 
