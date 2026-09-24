@@ -748,7 +748,7 @@ body {
 #homePage #communityChatBtn.community-chat-btn {
   position: absolute !important;
 
-  top: 57px !important;
+top: 115px !important;
   right: 22px !important;
 
   z-index: 50 !important;
