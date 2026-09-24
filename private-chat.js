@@ -455,6 +455,7 @@ await supabaseClient
   await markPrivateChatRead();
 
   subscribePrivateChat();
+  subscribePrivateChatReads();
   subscribePrivateConversationEvents();
 
   window.scrollTo(
