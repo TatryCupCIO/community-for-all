@@ -744,38 +744,38 @@ body {
 /* =========================================================
    COMMUNITY CHAT HOME BUTTON
    ========================================================= */
+#homePage #communityChatBtn.community-chat-btn {
+    position: absolute !important;
+    top: 115px !important;
+    right: 78px !important;
 
-position: absolute !important;
-top: 115px !important;
-right: 78px !important;
+    z-index: 50 !important;
 
-  z-index: 50 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+    width: 56px !important;
+    height: 56px !important;
+    min-width: 56px !important;
+    min-height: 56px !important;
+    max-width: 56px !important;
+    max-height: 56px !important;
 
-  width: 56px !important;
-  height: 56px !important;
+    margin: 0 !important;
+    padding: 0 !important;
 
-  min-width: 56px !important;
-  min-height: 56px !important;
-  max-width: 56px !important;
+    border: 2px solid #fff !important;
+    border-radius: 50% !important;
 
-  margin: 0 !important;
-  padding: 0 !important;
+    background: #63dcc6 !important;
+    background-image: none !important;
 
-  border: 2px solid #fff !important;
-  border-radius: 50% !important;
+    color: #fff !important;
 
-  background: #63dcc6 !important;
-  background-image: none !important;
-
-  color: #fff !important;
-
-  box-shadow:
-    0 4px 14px rgba(0, 0, 0, .38),
-    0 0 12px rgba(99, 220, 198, .35) !important;
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, .38),
+        0 0 12px rgba(99, 220, 198, .35) !important;
 }
 
 #homePage #communityChatBtn:active {
