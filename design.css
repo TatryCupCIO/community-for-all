@@ -746,8 +746,8 @@ body {
    ========================================================= */
 #homePage #communityChatBtn.community-chat-btn {
     position: absolute !important;
-    top: 62px !important;
-right: 82px !important;
+    top: 70px !important;
+right: 72px !important;
 
     z-index: 50 !important;
 
