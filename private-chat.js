@@ -3347,7 +3347,16 @@ async function closePrivateChat() {
     privateChatMessagesChannel =
       null;
   }
+  if (
+    privateChatReadsChannel
+  ) {
+    supabaseClient.removeChannel(
+      privateChatReadsChannel
+    );
 
+    privateChatReadsChannel =
+      null;
+  }
 
   if (
     privateChatEventsChannel
