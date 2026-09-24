@@ -452,11 +452,13 @@ await supabaseClient
 
   await loadPrivateChatMessages();
 
-  await markPrivateChatRead();
+await markPrivateChatRead();
 
-  subscribePrivateChat();
-  subscribePrivateChatReads();
-  subscribePrivateConversationEvents();
+await refreshPrivateMessageNotifications();
+
+subscribePrivateChat();
+subscribePrivateChatReads();
+subscribePrivateConversationEvents();
 
   window.scrollTo(
     0,
