@@ -3568,6 +3568,221 @@ function connectPrivateUsersDirectory() {
     );
   });
 }
+window.openPrivateUsers = async function () {
+  if (!currentUser) return;
+
+  let page =
+    document.getElementById('privateUsersPage');
+
+  if (!page) {
+    page = document.createElement('div');
+    page.id = 'privateUsersPage';
+
+    page.innerHTML = `
+      <div style="
+        padding:16px;
+        min-height:100vh;
+        background:#071b2b;
+        color:white;
+      ">
+        <div style="
+          display:flex;
+          align-items:center;
+          gap:12px;
+          margin-bottom:16px;
+        ">
+          <button
+            id="privateUsersBackBtn"
+            type="button"
+            style="
+              border:0;
+              background:transparent;
+              color:#ff7a00;
+              font-size:30px;
+              cursor:pointer;
+            "
+          >‹</button>
+
+          <strong style="font-size:22px;">
+            👥 <span id="privateUsersTitle">Používatelia</span>
+          </strong>
+        </div>
+
+        <input
+          id="privateUserSearch"
+          type="search"
+          placeholder="Vyhľadať používateľa..."
+          style="
+            width:100%;
+            box-sizing:border-box;
+            padding:12px 14px;
+            margin-bottom:14px;
+            border-radius:10px;
+            border:1px solid #35536b;
+            background:#102c40;
+            color:white;
+            font-size:16px;
+          "
+        >
+
+        <div id="privateUsersList"></div>
+      </div>
+    `;
+
+    document.body.appendChild(page);
+
+    document
+      .getElementById('privateUsersBackBtn')
+      ?.addEventListener(
+        'click',
+        () => {
+          page.style.display = 'none';
+
+          if (
+            typeof showChatPage ===
+            'function'
+          ) {
+            showChatPage();
+          }
+        }
+      );
+  }
+
+  if (
+    typeof hidePages ===
+    'function'
+  ) {
+    hidePages();
+  }
+
+  page.style.display = 'block';
+
+  const title =
+    document.getElementById(
+      'privateUsersTitle'
+    );
+
+  const search =
+    document.getElementById(
+      'privateUserSearch'
+    );
+
+  if (title) {
+    title.textContent =
+      T(
+        'Používatelia',
+        'Users'
+      );
+  }
+
+  if (search) {
+    search.placeholder =
+      T(
+        'Vyhľadať používateľa...',
+        'Search users...'
+      );
+
+    search.value = '';
+  }
+
+  const { data: users, error } =
+    await supabaseClient
+      .from('user_profiles')
+      .select(
+        'user_id,display_name,avatar_url,presence_status,last_active_at'
+      )
+      .neq(
+        'user_id',
+        currentUser.id
+      )
+      .order(
+        'display_name',
+        { ascending: true }
+      );
+
+  if (error) {
+    console.error(
+      'Private users:',
+      error
+    );
+    return;
+  }
+
+  const renderUsers = query => {
+    const list =
+      document.getElementById(
+        'privateUsersList'
+      );
+
+    if (!list) return;
+
+    list.innerHTML = '';
+
+    const text =
+      (query || '')
+        .trim()
+        .toLowerCase();
+
+    const filtered =
+      (users || []).filter(
+        user =>
+          (user.display_name || '')
+            .toLowerCase()
+            .includes(text)
+      );
+
+    for (const user of filtered) {
+      const row =
+        document.createElement('button');
+
+      row.type = 'button';
+      row.dataset.userId =
+        user.user_id;
+
+      row.style.cssText = `
+        display:flex;
+        align-items:center;
+        width:100%;
+        padding:12px;
+        margin-bottom:8px;
+        border:0;
+        border-radius:10px;
+        background:#12344b;
+        color:white;
+        text-align:left;
+        cursor:pointer;
+        font-size:16px;
+      `;
+
+      row.textContent =
+        '👤 ' +
+        (
+          user.display_name ||
+          T(
+            'Používateľ',
+            'User'
+          )
+        );
+
+      list.appendChild(row);
+    }
+
+    connectPrivateUsersDirectory();
+  };
+
+  renderUsers('');
+
+  if (search) {
+    search.oninput =
+      () => {
+        renderUsers(
+          search.value
+        );
+      };
+  }
+
+  window.scrollTo(0, 0);
+};
 async function refreshPrivateMessageNotifications() {
   if (!currentUser) return;
 
