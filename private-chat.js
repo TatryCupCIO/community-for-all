@@ -4290,66 +4290,6 @@ function startPrivateInboxRealtime() {
       )
       .subscribe();
 }
-// ============================================================
-// WATCH USERS DIRECTORY
-// ============================================================
-
-let privateDirectoryObserver =
-  null;
-
-let privateDirectoryStartTimer =
-  null;
-
-
-function startPrivateDirectoryObserver() {
-  const connect = () => {
-    const list =
-      document.getElementById(
-        'privateUsersList'
-      );
-
-    if (!list) {
-      return false;
-    }
-
-    connectPrivateUsersDirectory();
-
-    if (privateDirectoryObserver) {
-      privateDirectoryObserver.disconnect();
-    }
-
-    privateDirectoryObserver =
-      new MutationObserver(
-        () => {
-          connectPrivateUsersDirectory();
-        }
-      );
-
-    privateDirectoryObserver.observe(
-      list,
-      {
-        childList: true,
-        subtree: true
-      }
-    );
-
-    return true;
-  };
-
-  clearTimeout(
-    privateDirectoryStartTimer
-  );
-
-  if (connect()) {
-    return;
-  }
-
-  privateDirectoryStartTimer =
-    setTimeout(
-      startPrivateDirectoryObserver,
-      500
-    );
-}
 
 
 // ============================================================
@@ -4363,7 +4303,6 @@ function initialisePrivateChat() {
 
   createPrivateRemoveMembersPanel();
 
-  startPrivateDirectoryObserver();
 
   if (currentUser) {
     startPrivateInboxRealtime();
