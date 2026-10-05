@@ -4168,9 +4168,7 @@ function startPrivateInboxRealtime() {
               .from(
                 'private_conversation_memberships'
               )
-              .select(
-                'conversation_id'
-              )
+              .select('conversation_id')
               .eq(
                 'conversation_id',
                 message.conversation_id
