@@ -1771,20 +1771,21 @@ function subscribePrivateChat() {
             scrollPrivateChatToBottom();
 
             if (
-              payload.new.sender_id !==
-              currentUser?.id
-            ) {
-              await markPrivateChatRead();
+  payload.new.sender_id !==
+  currentUser?.id
+) {
+  await markPrivateChatRead();
 
-              if (
-                chatNotificationsEnabled &&
-                typeof playCommunityChatSound ===
-                  'function'
-              ) {
-                playCommunityChatSound();
-              }
-            }
-          }
+  await refreshPrivateMessageNotifications();
+
+  if (
+    chatNotificationsEnabled &&
+    typeof playCommunityChatSound ===
+      'function'
+  ) {
+    playCommunityChatSound();
+  }
+}
 
           if (
             payload.eventType ===
