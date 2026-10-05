@@ -3599,7 +3599,6 @@ function scrollPrivateChatToBottom() {
 // ============================================================
 
 function connectPrivateUsersDirectory() {
-
   const list =
     document.getElementById(
       'privateUsersList'
@@ -3613,23 +3612,33 @@ function connectPrivateUsersDirectory() {
     );
 
   rows.forEach(row => {
-
-    if (row.dataset.privateChatConnected === '1') {
+    if (
+      row.dataset.privateChatConnected ===
+      '1'
+    ) {
       return;
     }
 
-    row.dataset.privateChatConnected = '1';
+    row.dataset.privateChatConnected =
+      '1';
 
     row.addEventListener(
       'click',
-      async function () {
-
+      async () => {
         const userId =
           row.dataset.userId;
 
-        if (!userId) return;
+        if (
+          !userId ||
+          !currentUser
+        ) {
+          return;
+        }
 
-        const { data: user, error } =
+        const {
+          data: user,
+          error
+        } =
           await supabaseClient
             .from('user_profiles')
             .select(
@@ -3639,9 +3648,12 @@ function connectPrivateUsersDirectory() {
               'user_id',
               userId
             )
-            .single();
+            .maybeSingle();
 
-        if (error || !user) {
+        if (
+          error ||
+          !user
+        ) {
           console.error(
             'Private user load:',
             error
@@ -3649,9 +3661,7 @@ function connectPrivateUsersDirectory() {
           return;
         }
 
-        window.selectedPrivateUser = user;
-
-        await window.openPrivateChatWithUser(
+        await openPrivateChatWithUser(
           user
         );
       }
