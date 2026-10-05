@@ -4078,9 +4078,10 @@ for (const item of grouped.values()) {
           'none';
       }
 
-      await window.openPrivateChatWithUser(
-        sender
-      );
+      await window.openPrivateChatConversation(
+  item.conversationId,
+  sender
+);
 
       await refreshPrivateMessageNotifications();
     };
