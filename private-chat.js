@@ -472,9 +472,98 @@ window.openPrivateChatWithUser =
 
 
 // ============================================================
-// HEADER
+// OPEN EXISTING PRIVATE CONVERSATION
 // ============================================================
 
+async function openPrivateChatConversation(
+  conversationId,
+  user
+) {
+  if (
+    !currentUser ||
+    !conversationId ||
+    !user?.user_id
+  ) {
+    return;
+  }
+
+  createPrivateChatPage();
+
+  privateChatConversationId =
+    Number(conversationId);
+
+  privateChatSelectedUser =
+    user;
+
+  privateChatOpen =
+    true;
+
+  await supabaseClient
+    .from('user_profiles')
+    .update({
+      presence_status: 'online',
+      last_active_at:
+        new Date().toISOString()
+    })
+    .eq(
+      'user_id',
+      currentUser.id
+    );
+
+  if (
+    typeof hidePages ===
+    'function'
+  ) {
+    hidePages();
+  }
+
+  const usersPage =
+    document.getElementById(
+      'privateUsersPage'
+    );
+
+  if (usersPage) {
+    usersPage.style.display =
+      'none';
+  }
+
+  const page =
+    document.getElementById(
+      'privateChatPage'
+    );
+
+  if (page) {
+    page.style.display =
+      'block';
+  }
+
+  setPrivateChatHeader(
+    user
+  );
+
+  setPrivateChatLanguage();
+
+  await loadPrivateChatMessages();
+  await markPrivateChatRead();
+  await refreshPrivateMessageNotifications();
+
+  subscribePrivateChat();
+  subscribePrivateChatReads();
+  subscribePrivateConversationEvents();
+
+  window.scrollTo(
+    0,
+    0
+  );
+}
+
+window.openPrivateChatConversation =
+  openPrivateChatConversation;
+
+
+// ============================================================
+// HEADER
+// ============================================================
 function setPrivateChatHeader(
   user
 ) {
