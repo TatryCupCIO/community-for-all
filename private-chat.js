@@ -4214,51 +4214,53 @@ let privateDirectoryStartTimer =
 
 
 function startPrivateDirectoryObserver() {
-  const list =
-    document.getElementById(
-      'privateUsersList'
-    );
-
-  if (!list) {
-    clearTimeout(
-      privateDirectoryStartTimer
-    );
-
-    privateDirectoryStartTimer =
-      setTimeout(
-        startPrivateDirectoryObserver,
-        500
+  const connect = () => {
+    const list =
+      document.getElementById(
+        'privateUsersList'
       );
 
-    return;
-  }
+    if (!list) {
+      return false;
+    }
+
+    connectPrivateUsersDirectory();
+
+    if (privateDirectoryObserver) {
+      privateDirectoryObserver.disconnect();
+    }
+
+    privateDirectoryObserver =
+      new MutationObserver(
+        () => {
+          connectPrivateUsersDirectory();
+        }
+      );
+
+    privateDirectoryObserver.observe(
+      list,
+      {
+        childList: true,
+        subtree: true
+      }
+    );
+
+    return true;
+  };
 
   clearTimeout(
     privateDirectoryStartTimer
   );
 
-  connectPrivateUsersDirectory();
-
-  if (
-    privateDirectoryObserver
-  ) {
-    privateDirectoryObserver.disconnect();
+  if (connect()) {
+    return;
   }
 
-  privateDirectoryObserver =
-    new MutationObserver(
-      () => {
-        connectPrivateUsersDirectory();
-      }
+  privateDirectoryStartTimer =
+    setTimeout(
+      startPrivateDirectoryObserver,
+      500
     );
-
-  privateDirectoryObserver.observe(
-    list,
-    {
-      childList: true,
-      subtree: true
-    }
-  );
 }
 
 
@@ -4274,7 +4276,11 @@ function initialisePrivateChat() {
   createPrivateRemoveMembersPanel();
 
   startPrivateDirectoryObserver();
-startPrivateInboxRealtime();
+
+  if (currentUser) {
+    startPrivateInboxRealtime();
+  }
+
   setPrivateChatLanguage();
 }
 
