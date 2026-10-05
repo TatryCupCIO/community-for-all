@@ -3898,14 +3898,28 @@ async function refreshPrivateMessageNotifications() {
 
   if (!badge || !list) return;
 
-  const { data: memberships, error: membershipError } =
+  const {
+    data: memberships,
+    error: membershipError
+  } =
     await supabaseClient
-      .from('private_conversation_memberships')
+      .from(
+        'private_conversation_memberships'
+      )
       .select('conversation_id')
-      .eq('user_id', currentUser.id)
-      .is('left_at', null);
+      .eq(
+        'user_id',
+        currentUser.id
+      )
+      .is(
+        'left_at',
+        null
+      );
 
-  if (membershipError || !memberships) {
+  if (
+    membershipError ||
+    !memberships
+  ) {
     console.error(
       'Private notification memberships:',
       membershipError
@@ -3919,12 +3933,16 @@ async function refreshPrivateMessageNotifications() {
     );
 
   if (conversationIds.length === 0) {
+    badge.textContent = '0';
     badge.style.display = 'none';
     list.innerHTML = '';
     return;
   }
 
-  const { data: messages, error: messageError } =
+  const {
+    data: messages,
+    error: messageError
+  } =
     await supabaseClient
       .from('private_messages')
       .select(
@@ -3943,7 +3961,10 @@ async function refreshPrivateMessageNotifications() {
         { ascending: false }
       );
 
-  if (messageError || !messages) {
+  if (
+    messageError ||
+    !messages
+  ) {
     console.error(
       'Private notifications:',
       messageError
@@ -3959,7 +3980,10 @@ async function refreshPrivateMessageNotifications() {
   let readIds = new Set();
 
   if (messageIds.length > 0) {
-    const { data: reads, error: readsError } =
+    const {
+      data: reads,
+      error: readsError
+    } =
       await supabaseClient
         .from('private_message_reads')
         .select('message_id')
@@ -3988,22 +4012,17 @@ async function refreshPrivateMessageNotifications() {
     );
 
   const grouped = new Map();
-
-for (const message of unread) {
-  const key =
-    message.sender_id;
+  for (const message of unread) {
+  const key = message.sender_id;
 
   if (!grouped.has(key)) {
     grouped.set(
       key,
       {
-        senderId:
-          message.sender_id,
+        senderId: message.sender_id,
         count: 0,
-        latest:
-          message.created_at,
-        conversationId:
-          message.conversation_id
+        latest: message.created_at,
+        conversationId: message.conversation_id
       }
     );
   }
@@ -4089,9 +4108,9 @@ for (const item of grouped.values()) {
       }
 
       await window.openPrivateChatConversation(
-  item.conversationId,
-  sender
-);
+        item.conversationId,
+        sender
+      );
 
       await refreshPrivateMessageNotifications();
     };
@@ -4099,15 +4118,14 @@ for (const item of grouped.values()) {
   list.appendChild(row);
 }
 
-  badge.textContent =
-    String(unread.length);
+badge.textContent =
+  String(unread.length);
 
-  badge.style.display =
-    unread.length > 0
-      ? 'inline-block'
-      : 'none';
+badge.style.display =
+  unread.length > 0
+    ? 'inline-block'
+    : 'none';
 }
-
 
 window.toggleNotificationsPanel =
   async function () {
