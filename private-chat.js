@@ -3598,85 +3598,32 @@ function scrollPrivateChatToBottom() {
 // CONNECT EXISTING USERS DIRECTORY
 // ============================================================
 
-function connectPrivateUsersDirectory() {
-  const list =
-    document.getElementById(
-      'privateUsersList'
-    );
+// ============================================================
+// PRIVATE USERS DIRECTORY
+// ============================================================
 
-  if (!list) return;
-
-  const rows =
-    list.querySelectorAll(
-      '[data-user-id]'
-    );
-
-  rows.forEach(row => {
-    if (
-      row.dataset.privateChatConnected ===
-      '1'
-    ) {
-      return;
-    }
-
-    row.dataset.privateChatConnected =
-      '1';
-
-    row.addEventListener(
-      'click',
-      async () => {
-        const userId =
-          row.dataset.userId;
-
-        if (
-          !userId ||
-          !currentUser
-        ) {
-          return;
-        }
-
-        const {
-          data: user,
-          error
-        } =
-          await supabaseClient
-            .from('user_profiles')
-            .select(
-              'user_id,display_name,avatar_url,presence_status,last_active_at'
-            )
-            .eq(
-              'user_id',
-              userId
-            )
-            .maybeSingle();
-
-        if (
-          error ||
-          !user
-        ) {
-          console.error(
-            'Private user load:',
-            error
-          );
-          return;
-        }
-
-        await openPrivateChatWithUser(
-          user
-        );
-      }
-    );
-  });
-}
 window.openPrivateUsers = async function () {
   if (!currentUser) return;
 
   let page =
-    document.getElementById('privateUsersPage');
+    document.getElementById(
+      'privateUsersPage'
+    );
 
   if (!page) {
-    page = document.createElement('div');
-    page.id = 'privateUsersPage';
+    page =
+      document.createElement(
+        'div'
+      );
+
+    page.id =
+      'privateUsersPage';
+
+    page.className =
+      'page';
+
+    page.style.display =
+      'none';
 
     page.innerHTML = `
       <div style="
@@ -3684,7 +3631,9 @@ window.openPrivateUsers = async function () {
         min-height:100vh;
         background:#071b2b;
         color:white;
+        box-sizing:border-box;
       ">
+
         <div style="
           display:flex;
           align-items:center;
@@ -3704,14 +3653,17 @@ window.openPrivateUsers = async function () {
           >‹</button>
 
           <strong style="font-size:22px;">
-            👥 <span id="privateUsersTitle">Používatelia</span>
+            👥
+            <span id="privateUsersTitle">
+              Používatelia
+            </span>
           </strong>
         </div>
 
         <input
           id="privateUserSearch"
           type="search"
-          placeholder="Vyhľadať používateľa..."
+          autocomplete="off"
           style="
             width:100%;
             box-sizing:border-box;
@@ -3729,14 +3681,19 @@ window.openPrivateUsers = async function () {
       </div>
     `;
 
-    document.body.appendChild(page);
+    document.body.appendChild(
+      page
+    );
 
     document
-      .getElementById('privateUsersBackBtn')
+      .getElementById(
+        'privateUsersBackBtn'
+      )
       ?.addEventListener(
         'click',
         () => {
-          page.style.display = 'none';
+          page.style.display =
+            'none';
 
           if (
             typeof showChatPage ===
@@ -3755,7 +3712,8 @@ window.openPrivateUsers = async function () {
     hidePages();
   }
 
-  page.style.display = 'block';
+  page.style.display =
+    'block';
 
   const title =
     document.getElementById(
@@ -3765,6 +3723,11 @@ window.openPrivateUsers = async function () {
   const search =
     document.getElementById(
       'privateUserSearch'
+    );
+
+  const list =
+    document.getElementById(
+      'privateUsersList'
     );
 
   if (title) {
@@ -3782,10 +3745,24 @@ window.openPrivateUsers = async function () {
         'Search users...'
       );
 
-    search.value = '';
+    search.value =
+      '';
   }
 
-  const { data: users, error } =
+  if (!list) return;
+
+            list.innerHTML =
+    '<div class="loading">' +
+    T(
+      'Načítavam používateľov...',
+      'Loading users...'
+    ) +
+    '</div>';
+
+  const {
+    data: users,
+    error
+  } =
     await supabaseClient
       .from('user_profiles')
       .select(
@@ -3797,7 +3774,9 @@ window.openPrivateUsers = async function () {
       )
       .order(
         'display_name',
-        { ascending: true }
+        {
+          ascending:true
+        }
       );
 
   if (error) {
@@ -3805,70 +3784,160 @@ window.openPrivateUsers = async function () {
       'Private users:',
       error
     );
+
+    list.textContent =
+      T(
+        'Používateľov sa nepodarilo načítať.',
+        'Users could not be loaded.'
+      );
+
     return;
   }
 
-  const renderUsers = query => {
-    const list =
-      document.getElementById(
-        'privateUsersList'
-      );
+  const renderUsers =
+    query => {
 
-    if (!list) return;
+      list.innerHTML =
+        '';
 
-    list.innerHTML = '';
+      const searchText =
+        (query || '')
+          .trim()
+          .toLowerCase();
 
-    const text =
-      (query || '')
-        .trim()
-        .toLowerCase();
+      const filtered =
+        (users || []).filter(
+          user =>
+            (
+              user.display_name ||
+              ''
+            )
+              .toLowerCase()
+              .includes(
+                searchText
+              )
+        );
 
-    const filtered =
-      (users || []).filter(
-        user =>
-          (user.display_name || '')
-            .toLowerCase()
-            .includes(text)
-      );
+      if (!filtered.length) {
+        list.textContent =
+          T(
+            'Žiadni používatelia.',
+            'No users.'
+          );
 
-    for (const user of filtered) {
-      const row =
-        document.createElement('button');
+        return;
+      }
 
-      row.type = 'button';
-      row.dataset.userId =
-        user.user_id;
+      for (
+        const user
+        of filtered
+      ) {
+        const row =
+          document.createElement(
+            'button'
+          );
 
-      row.style.cssText = `
-        display:flex;
-        align-items:center;
-        width:100%;
-        padding:12px;
-        margin-bottom:8px;
-        border:0;
-        border-radius:10px;
-        background:#12344b;
-        color:white;
-        text-align:left;
-        cursor:pointer;
-        font-size:16px;
-      `;
+        row.type =
+          'button';
 
-      row.textContent =
-        '👤 ' +
-        (
+        row.style.cssText = `
+          display:flex;
+          align-items:center;
+          gap:10px;
+          width:100%;
+          padding:12px;
+          margin-bottom:8px;
+          border:0;
+          border-radius:10px;
+          background:#12344b;
+          color:white;
+          text-align:left;
+          cursor:pointer;
+          font-size:16px;
+        `;
+
+        const avatar =
+          document.createElement(
+            'div'
+          );
+
+        avatar.style.cssText = `
+          width:40px;
+          height:40px;
+          min-width:40px;
+          border-radius:50%;
+          overflow:hidden;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          background:#334155;
+        `;
+
+        if (user.avatar_url) {
+          const image =
+            document.createElement(
+              'img'
+            );
+
+          image.src =
+            user.avatar_url;
+
+          image.alt =
+            '';
+
+          image.style.cssText =
+            'width:100%;' +
+            'height:100%;' +
+            'object-fit:cover;';
+
+          avatar.appendChild(
+            image
+          );
+
+        } else {
+          avatar.textContent =
+            '👤';
+        }
+
+        const name =
+          document.createElement(
+            'span'
+          );
+
+        name.textContent =
           user.display_name ||
           T(
             'Používateľ',
             'User'
-          )
+          );
+
+        row.append(
+          avatar,
+          name
         );
 
-      list.appendChild(row);
-    }
+        row.addEventListener(
+          'click',
+          async () => {
+            row.disabled =
+              true;
 
-    connectPrivateUsersDirectory();
-  };
+            try {
+              await openPrivateChatWithUser(
+                user
+              );
+            } finally {
+              row.disabled =
+                false;
+            }
+          }
+        );
+
+        list.appendChild(
+          row
+        );
+      }
+    };
 
   renderUsers('');
 
@@ -3881,7 +3950,10 @@ window.openPrivateUsers = async function () {
       };
   }
 
-  window.scrollTo(0, 0);
+  window.scrollTo(
+    0,
+    0
+  );
 };
 async function refreshPrivateMessageNotifications() {
   if (!currentUser) return;
