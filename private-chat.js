@@ -3890,101 +3890,114 @@ async function refreshPrivateMessageNotifications() {
 
   const grouped = new Map();
 
-  for (const message of unread) {
-    if (!grouped.has(message.conversation_id)) {
-      grouped.set(
-        message.conversation_id,
-        {
-          conversationId:
-            message.conversation_id,
-          senderId:
-            message.sender_id,
-          count: 0,
-          latest:
-            message.created_at
-        }
-      );
-    }
+for (const message of unread) {
+  const key =
+    message.sender_id;
 
-    grouped.get(
-      message.conversation_id
-    ).count++;
+  if (!grouped.has(key)) {
+    grouped.set(
+      key,
+      {
+        senderId:
+          message.sender_id,
+        count: 0,
+        latest:
+          message.created_at,
+        conversationId:
+          message.conversation_id
+      }
+    );
   }
 
-  list.innerHTML = '';
+  const item =
+    grouped.get(key);
 
-  for (const item of grouped.values()) {
-    const { data: sender } =
-      await supabaseClient
-        .from('user_profiles')
-        .select(
-          'user_id,display_name,avatar_url,presence_status,last_active_at'
-        )
-        .eq(
-          'user_id',
-          item.senderId
-        )
-        .maybeSingle();
+  item.count++;
 
-    const row =
-      document.createElement(
-        'button'
-      );
+  if (
+    message.created_at >
+    item.latest
+  ) {
+    item.latest =
+      message.created_at;
 
-    row.type = 'button';
-
-    row.style.cssText = `
-      display:block;
-      width:100%;
-      padding:10px;
-      margin:0 0 6px 0;
-      text-align:left;
-      border:0;
-      border-radius:8px;
-      cursor:pointer;
-    `;
-
-    const name =
-      sender?.display_name ||
-      T(
-        'Používateľ',
-        'User'
-      );
-
-    row.textContent =
-      '💬 ' +
-      name +
-      ' (' +
-      item.count +
-      ')';
-
-    row.onclick =
-      async () => {
-        if (
-          sender &&
-          typeof window.openPrivateChatWithUser ===
-            'function'
-        ) {
-          const panel =
-            document.getElementById(
-              'notificationPanel'
-            );
-
-          if (panel) {
-            panel.style.display =
-              'none';
-          }
-
-          await window.openPrivateChatWithUser(
-            sender
-          );
-
-          await refreshPrivateMessageNotifications();
-        }
-      };
-
-    list.appendChild(row);
+    item.conversationId =
+      message.conversation_id;
   }
+}
+
+list.innerHTML = '';
+
+for (const item of grouped.values()) {
+  const { data: sender } =
+    await supabaseClient
+      .from('user_profiles')
+      .select(
+        'user_id,display_name,avatar_url,presence_status,last_active_at'
+      )
+      .eq(
+        'user_id',
+        item.senderId
+      )
+      .maybeSingle();
+
+  if (!sender) {
+    continue;
+  }
+
+  const row =
+    document.createElement(
+      'button'
+    );
+
+  row.type = 'button';
+
+  row.style.cssText = `
+    display:block;
+    width:100%;
+    padding:10px;
+    margin:0 0 6px 0;
+    text-align:left;
+    border:0;
+    border-radius:8px;
+    cursor:pointer;
+  `;
+
+  const name =
+    sender.display_name ||
+    T(
+      'Používateľ',
+      'User'
+    );
+
+  row.textContent =
+    '💬 ' +
+    name +
+    ' (' +
+    item.count +
+    ')';
+
+  row.onclick =
+    async () => {
+      const panel =
+        document.getElementById(
+          'notificationPanel'
+        );
+
+      if (panel) {
+        panel.style.display =
+          'none';
+      }
+
+      await window.openPrivateChatWithUser(
+        sender
+      );
+
+      await refreshPrivateMessageNotifications();
+    };
+
+  list.appendChild(row);
+}
 
   badge.textContent =
     String(unread.length);
