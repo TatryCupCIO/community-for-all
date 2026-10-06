@@ -4075,7 +4075,14 @@ if (
 } else {
   initialisePrivateChat();
 }
-
+window.addEventListener(
+  'popstate',
+  () => {
+    if (privateChatOpen) {
+      closePrivateChat();
+    }
+  }
+);
 
 // ============================================================
 // END COMMUNITY FOR ALL – PRIVATE-CHAT.JS
