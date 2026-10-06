@@ -1576,7 +1576,7 @@ async function sendPrivateChatContent() {
   input.value =
     '';
       }
-
+    }
     if (photo) {
       const sent =
         await sendPrivateChatPhoto(
