@@ -3506,7 +3506,13 @@ function initialisePrivateMembersLongPress(
 async function closePrivateChat() {
   privateChatOpen =
     false;
-
+if (
+  privateChatOpen &&
+  history.state?.privateChat
+) {
+  history.back();
+  return;
+}
   if (currentUser) {
     await supabaseClient
       .from('user_profiles')
