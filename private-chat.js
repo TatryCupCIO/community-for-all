@@ -704,7 +704,6 @@ function startPrivateChatPresenceRealtime() {
       .subscribe();
 }
 
-startPrivateChatPresenceRealtime();
 // ============================================================
 // LOAD MESSAGES
 // ============================================================
