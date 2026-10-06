@@ -3806,20 +3806,14 @@ await updateUserButton();
         hidePages();
       }
 
-      const node =
+            const node =
         document.getElementById(page);
 
       if (node) {
-
         node.style.display =
-          page === 'privateChatPage'
-            ? 'block'
-            : 'block';
-
+          'block';
       } else {
-
         showHome();
-
       }
     }
 
@@ -3831,65 +3825,62 @@ await updateUserButton();
     );
   }
 
-
   history.replaceState(
-  {
-    cfaPage: 'HOME_GUARD'
-  },
-  '',
-  location.href
-);
+    {
+      cfaPage: 'HOME_GUARD'
+    },
+    '',
+    location.href
+  );
 
-history.pushState(
-  {
-    cfaPage: visiblePage()
-  },
-  '',
-  location.href
-);
-
+  history.pushState(
+    {
+      cfaPage: visiblePage()
+    },
+    '',
+    location.href
+  );
 
   const navigationObserver =
-  new MutationObserver(() => {
-    recordPage();
-  });
+    new MutationObserver(() => {
+      recordPage();
+    });
 
-navigationObserver.observe(
-  document.body,
-  {
-    attributes: true,
-    attributeFilter: ['style'],
-    subtree: true
-  }
-);
-
+  navigationObserver.observe(
+    document.body,
+    {
+      attributes: true,
+      attributeFilter: ['style'],
+      subtree: true
+    }
+  );
 
   window.addEventListener(
-  'popstate',
-  event => {
+    'popstate',
+    event => {
 
-    const page =
-      event.state?.cfaPage;
+      const page =
+        event.state?.cfaPage;
 
-    if (
-      !page ||
-      page === 'HOME_GUARD'
-    ) {
-      history.pushState(
-        {
-          cfaPage: 'HOME'
-        },
-        '',
-        location.href
-      );
+      if (
+        !page ||
+        page === 'HOME_GUARD'
+      ) {
+        history.pushState(
+          {
+            cfaPage: 'HOME'
+          },
+          '',
+          location.href
+        );
 
-      openState('HOME');
-      return;
+        openState('HOME');
+        return;
+      }
+
+      openState(page);
     }
-
-    openState(page);
-  }
-);
+  );
 
 })();
 </script>
