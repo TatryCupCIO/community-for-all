@@ -17,3 +17,11 @@ jobs:
           java-version: '17'
                 - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
+      - name: Build Android App Bundle
+        run: gradle bundleRelease
+
+      - name: Upload Android App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: community-for-all-aab
+          path: app/build/outputs/bundle/release/app-release.aab
