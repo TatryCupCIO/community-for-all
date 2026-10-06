@@ -2542,11 +2542,7 @@ row.append(
       /* NEXT STEP: OPEN PRIVATE CHAT */
 
       row.onclick = async function () {
-  alert(
-    'CLICK OK\nopenPrivateChatWithUser: ' +
-    typeof window.openPrivateChatWithUser
-  );
-
+  
   window.selectedPrivateUser = user;
 
   if (typeof window.openPrivateChatWithUser === 'function') {
