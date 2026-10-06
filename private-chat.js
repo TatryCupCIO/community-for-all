@@ -1924,12 +1924,28 @@ function subscribePrivateChat() {
           }
 
           if (
-            payload.eventType ===
-            'INSERT'
-          ) {
-            await renderPrivateChatMessage(
-              payload.new
-            );
+  payload.eventType ===
+  'INSERT'
+) {
+  const message = payload.new;
+
+  const { data: senderProfile } =
+    await supabaseClient
+      .from('user_profiles')
+      .select('display_name')
+      .eq('user_id', message.sender_id)
+      .maybeSingle();
+
+  message.sender_name =
+    senderProfile?.display_name ||
+    T(
+      'Používateľ',
+      'User'
+    );
+
+  await renderPrivateChatMessage(
+    message
+  );
 
             scrollPrivateChatToBottom();
 
