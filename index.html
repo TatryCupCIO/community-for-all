@@ -2258,7 +2258,12 @@ function addPasswordEye(inputId) {
   if (!requireLogin()) return;
 
   hidePages();
+const container =
+  document.querySelector('.container');
 
+if (container) {
+  container.style.display = '';
+}
   const chatPage = document.getElementById('chatPage');
   if (chatPage) {
     chatPage.style.display = 'none';
