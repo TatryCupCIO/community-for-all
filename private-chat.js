@@ -385,10 +385,7 @@ async function openPrivateChatWithUser(
           user.user_id
       }
     );
-alert(
-  'RPC DATA: ' + JSON.stringify(data) +
-  '\nRPC ERROR: ' + JSON.stringify(error)
-);
+
   if (
     error ||
     !data
