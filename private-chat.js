@@ -765,14 +765,27 @@ async function loadPrivateChatMessages() {
   }
 
   for (
-    const message
-    of data || []
-  ) {
-    await renderPrivateChatMessage(
-      message
-    );
-  }
+  const message
+  of data || []
+) {
+  const { data: senderProfile } =
+    await supabaseClient
+      .from('user_profiles')
+      .select('display_name')
+      .eq('user_id', message.sender_id)
+      .maybeSingle();
 
+  message.sender_name =
+    senderProfile?.display_name ||
+    T(
+      'Používateľ',
+      'User'
+    );
+
+  await renderPrivateChatMessage(
+    message
+  );
+}
   await loadPrivateConversationEvents();
 
   scrollPrivateChatToBottom();
