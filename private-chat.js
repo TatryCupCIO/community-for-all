@@ -854,7 +854,32 @@ async function renderPrivateChatMessage(
     overflow-wrap:anywhere;
   `;
 
+const senderName =
+  document.createElement(
+    'div'
+  );
 
+senderName.className =
+  'private-message-sender';
+
+senderName.textContent =
+  message.sender_name ||
+  T(
+    'Používateľ',
+    'User'
+  );
+
+senderName.style.cssText = `
+  font-size:11px;
+  font-weight:700;
+  margin-bottom:4px;
+  opacity:.85;
+  text-align:${mine ? 'right' : 'left'};
+`;
+
+item.appendChild(
+  senderName
+);
   if (message.message_text) {
     const text =
       document.createElement(
