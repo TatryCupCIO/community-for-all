@@ -1877,7 +1877,7 @@ function subscribePrivateChat() {
     playCommunityChatSound();
   }
 }
-
+          }
           if (
             payload.eventType ===
             'UPDATE'
