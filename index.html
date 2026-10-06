@@ -2542,11 +2542,17 @@ row.append(
       /* NEXT STEP: OPEN PRIVATE CHAT */
 
       row.onclick = async function () {
-        window.selectedPrivateUser = user;
-        if (typeof window.openPrivateChatWithUser === 'function') {
-          await window.openPrivateChatWithUser(user);
-        }
-      };
+  alert(
+    'CLICK OK\nopenPrivateChatWithUser: ' +
+    typeof window.openPrivateChatWithUser
+  );
+
+  window.selectedPrivateUser = user;
+
+  if (typeof window.openPrivateChatWithUser === 'function') {
+    await window.openPrivateChatWithUser(user);
+  }
+};
 
 
       list.appendChild(row);
