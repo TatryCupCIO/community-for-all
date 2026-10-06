@@ -1569,13 +1569,13 @@ async function sendPrivateChatContent() {
           text
         );
 
-      if (sent) {
-  if (input) {
-    input.value = '';
-  }
-
-  await loadPrivateChatMessages();
-}
+      if (
+  sent &&
+  input
+) {
+  input.value =
+    '';
+      }
 
     if (photo) {
       const sent =
