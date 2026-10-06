@@ -1749,13 +1749,12 @@ async function updatePrivateChatReadReceipt(message) {
     return;
   }
 
-  const { data, error } =
+  const { data: reads, error } =
     await supabaseClient
       .from('private_message_reads')
       .select('user_id,read_at')
       .eq('message_id', message.id)
-      .neq('user_id', currentUser.id)
-      .limit(1);
+      .neq('user_id', currentUser.id);
 
   if (error) {
     console.error(
@@ -1779,16 +1778,55 @@ async function updatePrivateChatReadReceipt(message) {
 
   if (!receipt) return;
 
-  receipt.textContent =
-    data && data.length > 0
-      ? T(
-          'Prečítané',
-          'Read'
+  if (!reads || reads.length === 0) {
+    receipt.textContent =
+      T(
+        'Odoslané',
+        'Sent'
+      );
+    return;
+  }
+
+  const userIds =
+    reads.map(
+      read => read.user_id
+    );
+
+  const { data: users, error: usersError } =
+    await supabaseClient
+      .from('user_profiles')
+      .select('user_id,display_name')
+      .in('user_id', userIds);
+
+  if (
+    usersError ||
+    !users ||
+    users.length === 0
+  ) {
+    receipt.textContent =
+      T(
+        'Prečítané',
+        'Read'
+      );
+    return;
+  }
+
+  const names =
+    users.map(
+      user =>
+        user.display_name ||
+        T(
+          'Používateľ',
+          'User'
         )
-      : T(
-          'Odoslané',
-          'Sent'
-        );
+    );
+
+  receipt.textContent =
+    T(
+      'Prečítali: ',
+      'Read by: '
+    ) +
+    names.join(', ');
 }
 
 // ============================================================
