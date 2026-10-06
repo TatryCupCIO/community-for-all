@@ -3694,10 +3694,10 @@ await updateUserButton();
 
 <script src="private-chat.js?v=20261006-2"></script>
 
-<script>
-/* ===== APP NAVIGATION – CLEAN BROWSER BACK ===== */
+/* ===== APP NAVIGATION - CLEAN BROWSER BACK ===== */
 
 (function () {
+
   let internalBack = false;
 
   function visiblePage() {
@@ -3737,7 +3737,6 @@ await updateUserButton();
     return 'HOME';
   }
 
-
   function recordPage() {
 
     if (internalBack) return;
@@ -3757,39 +3756,46 @@ await updateUserButton();
         '',
         location.href
       );
-
     }
   }
-
 
   function openState(page) {
 
     internalBack = true;
 
     if (
-  page === 'HOME' ||
-  !page
-) {
+      page === 'HOME' ||
+      !page
+    ) {
 
-  showHome();
+      showHome();
 
-} else if (
-  page === 'eventsPage'
-) {
+    } else if (
+      page === 'eventsPage'
+    ) {
 
-  showEvents();
+      showEvents();
 
-} else if (
-  page === 'bookingsPage'
-) {
+    } else if (
+      page === 'bookingsPage'
+    ) {
 
-  showBookings();
+      showBookings();
 
-} else if (
-  page === 'cartPage'
-) {
+    } else if (
+      page === 'cartPage'
+    ) {
 
-  showCartPage();
+      showCartPage();
+
+    } else {
+
+      if (
+        typeof hidePages ===
+        'function'
+      ) {
+        hidePages();
+      }
 
     } else {
 
