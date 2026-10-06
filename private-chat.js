@@ -408,7 +408,14 @@ async function openPrivateChatWithUser(
 
   privateChatOpen =
   true;
-
+history.pushState(
+  {
+    privateChat: true,
+    conversationId: privateChatConversationId
+  },
+  '',
+  location.href
+);
 await supabaseClient
   .from('user_profiles')
   .update({
