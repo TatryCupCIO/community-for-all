@@ -3942,9 +3942,9 @@ function initialisePrivateChat() {
 
 
   if (currentUser) {
-    startPrivateInboxRealtime();
-  }
-
+  startPrivateChatPresenceRealtime();
+  startPrivateInboxRealtime();
+}
   setPrivateChatLanguage();
 }
 
