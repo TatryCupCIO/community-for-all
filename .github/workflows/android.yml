@@ -28,3 +28,23 @@ jobs:
         with:
           name: community-for-all-aab
           path: app/build/outputs/bundle/release/app-release.aab
+      - name: Generate signing keystore
+        run: |
+          keytool -genkeypair \
+            -keystore community-for-all.jks \
+            -storepass "${{ secrets.KEYSTORE_PASSWORD }}" \
+            -keypass "${{ secrets.KEY_PASSWORD }}" \
+            -alias "${{ secrets.KEY_ALIAS }}" \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=Community For All, O=Tatry Cup Community Organisation CIO, C=GB"
+
+      - name: Export keystore as Base64
+        run: base64 -w 0 community-for-all.jks > keystore-base64.txt
+
+      - name: Upload keystore Base64
+        uses: actions/upload-artifact@v4
+        with:
+          name: keystore-base64
+          path: keystore-base64.txt
