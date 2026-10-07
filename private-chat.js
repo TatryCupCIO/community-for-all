@@ -52,11 +52,14 @@ function createPrivateChatPage() {
 
   page.innerHTML = `
     <div style="
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom:14px;
-    ">
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+  position:sticky;
+  top:0;
+  z-index:10;
+">
       <button
         type="button"
         id="privateChatBackBtn"
