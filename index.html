@@ -54,21 +54,32 @@
     /* ===== GLOBAL NOTIFICATIONS ===== */
 
     #globalNotifications {
-  position: static;
+  position: relative;
   z-index: 10000;
 }
 
-    #notificationBellBtn {
+#notificationBellBtn {
   position: relative;
+
   width: 34px;
   height: 34px;
+  min-width: 34px;
+  min-height: 34px;
+
+  margin: 0;
+  padding: 0;
+
   border: none;
   border-radius: 50%;
+
   background: #ffffff;
+
   font-size: 17px;
+  line-height: 34px;
+
   cursor: pointer;
+
   box-shadow: 0 3px 12px rgba(0,0,0,0.22);
-  padding: 0;
 }
 
     #notificationBadge {
