@@ -838,61 +838,34 @@
 <body>
 
 <div class="container">
+<!-- GLOBAL NOTIFICATIONS / TOP BAR -->
 
-  <!-- GLOBAL NOTIFICATIONS -->
-  <div id="globalNotifications">
+<div class="topbar">
+
+  <div class="top-left">
+    <button
+      class="donate-top-btn"
+      id="donateTopBtn"
+      onclick="showDonate()"
+    >
+      💗 Podporte nás
+    </button>
+  </div>
+
+  <div class="top-actions">
 
     <button
-      id="notificationBellBtn"
-      type="button"
-      aria-label="Notifications"
-      onclick="toggleNotificationsPanel()"
+      class="cart-top-btn"
+      onclick="showCartPage()"
     >
-      🔔
-
+      🛒
       <span
-        id="notificationBadge"
-        style="display:none;"
+        class="cart-badge"
+        id="cartBadge"
       >0</span>
     </button>
 
-    <div
-      id="notificationPanel"
-      style="display:none;"
-    >
-      <div id="notificationPanelTitle">
-        Upozornenia
-      </div>
-
-      <div id="notificationList"></div>
-    </div>
-
-  </div>
-
-  <div class="topbar">
-
-    <div class="top-left">
-      <button
-        class="donate-top-btn"
-        id="donateTopBtn"
-        onclick="showDonate()"
-      >
-        ❤️ Podporte nás
-      </button>
-    </div>
-
-    <div class="top-actions">
-
-      <button
-        class="cart-top-btn"
-        onclick="showCartPage()"
-      >
-        🛒
-        <span
-          class="cart-badge"
-          id="cartBadge"
-        >0</span>
-      </button>
+    <div class="account-actions">
 
       <button
         class="user-btn"
@@ -902,7 +875,56 @@
         👤 Prihlásiť sa
       </button>
 
+      <div class="account-quick-actions">
+
+        <button
+          id="communityChatBtn"
+          class="community-chat-btn"
+          type="button"
+          onclick="openCommunityChat()"
+        >
+          <span>💬 CHAT</span>
+
+          <span
+            id="communityChatUnreadDot"
+            class="chat-unread-dot"
+            style="display:none;"
+          ></span>
+        </button>
+
+        <div id="globalNotifications">
+
+          <button
+            id="notificationBellBtn"
+            type="button"
+            aria-label="Notifications"
+            onclick="toggleNotificationsPanel()"
+          >
+            🔔
+
+            <span
+              id="notificationBadge"
+              style="display:none;"
+            >0</span>
+          </button>
+
+          <div
+            id="notificationPanel"
+            style="display:none;"
+          >
+            <div id="notificationPanelTitle">
+              Upozornenia
+            </div>
+
+            <div id="notificationList"></div>
+          </div>
+
+        </div>
+
+      </div>
+
     </div>
+
   </div>
 
   <div class="logo">
