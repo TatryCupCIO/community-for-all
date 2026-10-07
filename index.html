@@ -117,15 +117,37 @@
       min-height: 46px;
     }
 
-    .top-left,
-    .top-actions {
-      display: flex;
-      align-items: center;
-    }
+    .top-left {
+  display: flex;
+  align-items: center;
+}
 
-    .top-actions {
-      gap: 8px;
-    }
+.top-actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.account-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex: 0 0 auto;
+}
+
+.account-quick-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  margin-top: 4mm;
+
+  width: 100%;
+
+  box-sizing: border-box;
+}
 
     .user-btn,
     .cart-top-btn,
