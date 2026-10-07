@@ -55,10 +55,13 @@
 
     #globalNotifications {
   position: absolute;
-  top: calc(max(16px, env(safe-area-inset-top)) + 46px);
-  right: 18px;
+  top: calc(
+    max(16px, env(safe-area-inset-top))
+    + 54px
+  );
+  right: clamp(18px, 4vw, 28px);
   z-index: 10000;
-}
+    }
 
     #notificationBellBtn {
   position: relative;
