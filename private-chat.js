@@ -458,9 +458,18 @@ await supabaseClient
       'privateChatPage'
     );
 
-  if (page) {
+    if (page) {
     page.style.display =
-      'block';
+      'flex';
+
+    page.style.flexDirection =
+      'column';
+
+    page.style.height =
+      '100dvh';
+
+    page.style.overflow =
+      'hidden';
   }
 
   setPrivateChatHeader(
@@ -478,11 +487,6 @@ await refreshPrivateMessageNotifications();
 subscribePrivateChat();
 subscribePrivateChatReads();
 subscribePrivateConversationEvents();
-
-  window.scrollTo(
-    0,
-    0
-  );
 }
 
 
