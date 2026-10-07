@@ -3723,16 +3723,24 @@ function scrollPrivateChatToBottom() {
   if (!box) return;
 
   const scrollToBottom = () => {
+    const lastMessage =
+      box.lastElementChild;
+
+    if (lastMessage) {
+      lastMessage.scrollIntoView({
+        behavior: 'auto',
+        block: 'end'
+      });
+    }
+
     box.scrollTop =
-      box.scrollHeight - box.clientHeight;
+      box.scrollHeight;
   };
 
   requestAnimationFrame(() => {
-    scrollToBottom();
-
-    requestAnimationFrame(() => {
-      scrollToBottom();
-    });
+    requestAnimationFrame(
+      scrollToBottom
+    );
   });
 
   setTimeout(
@@ -3743,6 +3751,11 @@ function scrollPrivateChatToBottom() {
   setTimeout(
     scrollToBottom,
     300
+  );
+
+  setTimeout(
+    scrollToBottom,
+    600
   );
 }
 
