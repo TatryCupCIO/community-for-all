@@ -742,37 +742,16 @@ body {
 
 
 /* =========================================================
-   COMMUNITY CHAT HOME BUTTON
+   COMMUNITY CHAT BUTTON
    ========================================================= */
 
-/* =========================================================
-   HOME QUICK ACTIONS
-   CHAT + NOTIFICATIONS
-   ========================================================= */
-
-#homePage {
-  position: relative;
-}
-
-#homeQuickActions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-
-  width: 100%;
-  height: 38px;
-
-  margin: 4px 0 0;
-  padding: 0 8px;
-
-  box-sizing: border-box;
-}
-
-#homePage #communityChatBtn.community-chat-btn {
+#communityChatBtn.community-chat-btn {
   position: relative !important;
 
-  flex: 0 0 34px !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
 
   width: 34px !important;
   height: 34px !important;
@@ -781,12 +760,14 @@ body {
   max-width: 34px !important;
   max-height: 34px !important;
 
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
+  flex: 0 0 34px !important;
 
   margin: 0 !important;
   padding: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 
   border: 2px solid #fff !important;
   border-radius: 50% !important;
@@ -799,19 +780,17 @@ body {
   box-shadow:
     0 3px 12px rgba(0, 0, 0, .22),
     0 0 10px rgba(99, 220, 198, .25) !important;
-
-  z-index: 50 !important;
 }
 
-#homePage #communityChatBtn:active {
+#communityChatBtn:active {
   transform: scale(.97);
 }
 
-#homePage #communityChatBtn > span:first-child {
+#communityChatBtn > span:first-child {
   font-size: 0 !important;
 }
 
-#homePage #communityChatBtn > span:first-child::after {
+#communityChatBtn > span:first-child::after {
   content: "CHAT" !important;
   font-size: 9px !important;
   line-height: 1 !important;
