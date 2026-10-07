@@ -3710,10 +3710,16 @@ function scrollPrivateChatToBottom() {
     () => {
       box.scrollTop =
         box.scrollHeight;
+
+      requestAnimationFrame(
+        () => {
+          box.scrollTop =
+            box.scrollHeight;
+        }
+      );
     }
   );
 }
-
 async function refreshPrivateMessageNotifications() {
   if (!currentUser) return;
 
