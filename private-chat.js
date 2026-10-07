@@ -3703,24 +3703,32 @@ function scrollPrivateChatToBottom() {
       'privateChatMessages'
     );
 
-  if (!box) {
-    return;
-  }
+  if (!box) return;
 
-  requestAnimationFrame(
-    () => {
-      box.scrollTop =
-        box.scrollHeight;
+  const scrollToBottom = () => {
+    box.scrollTop =
+      box.scrollHeight - box.clientHeight;
+  };
 
-      requestAnimationFrame(
-        () => {
-          box.scrollTop =
-            box.scrollHeight;
-        }
-      );
-    }
+  requestAnimationFrame(() => {
+    scrollToBottom();
+
+    requestAnimationFrame(() => {
+      scrollToBottom();
+    });
+  });
+
+  setTimeout(
+    scrollToBottom,
+    100
+  );
+
+  setTimeout(
+    scrollToBottom,
+    300
   );
 }
+
 async function refreshPrivateMessageNotifications() {
   if (!currentUser) return;
 
