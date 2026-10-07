@@ -1152,32 +1152,13 @@ footer::after,
    SHORT PHONE SCREENS
    ========================================================= */
 
-@media (max-width: 600px) and (max-height: 700px) {
+/* ==================================================
+   RESPONSIVE HEIGHT – ALL DEVICES
+   ================================================== */
 
+@media (max-width: 600px) {
   .container {
-  padding-top: 16px !important;
-}
-
-  .logo {
-    font-size: 29px !important;
-  }
-
-  .charity {
-    padding-bottom: 30px !important;
-  }
-
-  .language {
-    margin-top: 12px !important;
-    margin-bottom: 5px !important;
-  }
-
-  #homePage {
-    gap: 5px !important;
-  }
-
-  footer,
-  .footer {
-    margin-top: 4px !important;
+    padding-top: max(16px, env(safe-area-inset-top)) !important;
   }
 }
 
