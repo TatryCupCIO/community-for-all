@@ -129,14 +129,15 @@ function createPrivateChatPage() {
     </div>
 
     <div
-      id="privateChatMessages"
-      style="
-        min-height:300px;
-        max-height:58vh;
-        overflow-y:auto;
-        padding:8px 2px 14px;
-      "
-    ></div>
+  id="privateChatMessages"
+  style="
+    min-height:0;
+    flex:1;
+    overflow-y:auto;
+    padding:8px 2px 90px;
+    -webkit-overflow-scrolling:touch;
+  "
+></div>
 
     <div
       id="privateChatPendingPhoto"
