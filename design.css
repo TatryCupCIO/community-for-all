@@ -745,6 +745,10 @@ body {
    COMMUNITY CHAT HOME BUTTON
    ========================================================= */
 
+/* =========================================================
+   COMMUNITY CHAT HOME BUTTON
+   ========================================================= */
+
 #homePage #communityChatBtn.community-chat-btn {
   position: absolute !important;
   top: 58px !important;
@@ -789,9 +793,11 @@ body {
 
 #homePage #communityChatBtn > span:first-child::after {
   content: "CHAT" !important;
+
   font-size: 9px !important;
   line-height: 1 !important;
   font-weight: 900 !important;
+
   color: #fff !important;
 }
 
@@ -811,7 +817,6 @@ body {
 
   background: #ff304f !important;
 }
-
 /* =========================================================
    FOOTER
    ========================================================= */
