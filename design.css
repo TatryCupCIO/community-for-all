@@ -751,8 +751,13 @@ body {
 
 #homePage #communityChatBtn.community-chat-btn {
   position: absolute !important;
-  top: 58px !important;
-  right: 62px !important;
+
+  top: calc(
+    max(16px, env(safe-area-inset-top))
+    + 54px
+  ) !important;
+
+  right: clamp(62px, calc(4vw + 44px), 72px) !important;
 
   z-index: 50 !important;
 
@@ -793,19 +798,14 @@ body {
 
 #homePage #communityChatBtn > span:first-child::after {
   content: "CHAT" !important;
-
   font-size: 9px !important;
   line-height: 1 !important;
   font-weight: 900 !important;
-
   color: #fff !important;
 }
 
-/* CHAT UNREAD DOT */
-
 #communityChatBtn .chat-unread-dot {
   position: absolute !important;
-
   top: 0 !important;
   right: 0 !important;
 
@@ -814,7 +814,6 @@ body {
 
   border: 2px solid #fff !important;
   border-radius: 50% !important;
-
   background: #ff304f !important;
 }
 /* =========================================================
