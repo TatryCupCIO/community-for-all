@@ -181,12 +181,20 @@ function createPrivateChatPage() {
     </div>
 
     <div
-      style="
-        display:flex;
-        align-items:center;
-        gap:8px;
-      "
-    >
+  style="
+    position:fixed;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:1000;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px;
+    padding-bottom:max(10px, env(safe-area-inset-bottom));
+    background:#081b2c;
+  "
+>
       <input
         id="privateChatPhotoInput"
         type="file"
