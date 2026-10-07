@@ -744,38 +744,39 @@ body {
 /* =========================================================
    COMMUNITY CHAT HOME BUTTON
    ========================================================= */
+
 #homePage #communityChatBtn.community-chat-btn {
-    position: absolute !important;
-    top: 49px !important;
-right: 72px !important;
+  position: absolute !important;
+  top: 49px !important;
+  right: 72px !important;
 
-    z-index: 50 !important;
+  z-index: 50 !important;
 
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 
-    width: 56px !important;
-    height: 56px !important;
-    min-width: 56px !important;
-    min-height: 56px !important;
-    max-width: 56px !important;
-    max-height: 56px !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
 
-    margin: 0 !important;
-    padding: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 
-    border: 2px solid #fff !important;
-    border-radius: 50% !important;
+  border: 2px solid #fff !important;
+  border-radius: 50% !important;
 
-    background: #63dcc6 !important;
-    background-image: none !important;
+  background: #63dcc6 !important;
+  background-image: none !important;
 
-    color: #fff !important;
+  color: #fff !important;
 
-    box-shadow:
-        0 4px 14px rgba(0, 0, 0, .38),
-        0 0 12px rgba(99, 220, 198, .35) !important;
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, .22),
+    0 0 10px rgba(99, 220, 198, .25) !important;
 }
 
 #homePage #communityChatBtn:active {
@@ -789,31 +790,29 @@ right: 72px !important;
 #homePage #communityChatBtn > span:first-child::after {
   content: "CHAT" !important;
 
-  font-size: 14px !important;
+  font-size: 9px !important;
   line-height: 1 !important;
   font-weight: 900 !important;
 
   color: #fff !important;
 }
 
-
 /* CHAT UNREAD DOT */
 
 #communityChatBtn .chat-unread-dot {
   position: absolute !important;
 
-  top: 2px !important;
-  right: 2px !important;
+  top: 0 !important;
+  right: 0 !important;
 
-  width: 12px !important;
-  height: 12px !important;
+  width: 9px !important;
+  height: 9px !important;
 
   border: 2px solid #fff !important;
   border-radius: 50% !important;
 
   background: #ff304f !important;
 }
-
 
 /* =========================================================
    FOOTER
