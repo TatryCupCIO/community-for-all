@@ -1970,10 +1970,27 @@ function subscribePrivateChat() {
     );
 
   await renderPrivateChatMessage(
-    message
-  );
+  message
+);
 
-            scrollPrivateChatToBottom();
+requestAnimationFrame(() => {
+  const box =
+    document.getElementById(
+      'privateChatMessages'
+    );
+
+  const lastMessage =
+    box?.lastElementChild;
+
+  if (lastMessage) {
+    lastMessage.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end'
+    });
+  }
+
+  scrollPrivateChatToBottom();
+});
 
             if (
   payload.new.sender_id !==
