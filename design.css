@@ -747,8 +747,8 @@ body {
 
 #homePage #communityChatBtn.community-chat-btn {
   position: absolute !important;
-  top: 49px !important;
-  right: 72px !important;
+  top: 58px !important;
+  right: 62px !important;
 
   z-index: 50 !important;
 
@@ -789,11 +789,9 @@ body {
 
 #homePage #communityChatBtn > span:first-child::after {
   content: "CHAT" !important;
-
   font-size: 9px !important;
   line-height: 1 !important;
   font-weight: 900 !important;
-
   color: #fff !important;
 }
 
