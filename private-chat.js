@@ -4147,7 +4147,63 @@ window.addEventListener(
     }
   }
 );
+// ============================================================
+// NOTIFICATION DEEP LINK
+// Opens the exact private conversation
+// ============================================================
 
+window.openPrivateNotification =
+  async function (
+    conversationId,
+    senderId
+  ) {
+    if (
+      !currentUser ||
+      !conversationId ||
+      !senderId
+    ) {
+      return;
+    }
+
+    const {
+      data: sender,
+      error
+    } =
+      await supabaseClient
+        .from('user_profiles')
+        .select(
+          'user_id,display_name,avatar_url,presence_status,last_active_at'
+        )
+        .eq(
+          'user_id',
+          senderId
+        )
+        .maybeSingle();
+
+    if (
+      error ||
+      !sender
+    ) {
+      return;
+    }
+
+    const panel =
+      document.getElementById(
+        'notificationPanel'
+      );
+
+    if (panel) {
+      panel.style.display =
+        'none';
+    }
+
+    await openPrivateChatConversation(
+      Number(conversationId),
+      sender
+    );
+
+    await refreshPrivateMessageNotifications();
+  };
 // ============================================================
 // END COMMUNITY FOR ALL – PRIVATE-CHAT.JS
 // ============================================================
