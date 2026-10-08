@@ -8557,6 +8557,7 @@ function addPasswordEye(
 })();
 </script>
 
+
 <script>
 /* ===== ANDROID FIREBASE TOKEN ===== */
 
@@ -8573,14 +8574,86 @@ function requestAndroidFirebaseToken() {
   window.AndroidFirebase.postMessage('requestToken');
 }
 
+async function saveAndroidFirebaseToken() {
+
+  if (!androidFirebaseToken) {
+    return;
+  }
+
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.getUser();
+
+  if (authError || !authData?.user) {
+    return;
+  }
+
+  const userId = authData.user.id;
+  const token = androidFirebaseToken;
+
+  const { data: existing, error: checkError } =
+    await supabaseClient
+      .from('push_tokens')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('token', token)
+      .maybeSingle();
+
+  if (checkError) {
+    console.error(
+      'Firebase token lookup failed:',
+      checkError
+    );
+    return;
+  }
+
+  if (existing) {
+
+    const { error } =
+      await supabaseClient
+        .from('push_tokens')
+        .update({
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', existing.id)
+        .eq('user_id', userId);
+
+    if (error) {
+      console.error(
+        'Firebase token update failed:',
+        error
+      );
+    }
+
+    return;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from('push_tokens')
+      .insert({
+        user_id: userId,
+        token: token
+      });
+
+  if (error) {
+    console.error(
+      'Firebase token registration failed:',
+      error
+    );
+  }
+}
+
 if (
   window.AndroidFirebase &&
   typeof window.AndroidFirebase.addEventListener === 'function'
 ) {
+
   window.AndroidFirebase.addEventListener(
     'message',
-    function(event) {
+    async function(event) {
+
       try {
+
         const message = JSON.parse(event.data);
 
         if (
@@ -8593,9 +8666,7 @@ if (
 
         androidFirebaseToken = message.token;
 
-        console.log(
-          'Android Firebase token received'
-        );
+        await saveAndroidFirebaseToken();
 
       } catch (error) {
         console.error(
