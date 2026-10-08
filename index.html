@@ -2097,6 +2097,11 @@ async function refreshCurrentUser() {
 
   await updateUserButton();
   await refreshCartBadge();
+
+  // Register the Android device after restoring an existing session.
+  if (currentUser && typeof saveAndroidFirebaseToken === 'function') {
+    await saveAndroidFirebaseToken();
+  }
 }
 
 /* ===== EVENT OPTIONS ===== */
@@ -4986,8 +4991,16 @@ async function saveUsername() {
 
 async function logoutUser() {
 
-  await supabaseClient.auth
-    .signOut();
+  // Unregister this device for the account before ending its session.
+  if (currentUser && typeof removeAndroidFirebaseToken === 'function') {
+    await removeAndroidFirebaseToken(currentUser.id);
+  }
+
+  const { error: signOutError } = await supabaseClient.auth.signOut();
+  if (signOutError) {
+    console.error('Sign out failed:', signOutError);
+    return;
+  }
 
   currentUser = null;
   activeCart = null;
@@ -5719,6 +5732,14 @@ supabaseClient.auth
       }
 
       updateUserButton();
+
+      if (currentUser) {
+        setTimeout(() => {
+          if (typeof saveAndroidFirebaseToken === 'function') {
+            saveAndroidFirebaseToken();
+          }
+        }, 0);
+      }
 
       setTimeout(
         refreshCartBadge,
@@ -8562,121 +8583,75 @@ function addPasswordEye(
 /* ===== ANDROID FIREBASE TOKEN ===== */
 
 let androidFirebaseToken = null;
+let androidFirebaseSaving = false;
 
 function requestAndroidFirebaseToken() {
-  if (
-    !window.AndroidFirebase ||
-    typeof window.AndroidFirebase.postMessage !== 'function'
-  ) {
-    return;
-  }
-
+  if (typeof window.AndroidFirebase?.postMessage !== 'function') return;
   window.AndroidFirebase.postMessage('requestToken');
 }
 
 async function saveAndroidFirebaseToken() {
+  if (!androidFirebaseToken || androidFirebaseSaving) return;
+  androidFirebaseSaving = true;
+  try {
+    const { data: authData, error: authError } =
+      await supabaseClient.auth.getUser();
+    if (authError || !authData?.user) return;
 
-  if (!androidFirebaseToken) {
-    return;
-  }
+    const userId = authData.user.id;
+    const token = androidFirebaseToken;
+    const { data: existing, error: checkError } =
+      await supabaseClient.from('push_tokens')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('token', token)
+        .limit(1);
+    if (checkError) throw checkError;
 
-  const { data: authData, error: authError } =
-    await supabaseClient.auth.getUser();
-
-  if (authError || !authData?.user) {
-    return;
-  }
-
-  const userId = authData.user.id;
-  const token = androidFirebaseToken;
-
-  const { data: existing, error: checkError } =
-    await supabaseClient
-      .from('push_tokens')
-      .select('id')
-      .eq('user_id', userId)
-      .eq('token', token)
-      .maybeSingle();
-
-  if (checkError) {
-    console.error(
-      'Firebase token lookup failed:',
-      checkError
-    );
-    return;
-  }
-
-  if (existing) {
-
-    const { error } =
-      await supabaseClient
-        .from('push_tokens')
-        .update({
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', existing.id)
+    if (existing?.length) {
+      const { error } = await supabaseClient.from('push_tokens')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', existing[0].id)
         .eq('user_id', userId);
-
-    if (error) {
-      console.error(
-        'Firebase token update failed:',
-        error
-      );
+      if (error) throw error;
+    } else {
+      const { error } = await supabaseClient.from('push_tokens')
+        .insert({ user_id: userId, token });
+      if (error) throw error;
     }
-
-    return;
-  }
-
-  const { error } =
-    await supabaseClient
-      .from('push_tokens')
-      .insert({
-        user_id: userId,
-        token: token
-      });
-
-  if (error) {
-    console.error(
-      'Firebase token registration failed:',
-      error
-    );
+  } catch (error) {
+    console.error('Firebase token registration failed:', error);
+  } finally {
+    androidFirebaseSaving = false;
   }
 }
 
-if (
-  window.AndroidFirebase &&
-  typeof window.AndroidFirebase.addEventListener === 'function'
-) {
+async function removeAndroidFirebaseToken(userId) {
+  if (!androidFirebaseToken || !userId) return;
+  try {
+    const { error } = await supabaseClient.from('push_tokens')
+      .delete()
+      .eq('user_id', userId)
+      .eq('token', androidFirebaseToken);
+    if (error) throw error;
+  } catch (error) {
+    console.error('Firebase token removal failed:', error);
+  }
+}
 
-  window.AndroidFirebase.addEventListener(
-    'message',
-    async function(event) {
-
-      try {
-
-        const message = JSON.parse(event.data);
-
-        if (
-          message.type !== 'firebaseToken' ||
-          typeof message.token !== 'string' ||
-          !message.token
-        ) {
-          return;
-        }
-
-        androidFirebaseToken = message.token;
-
-        await saveAndroidFirebaseToken();
-
-      } catch (error) {
-        console.error(
-          'Firebase token message error:',
-          error
-        );
-      }
+if (typeof window.AndroidFirebase?.postMessage === 'function') {
+  // AndroidX WebView message listeners expose onmessage.
+  window.AndroidFirebase.onmessage = async function(event) {
+    try {
+      const message = JSON.parse(event.data);
+      if (message.type !== 'firebaseToken' ||
+          typeof message.token !== 'string' || !message.token) return;
+      androidFirebaseToken = message.token;
+      await saveAndroidFirebaseToken();
+    } catch (error) {
+      console.error('Firebase token message error:', error);
     }
-  );
-
+  };
   requestAndroidFirebaseToken();
 }
 </script>
