@@ -12,6 +12,9 @@ import android.webkit.ValueCallback;
 import android.webkit.WebResourceRequest;
 import android.window.OnBackInvokedDispatcher;
 
+import com.google.firebase.messaging.FirebaseMessaging;
+import android.util.Log;
+
 public class MainActivity extends Activity {
 
     private WebView webView;
