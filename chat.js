@@ -1,88 +1,44 @@
-// ============================================================
-// COMMUNITY FOR ALL
-// CHAT.JS – CLEAN VERSION
-// Public community chat
-// ============================================================
 
-
-// ============================================================
-// STATE
-// ============================================================
+// COMMUNITY FOR ALL — CHAT.JS
+// Part 1 of 2
 
 let communityChatChannel = null;
 let communityChatReadsChannel = null;
-
 let communityChatOpen = false;
 let chatNotificationsEnabled = true;
-
 let pendingCommunityChatPhoto = null;
 let pendingCommunityChatPreviewUrl = null;
-
-
-// ============================================================
-// OPEN / CLOSE CHAT
-// ============================================================
 
 async function openCommunityChat() {
   if (!currentUser) {
     showLogin();
-
-    showMessage(
-      'loginMessage',
-      T(
-        'Pre vstup do chatu sa musíte prihlásiť.',
-        'Please sign in to access the chat.'
-      ),
-      'info'
-    );
-
+    showMessage('loginMessage',
+      T('Pre vstup do chatu sa musíte prihlásiť.',
+        'Please sign in to access the chat.'), 'info');
     return;
   }
 
   if (!communityChatOpen) {
-    history.pushState(
-      { communityChat: true },
-      '',
-      location.href
-    );
+    history.pushState({ communityChat: true }, '', location.href);
   }
-
   communityChatOpen = true;
-await supabaseClient
-  .from('user_profiles')
-  .update({
+
+  await supabaseClient.from('user_profiles').update({
     presence_status: 'online',
     last_active_at: new Date().toISOString()
-  })
-  .eq('user_id', currentUser.id);
-  const container =
-    document.querySelector('.container');
+  }).eq('user_id', currentUser.id);
 
-  const chatPage =
-    document.getElementById('chatPage');
+  const container = document.querySelector('.container');
+  const chatPage = document.getElementById('chatPage');
+  const dot = document.getElementById('communityChatUnreadDot');
 
-  const unreadDot =
-    document.getElementById(
-      'communityChatUnreadDot'
-    );
-
-  if (container) {
-    container.style.display = 'none';
-  }
-
-  if (chatPage) {
-    chatPage.style.display = 'flex';
-  }
-
-  if (unreadDot) {
-    unreadDot.style.display = 'none';
-  }
+  if (container) container.style.display = 'none';
+  if (chatPage) chatPage.style.display = 'flex';
+  if (dot) dot.style.display = 'none';
 
   setChatLanguage();
-
   await ensureChatSettings();
   await loadCommunityChat();
-
   await markAllCommunityChatMessagesRead();
   await markCommunityChatSeen();
 
@@ -91,114 +47,60 @@ await supabaseClient
 
   await refreshCommunityChatUnreadDot();
   await refreshCommunityChatReadReceipts();
-
-  setTimeout(
-    refreshCommunityChatReadReceipts,
-    300
-  );
+  setTimeout(refreshCommunityChatReadReceipts, 300);
 }
 
-
 function closeCommunityChat() {
-  if (
-    communityChatOpen &&
-    history.state?.communityChat
-  ) {
+  if (communityChatOpen && history.state?.communityChat) {
     history.back();
     return;
   }
-
   closeCommunityChatView();
 }
-
 
 async function closeCommunityChatView() {
   communityChatOpen = false;
 
   if (currentUser) {
-    await supabaseClient
-      .from('user_profiles')
-      .update({
-        presence_status: 'logged_in',
-        last_active_at: new Date().toISOString()
-      })
-      .eq('user_id', currentUser.id);
+    await supabaseClient.from('user_profiles').update({
+      presence_status: 'logged_in',
+      last_active_at: new Date().toISOString()
+    }).eq('user_id', currentUser.id);
   }
 
   clearPendingCommunityChatPhoto();
 
-  const chatPage =
-    document.getElementById('chatPage');
+  const chatPage = document.getElementById('chatPage');
+  const container = document.querySelector('.container');
 
-  const container =
-    document.querySelector('.container');
-
-  if (chatPage) {
-    chatPage.style.display = 'none';
-  }
-
-  if (container) {
-    container.style.display = '';
-  }
-
+  if (chatPage) chatPage.style.display = 'none';
+  if (container) container.style.display = '';
   showHome();
 }
 
-
-window.addEventListener(
-  'popstate',
-  () => {
-    if (communityChatOpen) {
-      closeCommunityChatView();
-    }
-  }
-);
-
-
-// ============================================================
-// CHAT SETTINGS
-// ============================================================
+window.addEventListener('popstate', () => {
+  if (communityChatOpen) closeCommunityChatView();
+});
 
 async function ensureChatSettings() {
-  if (!currentUser) {
-    return;
-  }
+  if (!currentUser) return;
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from('chat_user_settings')
-      .select('*')
-      .eq(
-        'user_id',
-        currentUser.id
-      )
-      .maybeSingle();
+  const { data, error } = await supabaseClient
+    .from('chat_user_settings')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .maybeSingle();
 
-  if (error) {
-    return;
-  }
+  if (error) return;
 
   if (!data) {
-    const {
-      error: insertError
-    } =
-      await supabaseClient
-        .from('chat_user_settings')
-        .insert({
-          user_id:
-            currentUser.id,
-
-          notifications_enabled:
-            true
-        });
-
-    if (!insertError) {
-      chatNotificationsEnabled = true;
-    }
-
+    const { error: insertError } = await supabaseClient
+      .from('chat_user_settings')
+      .insert({
+        user_id: currentUser.id,
+        notifications_enabled: true
+      });
+    if (!insertError) chatNotificationsEnabled = true;
   } else {
     chatNotificationsEnabled =
       data.notifications_enabled !== false;
@@ -207,584 +109,223 @@ async function ensureChatSettings() {
   updateChatNotificationToggle();
 }
 
-
 async function toggleChatNotifications() {
-  if (!currentUser) {
-    return;
-  }
+  if (!currentUser) return;
+  const nextValue = !chatNotificationsEnabled;
 
-  const nextValue =
-    !chatNotificationsEnabled;
+  const { error } = await supabaseClient
+    .from('chat_user_settings')
+    .update({
+      notifications_enabled: nextValue,
+      updated_at: new Date().toISOString()
+    })
+    .eq('user_id', currentUser.id);
 
-  const {
-    error
-  } =
-    await supabaseClient
-      .from('chat_user_settings')
-      .update({
-        notifications_enabled:
-          nextValue,
-
-        updated_at:
-          new Date().toISOString()
-      })
-      .eq(
-        'user_id',
-        currentUser.id
-      );
-
-  if (error) {
-    return;
-  }
-
-  chatNotificationsEnabled =
-    nextValue;
-
+  if (error) return;
+  chatNotificationsEnabled = nextValue;
   updateChatNotificationToggle();
 }
 
-
 function updateChatNotificationToggle() {
-  const button =
-    document.getElementById(
-      'chatNotificationToggle'
-    );
-
-  if (!button) {
-    return;
+  const button = document.getElementById('chatNotificationToggle');
+  if (button) {
+    button.classList.toggle('on', chatNotificationsEnabled);
   }
-
-  button.classList.toggle(
-    'on',
-    chatNotificationsEnabled
-  );
 }
 
-
-// ============================================================
-// LANGUAGE
-// ============================================================
-
 function setChatLanguage() {
-  const label =
-    document.getElementById(
-      'chatNotificationLabel'
-    );
+  const label = document.getElementById('chatNotificationLabel');
+  const input = document.getElementById('chatMessageInput');
+  const photo = document.querySelector('#chatPage .chat-photo-btn');
 
-  const input =
-    document.getElementById(
-      'chatMessageInput'
-    );
+  if (label) label.textContent = T('Upozornenia', 'Notifications');
+  if (input) input.placeholder =
+    T('Napíšte správu...', 'Write a message...');
+  if (photo) photo.title =
+    T('Pridať fotografiu', 'Add photo');
 
-  const deleteButtons =
-    document.querySelectorAll(
-      '#chatMessages .chat-delete-btn'
-    );
-
-  const photo =
-    document.querySelector(
-      '#chatPage .chat-photo-btn'
-    );
-
-  if (label) {
-    label.textContent =
-      T(
-        'Upozornenia',
-        'Notifications'
-      );
-  }
-
-  if (input) {
-    input.placeholder =
-      T(
-        'Napíšte správu...',
-        'Write a message...'
-      );
-  }
-
-  if (photo) {
-    photo.title =
-      T(
-        'Pridať fotografiu',
-        'Add photo'
-      );
-  }
-
-  deleteButtons.forEach(
-    button => {
-      button.title =
-        T(
-          'Vymazať',
-          'Delete'
-        );
-    }
-  );
+  document.querySelectorAll('#chatMessages .chat-delete-btn')
+    .forEach(button => {
+      button.title = T('Vymazať', 'Delete');
+    });
 
   refreshCommunityChatDisplayedLanguage();
 }
 
-
 function refreshCommunityChatDisplayedLanguage() {
-  const items =
-    document.querySelectorAll(
-      '#chatMessages .chat-message'
-    );
+  document.querySelectorAll('#chatMessages .chat-message')
+    .forEach(item => {
+      const rawDate = item.dataset.createdAt;
+      const time = item.querySelector('.chat-message-time');
 
-  items.forEach(
-    item => {
-      const rawDate =
-        item.dataset.createdAt;
-
-      const time =
-        item.querySelector(
-          '.chat-message-time'
-        );
-
-      if (
-        rawDate &&
-        time
-      ) {
-        time.textContent =
-          formatCommunityChatDate(
-            rawDate
-          );
+      if (rawDate && time) {
+        time.textContent = formatCommunityChatDate(rawDate);
       }
 
-      const name =
-        item.querySelector(
-          '.chat-message-name'
-        );
-
-      if (
-        name &&
-        item.dataset.own === 'true'
-      ) {
-        name.textContent =
-          T(
-            'Ja',
-            'Me'
-          );
+      const name = item.querySelector('.chat-message-name');
+      if (name && item.dataset.own === 'true') {
+        name.textContent = T('Ja', 'Me');
       }
-    }
-  );
+    });
 
   refreshCommunityChatReadReceipts();
 }
 
-
-// ============================================================
-// DATE / TIME
-// ============================================================
-
 function formatCommunityChatDate(value) {
-  const date =
-    new Date(value);
+  const date = new Date(value);
+  const skDays = ['NE', 'PO', 'UT', 'ST', 'ŠT', 'PI', 'SO'];
+  const enDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
 
-  const skDays = [
-    'NE',
-    'PO',
-    'UT',
-    'ST',
-    'ŠT',
-    'PI',
-    'SO'
-  ];
+  const day = currentLanguage === 'sk'
+    ? skDays[date.getDay()]
+    : enDays[date.getDay()];
 
-  const enDays = [
-    'SUN',
-    'MON',
-    'TUE',
-    'WED',
-    'THU',
-    'FRI',
-    'SAT'
-  ];
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
 
-  const day =
-    currentLanguage === 'sk'
-      ? skDays[
-          date.getDay()
-        ]
-      : enDays[
-          date.getDay()
-        ];
-
-  const hours =
-    String(
-      date.getHours()
-    ).padStart(
-      2,
-      '0'
-    );
-
-  const minutes =
-    String(
-      date.getMinutes()
-    ).padStart(
-      2,
-      '0'
-    );
-
-  if (
-    currentLanguage === 'sk'
-  ) {
-    return (
-      day +
-      ' • ' +
-      date.getDate() +
-      '.' +
-      (
-        date.getMonth() + 1
-      ) +
-      '.' +
-      date.getFullYear() +
-      ' • ' +
-      hours +
-      ':' +
-      minutes
-    );
+  if (currentLanguage === 'sk') {
+    return day + ' • ' + date.getDate() + '.' +
+      (date.getMonth() + 1) + '.' + date.getFullYear() +
+      ' • ' + hours + ':' + minutes;
   }
 
-  return (
-    day +
-    ' • ' +
-    String(
-      date.getDate()
-    ).padStart(
-      2,
-      '0'
-    ) +
-    '/' +
-    String(
-      date.getMonth() + 1
-    ).padStart(
-      2,
-      '0'
-    ) +
-    '/' +
-    date.getFullYear() +
-    ' • ' +
-    hours +
-    ':' +
-    minutes
-  );
+  return day + ' • ' +
+    String(date.getDate()).padStart(2, '0') + '/' +
+    String(date.getMonth() + 1).padStart(2, '0') + '/' +
+    date.getFullYear() + ' • ' + hours + ':' + minutes;
 }
 
-
-// ============================================================
-// LOAD PUBLIC CHAT
-// ============================================================
-
 async function loadCommunityChat() {
-  const box =
-    document.getElementById(
-      'chatMessages'
-    );
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
 
-  if (!box) {
-    return;
-  }
+  box.innerHTML = '<div class="loading">' +
+    T('Načítavam správy...', 'Loading messages...') + '</div>';
 
-  box.innerHTML =
-    '<div class="loading">' +
-    T(
-      'Načítavam správy...',
-      'Loading messages...'
-    ) +
-    '</div>';
+  const since = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
 
-  const since =
-    new Date(
-      Date.now() -
-      30 *
-      24 *
-      60 *
-      60 *
-      1000
-    ).toISOString();
-
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from('chat_messages')
-      .select('*')
-      .gte(
-        'created_at',
-        since
-      )
-      .order(
-        'created_at',
-        {
-          ascending: true
-        }
-      );
+  const { data, error } = await supabaseClient
+    .from('chat_messages')
+    .select('*')
+    .gte('created_at', since)
+    .order('created_at', { ascending: true });
 
   box.innerHTML = '';
 
   if (error) {
-    box.innerHTML =
-      '<div class="loading">' +
-      T(
-        'Správy sa nepodarilo načítať.',
-        'Messages could not be loaded.'
-      ) +
-      '</div>';
-
+    box.innerHTML = '<div class="loading">' +
+      T('Správy sa nepodarilo načítať.',
+        'Messages could not be loaded.') + '</div>';
     return;
   }
 
-    for (
-    const message
-    of data || []
-  ) {
-    const { data: senderProfile } =
-      await supabaseClient
-        .from('user_profiles')
-        .select('display_name,avatar_url')
-        .eq('user_id', message.user_id)
-        .maybeSingle();
+  for (const message of data || []) {
+    const { data: senderProfile } = await supabaseClient
+      .from('user_profiles')
+      .select('display_name,avatar_url')
+      .eq('user_id', message.user_id)
+      .maybeSingle();
 
-    message.sender_avatar_url =
-      senderProfile?.avatar_url || null;
-
-    renderCommunityChatMessage(
-      message
-    );
+    message.sender_avatar_url = senderProfile?.avatar_url || null;
+    renderCommunityChatMessage(message);
   }
-    scrollCommunityChatToBottom();
+
+  scrollCommunityChatToBottom();
 }
-function renderCommunityChatMessage(
-  message
-) {
-  if (!message?.id) {
-    return;
-  }
 
-  if (
-    document.getElementById(
-      'chat-message-' +
-      message.id
-    )
-  ) {
-    return;
-  }
+function renderCommunityChatMessage(message) {
+  if (!message?.id) return;
+  if (document.getElementById('chat-message-' + message.id)) return;
 
-  const box =
-    document.getElementById(
-      'chatMessages'
-    );
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
 
-  if (!box) {
-    return;
-  }
+  const ownMessage = message.user_id === currentUser?.id;
+  const item = document.createElement('div');
 
-  const ownMessage =
-    message.user_id ===
-    currentUser?.id;
+  item.id = 'chat-message-' + message.id;
+  item.className = 'chat-message' + (ownMessage ? ' mine' : '');
+  item.dataset.createdAt = message.created_at || '';
+  item.dataset.own = ownMessage ? 'true' : 'false';
 
-  const item =
-    document.createElement(
-      'div'
-    );
+  const senderHeader = document.createElement('div');
+  senderHeader.style.cssText =
+    'display:flex;align-items:center;gap:7px;';
 
-  item.id =
-    'chat-message-' +
-    message.id;
-
-  item.className =
-    'chat-message' +
-    (
-      ownMessage
-        ? ' mine'
-        : ''
-    );
-
-  item.dataset.createdAt =
-    message.created_at || '';
-
-  item.dataset.own =
-    ownMessage
-      ? 'true'
-      : 'false';
-
-
-  // ----------------------------------------------------------
-  // USER NAME
-  // ----------------------------------------------------------
-
-   // ----------------------------------------------------------
-  // USER NAME AND AVATAR
-  // ----------------------------------------------------------
-
-  const senderHeader =
-    document.createElement('div');
-
-  senderHeader.style.cssText = `
-    display:flex;
-    align-items:center;
-    gap:7px;
-  `;
-
-  const senderAvatar =
-    document.createElement('div');
-
-  senderAvatar.style.cssText = `
-    width:28px;
-    height:28px;
-    min-width:28px;
-    border-radius:50%;
-    overflow:hidden;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    background:#334155;
-    font-size:16px;
-  `;
+  const senderAvatar = document.createElement('div');
+  senderAvatar.style.cssText =
+    'width:28px;height:28px;min-width:28px;' +
+    'border-radius:50%;overflow:hidden;display:flex;' +
+    'align-items:center;justify-content:center;' +
+    'background:#334155;font-size:16px;';
 
   if (message.sender_avatar_url) {
-    const avatarImage =
-      document.createElement('img');
-
-    avatarImage.src =
-      message.sender_avatar_url;
-
+    const avatarImage = document.createElement('img');
+    avatarImage.src = message.sender_avatar_url;
     avatarImage.alt = '';
-
-    avatarImage.style.cssText = `
-      width:100%;
-      height:100%;
-      object-fit:cover;
-    `;
-
+    avatarImage.style.cssText =
+      'width:100%;height:100%;object-fit:cover;';
     avatarImage.onerror = () => {
       senderAvatar.textContent = '👤';
     };
-
     senderAvatar.appendChild(avatarImage);
   } else {
     senderAvatar.textContent = '👤';
   }
 
-  const name =
-    document.createElement('div');
-
-  name.className =
-    'chat-message-name';
-
-  name.textContent =
-    ownMessage
-      ? T('Ja', 'Me')
-      : (
-          message.user_name ||
-          T('Používateľ', 'User')
-        );
+  const name = document.createElement('div');
+  name.className = 'chat-message-name';
+  name.textContent = ownMessage
+    ? T('Ja', 'Me')
+    : (message.user_name || T('Používateľ', 'User'));
 
   senderHeader.appendChild(senderAvatar);
   senderHeader.appendChild(name);
   item.appendChild(senderHeader);
 
-
-  // ----------------------------------------------------------
-  // TEXT
-  // ----------------------------------------------------------
-
   if (message.message) {
-    const text =
-      document.createElement(
-        'div'
-      );
-
-    text.className =
-      'chat-message-text';
-
-    text.textContent =
-      message.message;
-
-    item.appendChild(
-      text
-    );
+    const text = document.createElement('div');
+    text.className = 'chat-message-text';
+    text.textContent = message.message;
+    item.appendChild(text);
   }
 
-
-  // ----------------------------------------------------------
-  // PHOTO
-  // ----------------------------------------------------------
-
-  if (
-    message.media_type ===
-      'image' &&
-    message.media_url
-  ) {
-    const photoHolder =
-      document.createElement(
-        'div'
-      );
-
-    photoHolder.className =
-      'chat-photo-holder';
-
-    item.appendChild(
-      photoHolder
-    );
-
-    loadCommunityChatPhoto(
-      message,
-      photoHolder
-    );
+  if (message.media_type === 'image' && message.media_url) {
+    const photoHolder = document.createElement('div');
+    photoHolder.className = 'chat-photo-holder';
+    item.appendChild(photoHolder);
+    loadCommunityChatPhoto(message, photoHolder);
   }
 
-
-  // ----------------------------------------------------------
-  // TIME
-  // ----------------------------------------------------------
-
-  const time =
-    document.createElement(
-      'div'
-    );
-
-  time.className =
-    'chat-message-time';
-
-  time.textContent =
-    formatCommunityChatDate(
-      message.created_at
-    );
-
-  item.appendChild(
-    time
-  );
-
-
-  // ----------------------------------------------------------
-  // READ RECEIPT HOLDER
-  // ----------------------------------------------------------
+  const time = document.createElement('div');
+  time.className = 'chat-message-time';
+  time.textContent = formatCommunityChatDate(message.created_at);
+  item.appendChild(time);
 
   if (ownMessage) {
-    const receipt =
-      document.createElement(
-        'div'
-      );
+    const receipt = document.createElement('div');
+    receipt.className = 'chat-read-receipt';
+    receipt.style.display = 'none';
+    item.appendChild(receipt);
 
-    receipt.className =
-      'chat-read-receipt';
-
-    receipt.style.display =
-      'none';
-
-    item.appendChild(
-      receipt
-    );
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.className = 'chat-delete-btn';
+    deleteButton.textContent = '🗑️';
+    deleteButton.title = T('Vymazať', 'Delete');
+    deleteButton.addEventListener('click', event => {
+      event.stopPropagation();
+      deleteOwnCommunityChatMessage(message);
+    });
+    item.appendChild(deleteButton);
   }
 
+  box.appendChild(item);
+}
 
-  // ----------------------------------------------------------
-  // DELETE OWN MESSAGE / PHOTO
-  // ----------------------------------------------------------
-
-  function scrollCommunityChatToBottom() {
+function scrollCommunityChatToBottom() {
   const box = document.getElementById('chatMessages');
   if (!box) return;
 
@@ -804,1282 +345,481 @@ function renderCommunityChatMessage(
     }
   });
 }
-        'Vymazať',
-        'Delete'
-      );
 
-    deleteButton.addEventListener(
-      'click',
-      event => {
-        event.stopPropagation();
+async function sendCommunityChatText(text) {
+  if (!currentUser || !text) return false;
 
-        deleteOwnCommunityChatMessage(
-          message
-        );
-      }
-    );
-
-    item.appendChild(
-      deleteButton
-    );
-  }
-
-  box.appendChild(
-    item
-  );
-}
-
-
-// ============================================================
-// SCROLL
-// ============================================================
-
-function scrollCommunityChatToBottom() {
-  const box =
-    document.getElementById(
-      'chatMessages'
-    );
-
-  if (!box) {
-    return;
-  }
-
-  requestAnimationFrame(
-    () => {
-      box.scrollTop =
-        box.scrollHeight;
-    }
-  );
-}
-
-
-// ============================================================
-// SEND TEXT MESSAGE
-// ============================================================
-
-async function sendCommunityChatText(
-  text
-) {
-  if (
-    !currentUser ||
-    !text
-  ) {
-    return false;
-  }
-
-  const {
-    error
-  } =
-    await supabaseClient
-      .from('chat_messages')
-      .insert({
-        user_id:
-          currentUser.id,
-
-        user_name:
-          getUsername(
-            currentUser
-          ) || 'User',
-
-        message:
-          text,
-
-        media_type:
-          null,
-
-        media_url:
-          null
-      });
+  const { error } = await supabaseClient
+    .from('chat_messages')
+    .insert({
+      user_id: currentUser.id,
+      user_name: getUsername(currentUser) || 'User',
+      message: text,
+      media_type: null,
+      media_url: null
+    });
 
   if (error) {
-    alert(
-      T(
-        'Správu sa nepodarilo odoslať.',
-        'The message could not be sent.'
-      )
-    );
-
+    alert(T('Správu sa nepodarilo odoslať.',
+      'The message could not be sent.'));
     return false;
   }
 
   return true;
 }
 
-
-// ============================================================
-// MAIN SEND BUTTON
-// Text + prepared photo
-// ============================================================
-
 async function sendCommunityChatMessage() {
-  if (!currentUser) {
-    return;
-  }
+  if (!currentUser) return;
 
-  const input =
-    document.getElementById(
-      'chatMessageInput'
-    );
+  const input = document.getElementById('chatMessageInput');
+  const button = document.getElementById('chatSendBtn');
+  const text = input?.value?.trim() || '';
+  const photo = pendingCommunityChatPhoto;
 
-  const button =
-    document.getElementById(
-      'chatSendBtn'
-    );
-
-  const text =
-    input?.value
-      ?.trim() || '';
-
-  const photo =
-    pendingCommunityChatPhoto;
-
-  if (
-    !text &&
-    !photo
-  ) {
-    return;
-  }
-
-  if (button) {
-    button.disabled = true;
-  }
+  if (!text && !photo) return;
+  if (button) button.disabled = true;
 
   try {
     if (text) {
-      const sent =
-        await sendCommunityChatText(
-          text
-        );
-
-      if (!sent) {
-        return;
-      }
-
-      if (input) {
-        input.value = '';
-      }
+      const sent = await sendCommunityChatText(text);
+      if (!sent) return;
+      if (input) input.value = '';
     }
 
     if (photo) {
-      const sent =
-        await sendCommunityChatPhoto(
-          photo
-        );
-
-      if (sent) {
-        clearPendingCommunityChatPhoto();
-      }
+      const sent = await sendCommunityChatPhoto(photo);
+      if (sent) clearPendingCommunityChatPhoto();
     }
-
   } finally {
-    if (button) {
-      button.disabled = false;
-    }
+    if (button) button.disabled = false;
   }
 }
 
-
-// ============================================================
-// PHOTO COMPRESSION
-// Mobile-compatible implementation
-// ============================================================
-
-async function compressCommunityChatPhoto(
-  file
-) {
-  const objectUrl =
-    URL.createObjectURL(
-      file
-    );
+async function compressCommunityChatPhoto(file) {
+  const objectUrl = URL.createObjectURL(file);
 
   try {
-    const image =
-      await new Promise(
-        (
-          resolve,
-          reject
-        ) => {
-          const img =
-            new Image();
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error('IMAGE_LOAD_FAILED'));
+      img.src = objectUrl;
+    });
 
-          img.onload =
-            () =>
-              resolve(img);
+    const maxSide = 1600;
+    let width = image.naturalWidth || image.width;
+    let height = image.naturalHeight || image.height;
 
-          img.onerror =
-            () =>
-              reject(
-                new Error(
-                  'IMAGE_LOAD_FAILED'
-                )
-              );
-
-          img.src =
-            objectUrl;
-        }
-      );
-
-    const maxSide =
-      1600;
-
-    let width =
-      image.naturalWidth ||
-      image.width;
-
-    let height =
-      image.naturalHeight ||
-      image.height;
-
-    if (
-      !width ||
-      !height
-    ) {
-      throw new Error(
-        'INVALID_IMAGE_SIZE'
-      );
+    if (!width || !height) {
+      throw new Error('INVALID_IMAGE_SIZE');
     }
 
-    if (
-      width > maxSide ||
-      height > maxSide
-    ) {
-      const scale =
-        maxSide /
-        Math.max(
-          width,
-          height
-        );
-
-      width =
-        Math.round(
-          width * scale
-        );
-
-      height =
-        Math.round(
-          height * scale
-        );
+    if (width > maxSide || height > maxSide) {
+      const scale = maxSide / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
     }
 
-    const canvas =
-      document.createElement(
-        'canvas'
-      );
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
 
-    canvas.width =
-      width;
+    const context = canvas.getContext('2d');
+    if (!context) throw new Error('CANVAS_NOT_AVAILABLE');
 
-    canvas.height =
-      height;
+    context.drawImage(image, 0, 0, width, height);
 
-    const context =
-      canvas.getContext(
-        '2d'
-      );
+    let quality = 0.85;
+    let blob = await new Promise(resolve => {
+      canvas.toBlob(resolve, 'image/jpeg', quality);
+    });
 
-    if (!context) {
-      throw new Error(
-        'CANVAS_NOT_AVAILABLE'
-      );
-    }
-
-    context.drawImage(
-      image,
-      0,
-      0,
-      width,
-      height
-    );
-
-    let quality =
-      0.85;
-
-    let blob =
-      await new Promise(
-        resolve => {
-          canvas.toBlob(
-            resolve,
-            'image/jpeg',
-            quality
-          );
-        }
-      );
-
-    while (
-      blob &&
-      blob.size >
-        500 * 1024 &&
-      quality > 0.50
-    ) {
+    while (blob && blob.size > 500 * 1024 && quality > 0.50) {
       quality -= 0.05;
-
-      blob =
-        await new Promise(
-          resolve => {
-            canvas.toBlob(
-              resolve,
-              'image/jpeg',
-              quality
-            );
-          }
-        );
+      blob = await new Promise(resolve => {
+        canvas.toBlob(resolve, 'image/jpeg', quality);
+      });
     }
 
-    if (!blob) {
-      throw new Error(
-        'PHOTO_COMPRESSION_FAILED'
-      );
-    }
-
+    if (!blob) throw new Error('PHOTO_COMPRESSION_FAILED');
     return blob;
-
   } finally {
-    URL.revokeObjectURL(
-      objectUrl
-    );
+    URL.revokeObjectURL(objectUrl);
   }
 }
-// ============================================================
-// SEND PHOTO
-// ============================================================
 
-async function sendCommunityChatPhoto(
-  file
-) {
-  if (
-    !currentUser ||
-    !file
-  ) {
+async function sendCommunityChatPhoto(file) {
+  if (!currentUser || !file) return false;
+
+  if (!file.type || !file.type.startsWith('image/')) {
+    alert(T('Môžete odosielať iba fotografie.',
+      'You can only send photos.'));
     return false;
   }
 
-  if (
-    !file.type ||
-    !file.type.startsWith(
-      'image/'
-    )
-  ) {
-    alert(
-      T(
-        'Môžete odosielať iba fotografie.',
-        'You can only send photos.'
-      )
-    );
+  const { data: allowed, error: limitError } =
+    await supabaseClient.rpc('can_upload_chat_photo');
 
-    return false;
-  }
-
-  const {
-    data: allowed,
-    error: limitError
-  } =
-    await supabaseClient
-      .rpc(
-        'can_upload_chat_photo'
-      );
-
-  if (
-    limitError ||
-    allowed !== true
-  ) {
-    alert(
-      T(
-        'Dosiahli ste limit fotografií: maximálne 20 za 24 hodín a 50 za 30 dní.',
-        'You have reached the photo limit: maximum 20 per 24 hours and 50 per 30 days.'
-      )
-    );
-
+  if (limitError || allowed !== true) {
+    alert(T(
+      'Dosiahli ste limit fotografií: maximálne 20 za 24 hodín a 50 za 30 dní.',
+      'You have reached the photo limit: maximum 20 per 24 hours and 50 per 30 days.'
+    ));
     return false;
   }
 
   let photo;
-
   try {
-    photo =
-      await compressCommunityChatPhoto(
-        file
-      );
-
+    photo = await compressCommunityChatPhoto(file);
   } catch (error) {
-    alert(
-      T(
-        'Fotografiu sa nepodarilo spracovať.',
-        'The photo could not be processed.'
-      )
-    );
-
+    alert(T('Fotografiu sa nepodarilo spracovať.',
+      'The photo could not be processed.'));
     return false;
   }
 
-  if (!photo) {
-    return false;
-  }
+  if (!photo) return false;
 
-  const path =
-    currentUser.id +
-    '/' +
-    Date.now() +
-    '-' +
-    Math.random()
-      .toString(36)
-      .slice(2) +
-    '.jpg';
+  const path = currentUser.id + '/' + Date.now() + '-' +
+    Math.random().toString(36).slice(2) + '.jpg';
 
-  const {
-    error: uploadError
-  } =
-    await supabaseClient
-      .storage
-      .from(
-        'chat-media'
-      )
-      .upload(
-        path,
-        photo,
-        {
-          contentType:
-            'image/jpeg',
-
-          upsert:
-            false
-        }
-      );
+  const { error: uploadError } = await supabaseClient
+    .storage.from('chat-media')
+    .upload(path, photo, {
+      contentType: 'image/jpeg',
+      upsert: false
+    });
 
   if (uploadError) {
-    alert(
-      T(
-        'Fotografiu sa nepodarilo nahrať.',
-        'The photo could not be uploaded.'
-      )
-    );
-
+    alert(T('Fotografiu sa nepodarilo nahrať.',
+      'The photo could not be uploaded.'));
     return false;
   }
 
-  const {
-    error: messageError
-  } =
-    await supabaseClient
-      .from(
-        'chat_messages'
-      )
-      .insert({
-        user_id:
-          currentUser.id,
-
-        user_name:
-          getUsername(
-            currentUser
-          ) || 'User',
-
-        message:
-          null,
-
-        media_type:
-          'image',
-
-        media_url:
-          path
-      });
+  const { error: messageError } = await supabaseClient
+    .from('chat_messages')
+    .insert({
+      user_id: currentUser.id,
+      user_name: getUsername(currentUser) || 'User',
+      message: null,
+      media_type: 'image',
+      media_url: path
+    });
 
   if (messageError) {
-    await supabaseClient
-      .storage
-      .from(
-        'chat-media'
-      )
-      .remove([
-        path
-      ]);
-
-    alert(
-      T(
-        'Fotografiu sa nepodarilo odoslať.',
-        'The photo could not be sent.'
-      )
-    );
-
+    await supabaseClient.storage
+      .from('chat-media').remove([path]);
+    alert(T('Fotografiu sa nepodarilo odoslať.',
+      'The photo could not be sent.'));
     return false;
   }
 
   return true;
 }
 
+async function loadCommunityChatPhoto(message, container) {
+  if (!message?.media_url ||
+      message.media_type !== 'image' ||
+      !container) return;
 
-// ============================================================
-// LOAD PHOTO FROM STORAGE
-// ============================================================
+  const { data, error } = await supabaseClient.storage
+    .from('chat-media')
+    .createSignedUrl(message.media_url, 3600);
 
-async function loadCommunityChatPhoto(
-  message,
-  container
-) {
-  if (
-    !message?.media_url ||
-    message.media_type !==
-      'image' ||
-    !container
-  ) {
-    return;
-  }
+  if (error || !data?.signedUrl) return;
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .storage
-      .from(
-        'chat-media'
-      )
-      .createSignedUrl(
-        message.media_url,
-        3600
-      );
+  const image = document.createElement('img');
+  image.src = data.signedUrl;
+  image.alt = T('Fotografia v chate', 'Chat photo');
+  image.loading = 'lazy';
+  image.className = 'chat-photo';
 
-  if (
-    error ||
-    !data?.signedUrl
-  ) {
-    return;
-  }
+  image.addEventListener('click', () => {
+    openCommunityChatPhoto(data.signedUrl);
+  });
 
-  const image =
-    document.createElement(
-      'img'
-    );
-
-  image.src =
-    data.signedUrl;
-
-  image.alt =
-    T(
-      'Fotografia v chate',
-      'Chat photo'
-    );
-
-  image.loading =
-    'lazy';
-
-  image.className =
-    'chat-photo';
-
-  image.addEventListener(
-    'click',
-    () => {
-      openCommunityChatPhoto(
-        data.signedUrl
-      );
-    }
-  );
-
-  container.appendChild(
-    image
-  );
+  container.appendChild(image);
 }
 
+function openCommunityChatPhoto(url) {
+  if (!url) return;
 
-// ============================================================
-// FULLSCREEN PHOTO VIEWER
-// ============================================================
-
-function openCommunityChatPhoto(
-  url
-) {
-  if (!url) {
-    return;
-  }
-
-  let viewer =
-    document.getElementById(
-      'chatPhotoViewer'
-    );
+  let viewer = document.getElementById('chatPhotoViewer');
 
   if (!viewer) {
-    viewer =
-      document.createElement(
-        'div'
-      );
-
-    viewer.id =
-      'chatPhotoViewer';
-
+    viewer = document.createElement('div');
+    viewer.id = 'chatPhotoViewer';
     viewer.innerHTML =
       '<button type="button" id="chatPhotoViewerClose">×</button>' +
       '<img id="chatPhotoViewerImage" alt="">';
 
-    document.body.appendChild(
-      viewer
-    );
+    document.body.appendChild(viewer);
 
     const closeButton =
-      document.getElementById(
-        'chatPhotoViewerClose'
-      );
+      document.getElementById('chatPhotoViewerClose');
 
     if (closeButton) {
-      closeButton.addEventListener(
-        'click',
-        closeCommunityChatPhoto
-      );
+      closeButton.addEventListener('click', closeCommunityChatPhoto);
     }
 
-    viewer.addEventListener(
-      'click',
-      event => {
-        if (
-          event.target === viewer
-        ) {
-          closeCommunityChatPhoto();
-        }
-      }
-    );
+    viewer.addEventListener('click', event => {
+      if (event.target === viewer) closeCommunityChatPhoto();
+    });
   }
 
-  const image =
-    document.getElementById(
-      'chatPhotoViewerImage'
-    );
-
-  if (image) {
-    image.src =
-      url;
-  }
-
-  viewer.style.display =
-    'flex';
+  const image = document.getElementById('chatPhotoViewerImage');
+  if (image) image.src = url;
+  viewer.style.display = 'flex';
 }
-
 
 function closeCommunityChatPhoto() {
-  const viewer =
-    document.getElementById(
-      'chatPhotoViewer'
-    );
+  const viewer = document.getElementById('chatPhotoViewer');
+  if (!viewer) return;
 
-  if (!viewer) {
-    return;
-  }
-
-  viewer.style.display =
-    'none';
-
-  const image =
-    document.getElementById(
-      'chatPhotoViewerImage'
-    );
-
-  if (image) {
-    image.removeAttribute(
-      'src'
-    );
-  }
+  viewer.style.display = 'none';
+  const image = document.getElementById('chatPhotoViewerImage');
+  if (image) image.removeAttribute('src');
 }
 
+function showPendingCommunityChatPhoto(file) {
+  if (!file) return;
+  pendingCommunityChatPhoto = file;
 
-// ============================================================
-// PHOTO PREVIEW BEFORE SEND
-// ============================================================
-
-function showPendingCommunityChatPhoto(
-  file
-) {
-  if (!file) {
-    return;
+  if (pendingCommunityChatPreviewUrl) {
+    URL.revokeObjectURL(pendingCommunityChatPreviewUrl);
   }
 
-  pendingCommunityChatPhoto =
-    file;
+  pendingCommunityChatPreviewUrl = URL.createObjectURL(file);
 
-  if (
-    pendingCommunityChatPreviewUrl
-  ) {
-    URL.revokeObjectURL(
-      pendingCommunityChatPreviewUrl
-    );
-  }
-
-  pendingCommunityChatPreviewUrl =
-    URL.createObjectURL(
-      file
-    );
-
-  let preview =
-    document.getElementById(
-      'chatPendingPhoto'
-    );
+  let preview = document.getElementById('chatPendingPhoto');
 
   if (!preview) {
-    preview =
-      document.createElement(
-        'div'
-      );
-
-    preview.id =
-      'chatPendingPhoto';
-
+    preview = document.createElement('div');
+    preview.id = 'chatPendingPhoto';
     preview.style.cssText =
-      'position:relative;' +
-      'max-width:120px;' +
-      'margin:0 0 6px 0;';
+      'position:relative;max-width:120px;margin:0 0 6px 0;';
 
-    const image =
-      document.createElement(
-        'img'
-      );
-
-    image.id =
-      'chatPendingPhotoImage';
-
+    const image = document.createElement('img');
+    image.id = 'chatPendingPhotoImage';
     image.style.cssText =
-      'display:block;' +
-      'max-width:120px;' +
-      'max-height:100px;' +
+      'display:block;max-width:120px;max-height:100px;' +
       'border-radius:10px;';
 
-    const removeButton =
-      document.createElement(
-        'button'
-      );
-
-    removeButton.type =
-      'button';
-
-    removeButton.id =
-      'chatPendingPhotoRemove';
-
-    removeButton.textContent =
-      '×';
-
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.id = 'chatPendingPhotoRemove';
+    removeButton.textContent = '×';
     removeButton.style.cssText =
-      'position:absolute;' +
-      'right:-7px;' +
-      'top:-7px;' +
-      'width:25px;' +
-      'height:25px;' +
-      'border:0;' +
-      'border-radius:50%;' +
-      'background:#ff7417;' +
-      'color:white;' +
-      'font-size:18px;' +
-      'line-height:23px;' +
-      'padding:0;';
+      'position:absolute;right:-7px;top:-7px;width:25px;' +
+      'height:25px;border:0;border-radius:50%;' +
+      'background:#ff7417;color:white;font-size:18px;' +
+      'line-height:23px;padding:0;';
 
     removeButton.addEventListener(
-      'click',
-      clearPendingCommunityChatPhoto
+      'click', clearPendingCommunityChatPhoto
     );
 
-    preview.appendChild(
-      image
-    );
+    preview.appendChild(image);
+    preview.appendChild(removeButton);
 
-    preview.appendChild(
-      removeButton
-    );
+    const compose = document.querySelector('#chatPage .chat-compose');
+    const input = document.getElementById('chatMessageInput');
 
-    const compose =
-      document.querySelector(
-        '#chatPage .chat-compose'
-      );
-
-    const input =
-      document.getElementById(
-        'chatMessageInput'
-      );
-
-    if (
-      compose &&
-      input
-    ) {
-      compose.insertBefore(
-        preview,
-        input
-      );
+    if (compose && input) {
+      compose.insertBefore(preview, input);
     }
   }
 
   const previewImage =
-    document.getElementById(
-      'chatPendingPhotoImage'
-    );
+    document.getElementById('chatPendingPhotoImage');
 
   if (previewImage) {
-    previewImage.src =
-      pendingCommunityChatPreviewUrl;
+    previewImage.src = pendingCommunityChatPreviewUrl;
   }
 
-  preview.style.display =
-    'block';
+  preview.style.display = 'block';
 }
-
 
 function clearPendingCommunityChatPhoto() {
-  pendingCommunityChatPhoto =
-    null;
+  pendingCommunityChatPhoto = null;
 
-  if (
-    pendingCommunityChatPreviewUrl
-  ) {
-    URL.revokeObjectURL(
-      pendingCommunityChatPreviewUrl
-    );
-
-    pendingCommunityChatPreviewUrl =
-      null;
+  if (pendingCommunityChatPreviewUrl) {
+    URL.revokeObjectURL(pendingCommunityChatPreviewUrl);
+    pendingCommunityChatPreviewUrl = null;
   }
 
-  const preview =
-    document.getElementById(
-      'chatPendingPhoto'
-    );
+  const preview = document.getElementById('chatPendingPhoto');
+  if (preview) preview.style.display = 'none';
 
-  if (preview) {
-    preview.style.display =
-      'none';
-  }
-
-  const photoInput =
-    document.getElementById(
-      'chatPhotoInput'
-    );
-
-  if (photoInput) {
-    photoInput.value =
-      '';
-  }
+  const photoInput = document.getElementById('chatPhotoInput');
+  if (photoInput) photoInput.value = '';
 }
-
-
-// ============================================================
-// PHOTO INPUT
-// One listener only
-// ============================================================
 
 function initialiseCommunityChatPhotoInput() {
-  const photoInput =
-    document.getElementById(
-      'chatPhotoInput'
-    );
-
+  const photoInput = document.getElementById('chatPhotoInput');
   const photoButton =
-    document.querySelector(
-      '#chatPage .chat-photo-btn'
-    );
+    document.querySelector('#chatPage .chat-photo-btn');
 
-  if (
-    photoInput &&
-    photoInput.dataset.chatReady !==
-      'true'
-  ) {
-    photoInput.dataset.chatReady =
-      'true';
-
-    photoInput.addEventListener(
-      'change',
-      event => {
-        const file =
-          event.target.files?.[0];
-
-        if (file) {
-          showPendingCommunityChatPhoto(
-            file
-          );
-        }
-      }
-    );
+  if (photoInput && photoInput.dataset.chatReady !== 'true') {
+    photoInput.dataset.chatReady = 'true';
+    photoInput.addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      if (file) showPendingCommunityChatPhoto(file);
+    });
   }
 
-  if (
-    photoButton &&
-    photoButton.dataset.chatReady !==
-      'true'
-  ) {
-    photoButton.dataset.chatReady =
-      'true';
-
-    photoButton.addEventListener(
-      'click',
-      event => {
-        event.preventDefault();
-
-        if (photoInput) {
-          photoInput.click();
-        }
-      }
-    );
+  if (photoButton && photoButton.dataset.chatReady !== 'true') {
+    photoButton.dataset.chatReady = 'true';
+    photoButton.addEventListener('click', event => {
+      event.preventDefault();
+      if (photoInput) photoInput.click();
+    });
   }
 }
 
+// COMMUNITY FOR ALL — CHAT.JS
+// Part 2 of 2
 
-// ============================================================
-// DELETE OWN MESSAGE / PHOTO
-// ============================================================
+async function deleteOwnCommunityChatMessage(message) {
+  if (!currentUser || !message ||
+      message.user_id !== currentUser.id) return;
 
-async function deleteOwnCommunityChatMessage(
-  message
-) {
-  if (
-    !currentUser ||
-    !message ||
-    message.user_id !==
-      currentUser.id
-  ) {
-    return;
-  }
+  const question = message.media_type === 'image'
+    ? T('Naozaj chcete vymazať túto fotografiu?',
+        'Do you really want to delete this photo?')
+    : T('Naozaj chcete vymazať túto správu?',
+        'Do you really want to delete this message?');
 
-  const question =
-    message.media_type ===
-      'image'
-      ? T(
-          'Naozaj chcete vymazať túto fotografiu?',
-          'Do you really want to delete this photo?'
-        )
-      : T(
-          'Naozaj chcete vymazať túto správu?',
-          'Do you really want to delete this message?'
-        );
+  if (!confirm(question)) return;
 
-  if (
-    !confirm(question)
-  ) {
-    return;
-  }
-
-  if (
-    message.media_type ===
-      'image' &&
-    message.media_url
-  ) {
-    const {
-      error: storageError
-    } =
-      await supabaseClient
-        .storage
-        .from(
-          'chat-media'
-        )
-        .remove([
-          message.media_url
-        ]);
+  if (message.media_type === 'image' && message.media_url) {
+    const { error: storageError } = await supabaseClient
+      .storage.from('chat-media')
+      .remove([message.media_url]);
 
     if (storageError) {
-      alert(
-        T(
-          'Fotografiu sa nepodarilo vymazať.',
-          'The photo could not be deleted.'
-        )
-      );
-
+      alert(T('Fotografiu sa nepodarilo vymazať.',
+        'The photo could not be deleted.'));
       return;
     }
   }
 
-  const {
-    error
-  } =
-    await supabaseClient
-      .from(
-        'chat_messages'
-      )
-      .delete()
-      .eq(
-        'id',
-        message.id
-      )
-      .eq(
-        'user_id',
-        currentUser.id
-      );
+  const { error } = await supabaseClient
+    .from('chat_messages')
+    .delete()
+    .eq('id', message.id)
+    .eq('user_id', currentUser.id);
 
   if (error) {
-    alert(
-      T(
-        'Správu sa nepodarilo vymazať.',
-        'The message could not be deleted.'
-      )
-    );
-
+    alert(T('Správu sa nepodarilo vymazať.',
+      'The message could not be deleted.'));
     return;
   }
 
-  const item =
-    document.getElementById(
-      'chat-message-' +
-      message.id
-    );
-
-  if (item) {
-    item.remove();
-  }
+  const item = document.getElementById(
+    'chat-message-' + message.id
+  );
+  if (item) item.remove();
 }
-
-
-// ============================================================
-// 30-DAY RETENTION INFORMATION
-// ============================================================
 
 function addCommunityChatRetentionInfo() {
-  const compose =
-    document.querySelector(
-      '#chatPage .chat-compose'
-    );
+  const compose = document.querySelector('#chatPage .chat-compose');
 
-  if (
-    !compose ||
-    document.getElementById(
-      'chatRetentionInfo'
-    )
-  ) {
+  if (!compose || document.getElementById('chatRetentionInfo')) {
     return;
   }
 
-  const info =
-    document.createElement(
-      'button'
-    );
+  const info = document.createElement('button');
+  info.id = 'chatRetentionInfo';
+  info.type = 'button';
+  info.className = 'chat-retention-info';
+  info.textContent = 'ⓘ';
+  info.title = T('Informácie', 'Information');
 
-  info.id =
-    'chatRetentionInfo';
+  info.addEventListener('click', () => {
+    alert(T(
+      'Správy a fotografie v chate sa automaticky vymažú po 30 dňoch.',
+      'Chat messages and photos are automatically deleted after 30 days.'
+    ));
+  });
 
-  info.type =
-    'button';
-
-  info.className =
-    'chat-retention-info';
-
-  info.textContent =
-    'ⓘ';
-
-  info.title =
-    T(
-      'Informácie',
-      'Information'
-    );
-
-  info.addEventListener(
-    'click',
-    () => {
-      alert(
-        T(
-          'Správy a fotografie v chate sa automaticky vymažú po 30 dňoch.',
-          'Chat messages and photos are automatically deleted after 30 days.'
-        )
-      );
-    }
-  );
-
-  compose.appendChild(
-    info
-  );
+  compose.appendChild(info);
 }
-
-
-// ============================================================
-// MARK CHAT SEEN
-// ============================================================
 
 async function markCommunityChatSeen() {
-  if (!currentUser) {
-    return;
-  }
+  if (!currentUser) return;
 
-  await supabaseClient
-    .from(
-      'chat_user_settings'
-    )
+  await supabaseClient.from('chat_user_settings')
     .update({
-      last_seen_at:
-        new Date().toISOString(),
-
-      updated_at:
-        new Date().toISOString()
+      last_seen_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     })
-    .eq(
-      'user_id',
-      currentUser.id
-    );
+    .eq('user_id', currentUser.id);
 }
-
-
-// ============================================================
-// UNREAD DOT
-// ============================================================
 
 async function refreshCommunityChatUnreadDot() {
-  const dot =
-    document.getElementById(
-      'communityChatUnreadDot'
-    );
-
-  if (!dot) {
-    return;
-  }
+  const dot = document.getElementById('communityChatUnreadDot');
+  if (!dot) return;
 
   if (!currentUser) {
-    dot.style.display =
-      'none';
-
+    dot.style.display = 'none';
     return;
   }
 
-  const {
-    data: settings,
-    error: settingsError
-  } =
+  const { data: settings, error: settingsError } =
     await supabaseClient
-      .from(
-        'chat_user_settings'
-      )
-      .select(
-        'last_seen_at'
-      )
-      .eq(
-        'user_id',
-        currentUser.id
-      )
+      .from('chat_user_settings')
+      .select('last_seen_at')
+      .eq('user_id', currentUser.id)
       .maybeSingle();
 
-  if (settingsError) {
-    return;
-  }
+  if (settingsError) return;
 
-  const lastSeen =
-    settings?.last_seen_at ||
+  const lastSeen = settings?.last_seen_at ||
     '1970-01-01T00:00:00.000Z';
 
-  const {
-    count,
-    error
-  } =
-    await supabaseClient
-      .from(
-        'chat_messages'
-      )
-      .select(
-        'id',
-        {
-          count:
-            'exact',
+  const { count, error } = await supabaseClient
+    .from('chat_messages')
+    .select('id', { count: 'exact', head: true })
+    .neq('user_id', currentUser.id)
+    .gt('created_at', lastSeen);
 
-          head:
-            true
-        }
-      )
-      .neq(
-        'user_id',
-        currentUser.id
-      )
-      .gt(
-        'created_at',
-        lastSeen
-      );
-
-  if (error) {
-    return;
-  }
-
-  dot.style.display =
-    count > 0
-      ? 'block'
-      : 'none';
+  if (error) return;
+  dot.style.display = count > 0 ? 'block' : 'none';
 }
-
-
-// ============================================================
-// STORE READ RECEIPTS
-// ============================================================
 
 async function markAllCommunityChatMessagesRead() {
-  if (
-    !currentUser ||
-    !communityChatOpen
-  ) {
-    return;
-  }
+  if (!currentUser || !communityChatOpen) return;
 
-  const since =
-    new Date(
-      Date.now() -
-      30 *
-      24 *
-      60 *
-      60 *
-      1000
-    ).toISOString();
+  const since = new Date(
+    Date.now() - 30 * 24 * 60 * 60 * 1000
+  ).toISOString();
 
-  const {
-    data: messages,
-    error
-  } =
-    await supabaseClient
-      .from(
-        'chat_messages'
-      )
-      .select(
-        'id,user_id'
-      )
-      .neq(
-        'user_id',
-        currentUser.id
-      )
-      .gte(
-        'created_at',
-        since
-      );
+  const { data: messages, error } = await supabaseClient
+    .from('chat_messages')
+    .select('id,user_id')
+    .neq('user_id', currentUser.id)
+    .gte('created_at', since);
 
-  if (
-    error ||
-    !messages?.length
-  ) {
-    return;
-  }
+  if (error || !messages?.length) return;
 
-  const readAt =
-    new Date().toISOString();
+  const readAt = new Date().toISOString();
 
-  const rows =
-    messages.map(
-      message => ({
-        message_id:
-          message.id,
-
-        user_id:
-          currentUser.id,
-
-        user_name:
-          getUsername(
-            currentUser
-          ) || 'User',
-
-        read_at:
-          readAt
-      })
-    );
+  const rows = messages.map(message => ({
+    message_id: message.id,
+    user_id: currentUser.id,
+    user_name: getUsername(currentUser) || 'User',
+    read_at: readAt
+  }));
 
   await supabaseClient
-    .from(
-      'chat_message_reads'
-    )
-    .upsert(
-      rows,
-      {
-        onConflict:
-          'message_id,user_id'
-      }
-    );
+    .from('chat_message_reads')
+    .upsert(rows, {
+      onConflict: 'message_id,user_id'
+    });
 }
-// ============================================================
-// DISPLAY READ RECEIPTS
-// ============================================================
 
 async function refreshCommunityChatReadReceipts() {
-  if (
-    !currentUser ||
-    !communityChatOpen
-  ) {
-    return;
-  }
+  if (!currentUser || !communityChatOpen) return;
 
   const ownItems = [
     ...document.querySelectorAll(
@@ -2087,527 +827,266 @@ async function refreshCommunityChatReadReceipts() {
     )
   ];
 
-  if (!ownItems.length) {
-    return;
-  }
+  if (!ownItems.length) return;
 
-  const messageIds =
-    ownItems
-      .map(
-        item =>
-          Number(
-            item.id.replace(
-              'chat-message-',
-              ''
-            )
-          )
-      )
-      .filter(Boolean);
+  const messageIds = ownItems
+    .map(item => Number(
+      item.id.replace('chat-message-', '')
+    ))
+    .filter(Boolean);
 
-  if (!messageIds.length) {
-    return;
-  }
+  if (!messageIds.length) return;
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .from(
-        'chat_message_reads'
-      )
-      .select(
-        'message_id,user_name'
-      )
-      .in(
-        'message_id',
-        messageIds
-      );
+  const { data, error } = await supabaseClient
+    .from('chat_message_reads')
+    .select('message_id,user_name')
+    .in('message_id', messageIds);
 
-  if (error) {
-    return;
-  }
+  if (error) return;
 
   const reads = {};
 
-  for (
-    const row
-    of data || []
-  ) {
-    if (
-      !reads[row.message_id]
-    ) {
-      reads[row.message_id] =
-        [];
+  for (const row of data || []) {
+    if (!reads[row.message_id]) {
+      reads[row.message_id] = [];
     }
 
     if (
       row.user_name &&
-      !reads[
-        row.message_id
-      ].includes(
-        row.user_name
-      )
+      !reads[row.message_id].includes(row.user_name)
     ) {
-      reads[
-        row.message_id
-      ].push(
-        row.user_name
-      );
+      reads[row.message_id].push(row.user_name);
     }
   }
 
-  for (
-    const item
-    of ownItems
-  ) {
-    const messageId =
-      Number(
-        item.id.replace(
-          'chat-message-',
-          ''
-        )
-      );
+  for (const item of ownItems) {
+    const messageId = Number(
+      item.id.replace('chat-message-', '')
+    );
 
-    const names =
-      reads[messageId] ||
-      [];
-
-    let receipt =
-      item.querySelector(
-        '.chat-read-receipt'
-      );
+    const names = reads[messageId] || [];
+    let receipt = item.querySelector('.chat-read-receipt');
 
     if (!receipt) {
-      receipt =
-        document.createElement(
-          'div'
-        );
-
-      receipt.className =
-        'chat-read-receipt';
-
-      item.appendChild(
-        receipt
-      );
+      receipt = document.createElement('div');
+      receipt.className = 'chat-read-receipt';
+      item.appendChild(receipt);
     }
 
     if (!names.length) {
-      receipt.textContent =
-        '';
-
-      receipt.style.display =
-        'none';
-
-      receipt.onclick =
-        null;
-
+      receipt.textContent = '';
+      receipt.style.display = 'none';
+      receipt.onclick = null;
       continue;
     }
 
-    receipt.style.display =
-      'block';
-
-    receipt.style.cursor =
-      'pointer';
-
+    receipt.style.display = 'block';
+    receipt.style.cursor = 'pointer';
     receipt.textContent =
-      '👁️ ' +
-      T(
-        'Videné: ',
-        'Seen: '
-      ) +
-      names.length;
+      '👁️ ' + T('Videné: ', 'Seen: ') + names.length;
 
-    receipt.onclick =
-      event => {
-        event.stopPropagation();
-
-        alert(
-          T(
-            'Videli:\n',
-            'Seen by:\n'
-          ) +
-          names.join('\n')
-        );
-      };
+    receipt.onclick = event => {
+      event.stopPropagation();
+      alert(
+        T('Videli:\n', 'Seen by:\n') +
+        names.join('\n')
+      );
+    };
   }
 }
-
-
-// ============================================================
-// REALTIME PUBLIC CHAT
-// ============================================================
 
 function subscribeCommunityChat() {
-  if (
-    communityChatChannel
-  ) {
-    return;
-  }
+  if (communityChatChannel) return;
 
-  communityChatChannel =
-    supabaseClient
-      .channel(
-        'community-chat-live'
-      )
-      .on(
-        'postgres_changes',
-        {
-          event:
-            'INSERT',
+  communityChatChannel = supabaseClient
+    .channel('community-chat-live')
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      async payload => {
+        const message = payload.new;
 
-          schema:
-            'public',
+        const { data: senderProfile } = await supabaseClient
+          .from('user_profiles')
+          .select('avatar_url')
+          .eq('user_id', message.user_id)
+          .maybeSingle();
 
-          table:
-            'chat_messages'
-        },
+        message.sender_avatar_url =
+          senderProfile?.avatar_url || null;
 
-        async payload => {
-  const message = payload.new;
+        renderCommunityChatMessage(message);
 
-  const { data: senderProfile } =
-    await supabaseClient
-      .from('user_profiles')
-      .select('avatar_url')
-      .eq('user_id', message.user_id)
-      .maybeSingle();
-
-  message.sender_avatar_url =
-    senderProfile?.avatar_url || null;
-
-  renderCommunityChatMessage(
-    message
-  );
+        if (communityChatOpen) {
+          scrollCommunityChatToBottom();
 
           if (
-            communityChatOpen
-          ) {
-            scrollCommunityChatToBottom();
-
-            if (
-              currentUser &&
-              message.user_id !==
-                currentUser.id
-            ) {
-              await markAllCommunityChatMessagesRead();
-            }
-
-            await markCommunityChatSeen();
-
-            const dot =
-              document.getElementById(
-                'communityChatUnreadDot'
-              );
-
-            if (dot) {
-              dot.style.display =
-                'none';
-            }
-
-            await refreshCommunityChatReadReceipts();
-
-          } else if (
             currentUser &&
-            message.user_id !==
-              currentUser.id
+            message.user_id !== currentUser.id
           ) {
-            const dot =
-              document.getElementById(
-                'communityChatUnreadDot'
-              );
+            await markAllCommunityChatMessagesRead();
+          }
 
-            if (dot) {
-              dot.style.display =
-                'block';
-            }
+          await markCommunityChatSeen();
 
-            if (
-              chatNotificationsEnabled
-            ) {
-              playCommunityChatSound();
-            }
+          const dot = document.getElementById(
+            'communityChatUnreadDot'
+          );
+          if (dot) dot.style.display = 'none';
+
+          await refreshCommunityChatReadReceipts();
+
+        } else if (
+          currentUser &&
+          message.user_id !== currentUser.id
+        ) {
+          const dot = document.getElementById(
+            'communityChatUnreadDot'
+          );
+          if (dot) dot.style.display = 'block';
+
+          if (chatNotificationsEnabled) {
+            playCommunityChatSound();
           }
         }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event:
-            'DELETE',
+      }
+    )
+    .on(
+      'postgres_changes',
+      {
+        event: 'DELETE',
+        schema: 'public',
+        table: 'chat_messages'
+      },
+      payload => {
+        const id = payload.old?.id;
+        if (!id) return;
 
-          schema:
-            'public',
-
-          table:
-            'chat_messages'
-        },
-
-        payload => {
-          const id =
-            payload.old?.id;
-
-          if (!id) {
-            return;
-          }
-
-          const item =
-            document.getElementById(
-              'chat-message-' +
-              id
-            );
-
-          if (item) {
-            item.remove();
-          }
-        }
-      )
-      .subscribe();
+        const item = document.getElementById(
+          'chat-message-' + id
+        );
+        if (item) item.remove();
+      }
+    )
+    .subscribe();
 }
-
-
-// ============================================================
-// REALTIME READ RECEIPTS
-// ============================================================
 
 function subscribeCommunityChatReads() {
-  if (
-    communityChatReadsChannel
-  ) {
-    return;
-  }
+  if (communityChatReadsChannel) return;
 
-  communityChatReadsChannel =
-    supabaseClient
-      .channel(
-        'community-chat-reads-live'
-      )
-      .on(
-        'postgres_changes',
-        {
-          event:
-            '*',
-
-          schema:
-            'public',
-
-          table:
-            'chat_message_reads'
-        },
-
-        () => {
-          if (
-            communityChatOpen
-          ) {
-            refreshCommunityChatReadReceipts();
-          }
+  communityChatReadsChannel = supabaseClient
+    .channel('community-chat-reads-live')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'chat_message_reads'
+      },
+      () => {
+        if (communityChatOpen) {
+          refreshCommunityChatReadReceipts();
         }
-      )
-      .subscribe();
+      }
+    )
+    .subscribe();
 }
-
-
-// ============================================================
-// CHAT SOUND
-// ============================================================
 
 function playCommunityChatSound() {
   try {
     const AudioContextClass =
-      window.AudioContext ||
-      window.webkitAudioContext;
+      window.AudioContext || window.webkitAudioContext;
 
-    if (
-      !AudioContextClass
-    ) {
-      return;
-    }
+    if (!AudioContextClass) return;
 
-    const context =
-      new AudioContextClass();
+    const context = new AudioContextClass();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
 
-    const oscillator =
-      context.createOscillator();
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.frequency.value = 880;
 
-    const gain =
-      context.createGain();
-
-    oscillator.connect(
-      gain
-    );
-
-    gain.connect(
-      context.destination
-    );
-
-    oscillator.frequency.value =
-      880;
-
-    gain.gain.setValueAtTime(
-      0.08,
-      context.currentTime
-    );
-
+    gain.gain.setValueAtTime(0.08, context.currentTime);
     gain.gain.exponentialRampToValueAtTime(
-      0.001,
-      context.currentTime +
-        0.35
+      0.001, context.currentTime + 0.35
     );
 
     oscillator.start();
+    oscillator.stop(context.currentTime + 0.35);
 
-    oscillator.stop(
-      context.currentTime +
-        0.35
-    );
-
-    oscillator.addEventListener(
-      'ended',
-      () => {
-        context.close().catch(
-          () => {}
-        );
-      }
-    );
-
+    oscillator.addEventListener('ended', () => {
+      context.close().catch(() => {});
+    });
   } catch (error) {
     // Sound is optional.
   }
 }
 
-
-// ============================================================
-// START CHAT SERVICES FOR LOGGED USER
-// ============================================================
-
 async function startCommunityChatForLoggedUser() {
-  if (!currentUser) {
-    return;
-  }
+  if (!currentUser) return;
 
   await ensureChatSettings();
-
   subscribeCommunityChat();
   subscribeCommunityChatReads();
-
   await refreshCommunityChatUnreadDot();
 
-  if (
-    communityChatOpen
-  ) {
+  if (communityChatOpen) {
     await markAllCommunityChatMessagesRead();
     await markCommunityChatSeen();
     await refreshCommunityChatReadReceipts();
   }
 }
 
-
-// ============================================================
-// REFRESH WHEN APP RETURNS TO FOREGROUND
-// ============================================================
-
-window.addEventListener(
-  'focus',
-  () => {
-    if (currentUser) {
-      startCommunityChatForLoggedUser();
-    }
+window.addEventListener('focus', () => {
+  if (currentUser) {
+    startCommunityChatForLoggedUser();
   }
-);
+});
 
-
-document.addEventListener(
-  'visibilitychange',
-  () => {
-    if (
-      !document.hidden &&
-      currentUser
-    ) {
-      startCommunityChatForLoggedUser();
-    }
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && currentUser) {
+    startCommunityChatForLoggedUser();
   }
-);
-
-
-// ============================================================
-// ENTER KEY
-// ============================================================
+});
 
 function initialiseCommunityChatKeyboard() {
-  const input =
-    document.getElementById(
-      'chatMessageInput'
-    );
+  const input = document.getElementById('chatMessageInput');
 
   if (
     !input ||
-    input.dataset.chatKeyboardReady ===
-      'true'
+    input.dataset.chatKeyboardReady === 'true'
   ) {
     return;
   }
 
-  input.dataset.chatKeyboardReady =
-    'true';
+  input.dataset.chatKeyboardReady = 'true';
 
-  input.addEventListener(
-    'keydown',
-    event => {
-      if (
-        event.key ===
-          'Enter' &&
-        !event.shiftKey
-      ) {
-        event.preventDefault();
-
-        sendCommunityChatMessage();
-      }
+  input.addEventListener('keydown', event => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      sendCommunityChatMessage();
     }
-  );
+  });
 }
-
-
-// ============================================================
-// CHAT RETENTION INFO LANGUAGE
-// ============================================================
 
 function updateCommunityChatRetentionLanguage() {
-  const info =
-    document.getElementById(
-      'chatRetentionInfo'
-    );
-
-  if (!info) {
-    return;
-  }
-
-  info.title =
-    T(
-      'Informácie',
-      'Information'
-    );
+  const info = document.getElementById('chatRetentionInfo');
+  if (!info) return;
+  info.title = T('Informácie', 'Information');
 }
-
-
-// ============================================================
-// INITIALISE CHAT UI
-// ============================================================
 
 function initialiseCommunityChat() {
   initialiseCommunityChatPhotoInput();
   initialiseCommunityChatKeyboard();
-
   addCommunityChatRetentionInfo();
   updateCommunityChatRetentionLanguage();
-
   setChatLanguage();
 }
-
-
-// ============================================================
-// INITIAL START
-// ============================================================
 
 function startCommunityChatWhenReady() {
   initialiseCommunityChat();
@@ -2617,23 +1096,14 @@ function startCommunityChatWhenReady() {
   }
 }
 
-
-if (
-  document.readyState ===
-  'loading'
-) {
+if (document.readyState === 'loading') {
   document.addEventListener(
     'DOMContentLoaded',
     startCommunityChatWhenReady,
-    {
-      once: true
-    }
+    { once: true }
   );
-
 } else {
   startCommunityChatWhenReady();
 }
 
-// ============================================================
-// END COMMUNITY FOR ALL – CHAT.JS
-// ============================================================
+// END COMMUNITY FOR ALL — CHAT.JS
