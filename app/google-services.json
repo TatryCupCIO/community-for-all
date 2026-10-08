@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "747376294407",
+    "project_id": "community-for-all",
+    "storage_bucket": "community-for-all.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:747376294407:android:c37bbffe12d87f7dab08a2",
+        "android_client_info": {
+          "package_name": "uk.tatrycupcio.communityforall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjs_v3qYw0GOHwAgPbU1XeZ2Dc2MHw1-0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
