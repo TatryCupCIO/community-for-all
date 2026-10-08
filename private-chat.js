@@ -3551,7 +3551,10 @@ async function closePrivateChat() {
 
   privateChatOpen = false;
 
-  if (currentUser) {
+    if (currentUser) {
+    await supabaseClient
+      .from('user_profiles')
+      .update({
         presence_status: 'logged_in',
         last_active_at: new Date().toISOString()
       })
