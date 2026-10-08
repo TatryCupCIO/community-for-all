@@ -14,7 +14,8 @@ import android.window.OnBackInvokedDispatcher;
 
 import com.google.firebase.messaging.FirebaseMessaging;
 import android.util.Log;
-
+import android.Manifest;
+import android.content.pm.PackageManager;
 public class MainActivity extends Activity {
 
     private WebView webView;
@@ -25,7 +26,18 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+if (android.os.Build.VERSION.SDK_INT >= 33 &&
+        checkSelfPermission(
+                Manifest.permission.POST_NOTIFICATIONS
+        ) != PackageManager.PERMISSION_GRANTED) {
 
+    requestPermissions(
+            new String[]{
+                    Manifest.permission.POST_NOTIFICATIONS
+            },
+            1002
+    );
+}
         webView = new WebView(this);
         setContentView(webView);
 
