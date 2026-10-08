@@ -1518,6 +1518,1526 @@ footer::after,
    CHAT COMPOSER
    ========================================================= */
 
+/* =========================================================
+   COMMUNITY FOR ALL
+   DESIGN.CSS – CLEAN VERSION
+   PART 1
+   Global design, header, logo, language and home menu
+   ========================================================= */
+
+
+/* =========================================================
+   COLOURS
+   ========================================================= */
+
+:root {
+  --cfa-navy: #071d31;
+  --cfa-navy-mid: #0d3453;
+  --cfa-navy-light: #174b70;
+
+  --cfa-orange: #ff7a18;
+  --cfa-orange-light: #ff9b35;
+  --cfa-orange-dark: #d6530c;
+
+  --cfa-red: #a91932;
+  --cfa-white: #ffffff;
+  --cfa-soft: #dce7f1;
+  --cfa-muted: #aebdca;
+
+  --cfa-border: rgba(118, 184, 229, .42);
+  --cfa-shadow: 0 8px 22px rgba(0, 0, 0, .22);
+}
+
+
+/* =========================================================
+   GLOBAL
+   ========================================================= */
+
+html {
+  background: var(--cfa-navy);
+}
+
+body {
+  margin: 0 !important;
+  min-height: 100vh;
+
+  color: var(--cfa-white);
+
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba(0, 5, 12, .91) 0%,
+      rgba(2, 7, 13, .89) 16%,
+      rgba(5, 9, 13, .86) 27%,
+      rgba(0, 7, 14, .82) 39%,
+      rgba(0, 8, 16, .84) 52%,
+      rgba(0, 7, 15, .91) 68%,
+      rgba(0, 5, 11, .97) 84%,
+      rgba(0, 3, 7, .995) 100%
+    ),
+    radial-gradient(
+      ellipse at 72% 19%,
+      rgba(255, 119, 15, .18) 0%,
+      rgba(255, 151, 30, .09) 12%,
+      rgba(0, 0, 0, 0) 28%
+    ),
+    radial-gradient(
+      ellipse at 55% 36%,
+      rgba(255, 126, 12, .09) 0%,
+      rgba(0, 0, 0, 0) 24%
+    ),
+    url('Pozadie.jpg') !important;
+
+  background-size: cover !important;
+  background-position: center top !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+
+  font-family: Arial, Helvetica, sans-serif !important;
+}
+
+
+/* =========================================================
+   MAIN CONTAINER
+   ========================================================= */
+
+.container {
+  width: 100% !important;
+  max-width: 720px !important;
+
+  margin: 0 auto !important;
+  padding: 14px 22px 18px !important;
+}
+
+
+/* =========================================================
+   TOP BAR
+   ========================================================= */
+
+.topbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+
+  gap: 10px !important;
+  margin-bottom: 8px !important;
+}
+
+.top-left,
+.top-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+}
+
+
+/* =========================================================
+   SUPPORT BUTTON
+   ========================================================= */
+
+.donate-top-btn {
+  min-height: 42px !important;
+  padding: 8px 15px !important;
+
+  background:
+    linear-gradient(
+      100deg,
+      rgba(255, 93, 22, .92),
+      rgba(107, 41, 26, .72)
+    ) !important;
+
+  color: #fff !important;
+
+  border: 1.5px solid var(--cfa-orange) !important;
+  border-radius: 18px !important;
+
+  box-shadow:
+    inset 0 0 16px rgba(255, 126, 30, .12),
+    0 5px 14px rgba(0, 0, 0, .18) !important;
+
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+
+/* =========================================================
+   CART + USER
+   ========================================================= */
+
+.cart-top-btn,
+.user-btn {
+  min-height: 42px !important;
+
+  background: rgba(9, 39, 63, .78) !important;
+  color: #fff !important;
+
+  border: 1.5px solid rgba(115, 183, 229, .48) !important;
+  border-radius: 16px !important;
+
+  box-shadow:
+    inset 0 0 15px rgba(53, 132, 185, .10),
+    0 5px 14px rgba(0, 0, 0, .15) !important;
+}
+
+.cart-top-btn {
+  min-width: 50px !important;
+  padding: 7px 12px !important;
+  font-size: 21px !important;
+}
+
+.user-btn {
+  padding: 7px 14px !important;
+  font-size: 16px !important;
+}
+
+.cart-badge {
+  background: #ef3d2f !important;
+  color: #fff !important;
+
+  border: 2px solid #10283d !important;
+
+  font-weight: 900 !important;
+}
+
+
+/* =========================================================
+   LOGO / TITLE
+   ========================================================= */
+
+.logo {
+  margin: 5px auto 2px !important;
+
+  color: #fff !important;
+  text-align: center !important;
+
+  font-size: 38px !important;
+  line-height: .96 !important;
+  font-weight: 900 !important;
+  letter-spacing: -.8px !important;
+
+  text-shadow:
+    0 3px 12px rgba(0, 0, 0, .28) !important;
+}
+
+.logo::before {
+  content: "";
+
+  display: block;
+
+  width: 70px;
+  height: 70px;
+
+  margin: 0 auto 5px;
+
+  background:
+    url('Logo.png')
+    center / contain
+    no-repeat;
+}
+
+.logo span:first-child,
+.logo span:nth-child(2) {
+  color: #fff !important;
+}
+
+.logo span:last-child {
+  color: var(--cfa-orange) !important;
+}
+
+
+/* =========================================================
+   ORGANISATION
+   ========================================================= */
+
+.charity {
+  position: relative !important;
+
+  margin: 8px auto 0 !important;
+  padding-bottom: 42px !important;
+
+  color: #fff !important;
+
+  text-align: center !important;
+  text-transform: uppercase !important;
+
+  font-size: 10px !important;
+  line-height: 1.45 !important;
+  font-weight: 700 !important;
+  letter-spacing: 3px !important;
+}
+
+.charity::after {
+  content:
+    "PEOPLE   |   COMMUNITY   |   OPPORTUNITIES";
+
+  position: absolute;
+
+  left: 50%;
+  bottom: 21px;
+
+  width: 100%;
+
+  transform: translateX(-50%);
+
+  color: #fff;
+
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 2px;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   LANGUAGE SWITCH
+   ========================================================= */
+
+.language {
+  position: relative !important;
+
+  display: flex !important;
+
+  width: 250px !important;
+  height: 46px !important;
+
+  margin: 22px auto 13px !important;
+
+  border:
+    1.5px solid
+    rgba(91, 169, 222, .75) !important;
+
+  border-radius: 17px !important;
+
+  background:
+    rgba(6, 29, 48, .70) !important;
+
+  overflow: visible !important;
+}
+
+
+/* STRONGER TOGETHER */
+
+.language::before {
+  content: "Stronger Together";
+
+  position: absolute;
+
+  left: 50%;
+  top: -29px;
+
+  width: 320px;
+
+  transform:
+    translateX(-50%)
+    rotate(-2deg);
+
+  color: var(--cfa-orange);
+
+  font-family:
+    "Brush Script MT",
+    "Segoe Script",
+    "Lucida Handwriting",
+    cursive !important;
+
+  font-size: 23px;
+  line-height: 1;
+  font-style: italic;
+  font-weight: 400;
+
+  text-align: center;
+
+  text-shadow:
+    0 2px 8px rgba(0, 0, 0, .25);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   LANGUAGE BUTTONS
+   ========================================================= */
+
+.lang-btn {
+  flex: 1 1 50% !important;
+
+  min-height: 43px !important;
+  height: 43px !important;
+
+  margin: 0 !important;
+  padding: 4px 18px !important;
+
+  border: 0 !important;
+  border-radius: 15px !important;
+
+  background: transparent !important;
+  color: #fff !important;
+
+  font-size: 17px !important;
+  font-weight: 800 !important;
+}
+
+.lang-btn.active,
+.lang-btn.selected,
+#skLangBtn.active,
+#enLangBtn.active {
+  background:
+    linear-gradient(
+      110deg,
+      var(--cfa-orange-light),
+      var(--cfa-orange)
+    ) !important;
+
+  color: #10243a !important;
+}
+
+
+/* =========================================================
+   HOME PAGE
+   ========================================================= */
+
+#homePage {
+  display: flex !important;
+  flex-direction: column !important;
+
+  gap: 7px !important;
+
+  margin: 0 auto !important;
+  padding: 0 !important;
+}
+
+#homePage[style*="display: none"] {
+  display: none !important;
+}
+
+
+/* =========================================================
+   HOME MENU CARDS
+   ========================================================= */
+
+#homePage .menu-btn {
+  position: relative !important;
+
+  display: flex !important;
+  align-items: center !important;
+
+  width: 100% !important;
+
+  min-height: 65px !important;
+  height: 65px !important;
+
+  margin: 0 !important;
+
+  padding:
+    7px
+    44px
+    7px
+    66px !important;
+
+  overflow: hidden !important;
+
+  color: #fff !important;
+
+  border:
+    1.3px solid
+    rgba(102, 173, 220, .42) !important;
+
+  border-radius: 18px !important;
+
+  box-shadow:
+    inset 0 0 22px rgba(70, 146, 196, .10),
+    0 5px 14px rgba(0, 0, 0, .16) !important;
+
+  background-clip: padding-box !important;
+
+  text-align: left !important;
+
+  font-size: 20px !important;
+  line-height: 1.1 !important;
+  font-weight: 900 !important;
+
+  white-space: pre-line !important;
+
+  text-shadow:
+    0 2px 3px rgba(0, 0, 0, 1),
+    0 0 7px rgba(0, 0, 0, .95) !important;
+}
+
+
+/* =========================================================
+   HOME MENU ARROW
+   ========================================================= */
+
+#homePage .menu-btn::after {
+  content: "›";
+
+  position: absolute;
+
+  right: 16px;
+  top: 50%;
+
+  transform: translateY(-52%);
+
+  color: #fff;
+
+  font-family: Arial, sans-serif;
+  font-size: 38px;
+  line-height: 1;
+  font-weight: 300;
+
+  text-shadow:
+    0 2px 5px rgba(0, 0, 0, .25);
+}
+
+
+/* =========================================================
+   HOME MENU ICON SYSTEM
+   ========================================================= */
+
+#homePage .menu-btn::before {
+  content: "";
+
+  position: absolute;
+
+  left: 18px;
+  top: 50%;
+
+  width: 34px;
+  height: 34px;
+
+  transform: translateY(-50%);
+
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+
+  z-index: 2;
+}
+
+
+/* =========================================================
+   EVENTS ICON
+   ========================================================= */
+
+#eventsBtn::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='white' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='8' y='14' width='48' height='42' rx='5'/%3E%3Cpath d='M8 26h48M20 7v14M44 7v14'/%3E%3Cpath d='M20 36h2M31 36h2M42 36h2M20 46h2M31 46h2M42 46h2'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+
+/* =========================================================
+   BOOKINGS ICON
+   ========================================================= */
+
+#bookingsBtn::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='white' stroke-width='5' stroke-linejoin='round'%3E%3Cpath d='M10 25L25 10l29 29-15 15L10 25z'/%3E%3Cpath d='M31 20l13 13' stroke-dasharray='3 5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+
+/* =========================================================
+   FATRA ICON
+   ========================================================= */
+
+#fatraBtn::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='%23ff9b38' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11h8l6 29h28l7-21H18'/%3E%3Ccircle cx='27' cy='51' r='4'/%3E%3Ccircle cx='47' cy='51' r='4'/%3E%3Cpath d='M24 27h27M29 19v20M40 19v20'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+
+/* =========================================================
+   FACE PAINTING ICON
+   ========================================================= */
+
+#faceBtn::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M33 8C18 8 7 18 7 32c0 13 10 24 23 24h5c5 0 7-4 5-8-2-4 1-8 6-8h5c5 0 7-4 7-9C58 18 47 8 33 8z' fill='none' stroke='%23ff8798' stroke-width='5' stroke-linejoin='round'/%3E%3Ccircle cx='20' cy='28' r='4' fill='%23ff8798'/%3E%3Ccircle cx='29' cy='19' r='4' fill='%23ff8798'/%3E%3Ccircle cx='41' cy='20' r='4' fill='%23ff8798'/%3E%3Ccircle cx='48' cy='29' r='4' fill='%23ff8798'/%3E%3C/svg%3E");
+}
+
+
+/* =========================================================
+   ABOUT ICON
+   ========================================================= */
+
+#aboutBtn {
+  padding-left: 66px !important;
+}
+
+#aboutBtn::before {
+  display: block !important;
+
+  content: "" !important;
+
+  left: 18px !important;
+
+  width: 38px !important;
+  height: 30px !important;
+
+  background-color: #fff !important;
+  background-image: none !important;
+
+  -webkit-mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 48'%3E%3Ccircle cx='32' cy='10' r='7'/%3E%3Ccircle cx='13' cy='15' r='6'/%3E%3Ccircle cx='51' cy='15' r='6'/%3E%3Cpath d='M20 42V32c0-9 5-14 12-14s12 5 12 14v10H20zM2 42V34c0-8 4-12 11-12 4 0 7 2 9 5-3 4-4 9-4 15H2zM46 42c0-6-1-11-4-15 2-3 5-5 9-5 7 0 11 4 11 12v8H46z'/%3E%3C/svg%3E")
+    center / contain
+    no-repeat !important;
+
+  mask:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 48'%3E%3Ccircle cx='32' cy='10' r='7'/%3E%3Ccircle cx='13' cy='15' r='6'/%3E%3Ccircle cx='51' cy='15' r='6'/%3E%3Cpath d='M20 42V32c0-9 5-14 12-14s12 5 12 14v10H20zM2 42V34c0-8 4-12 11-12 4 0 7 2 9 5-3 4-4 9-4 15H2zM46 42c0-6-1-11-4-15 2-3 5-5 9-5 7 0 11 4 11 12v8H46z'/%3E%3C/svg%3E")
+    center / contain
+    no-repeat !important;
+}
+
+
+/* =========================================================
+   CONTACT ICON
+   ========================================================= */
+
+#contactBtn::before {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='none' stroke='white' stroke-width='5' stroke-linejoin='round'%3E%3Crect x='7' y='14' width='50' height='36' rx='3'/%3E%3Cpath d='M9 18l23 18 23-18M9 47l17-15M55 47L38 32'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+
+/* =========================================================
+   END PART 1
+   ========================================================= */
+/* =========================================================
+   COMMUNITY FOR ALL
+   DESIGN.CSS – CLEAN VERSION
+   PART 2
+   Home card photos, chat button, footer and mobile home
+   ========================================================= */
+
+
+/* =========================================================
+   HOME CARD PHOTOS
+   Final cinematic version only
+   ========================================================= */
+
+
+/* 1. PODUJATIA */
+
+#homePage #eventsBtn {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(27, 5, 1, 1) 0%,
+      rgba(49, 10, 1, .99) 11%,
+      rgba(65, 17, 2, .82) 21%,
+      rgba(45, 13, 2, .42) 29%,
+      rgba(0, 0, 0, .05) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .05) 61%,
+      rgba(45, 13, 2, .42) 71%,
+      rgba(65, 17, 2, .82) 79%,
+      rgba(49, 10, 1, .99) 89%,
+      rgba(27, 5, 1, 1) 100%
+    ),
+    url('Podujatia.png')
+    center / cover
+    no-repeat !important;
+}
+
+
+/* 2. MOJE REZERVÁCIE */
+
+#homePage #bookingsBtn {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 5, 13, 1) 0%,
+      rgba(0, 12, 25, .99) 11%,
+      rgba(0, 22, 40, .80) 21%,
+      rgba(0, 15, 29, .38) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(0, 15, 29, .38) 71%,
+      rgba(0, 22, 40, .80) 79%,
+      rgba(0, 12, 25, .99) 89%,
+      rgba(0, 5, 13, 1) 100%
+    ),
+    url('Mojerezervacie.png')
+    center / cover
+    no-repeat !important;
+}
+
+
+/* 3. FATRA */
+
+#homePage #fatraBtn {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(22, 5, 1, 1) 0%,
+      rgba(39, 8, 1, 1) 12%,
+      rgba(55, 13, 1, .96) 21%,
+      rgba(49, 14, 2, .64) 29%,
+      rgba(25, 7, 1, .20) 36%,
+      rgba(0, 0, 0, 0) 45%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(25, 7, 1, .20) 64%,
+      rgba(49, 14, 2, .64) 71%,
+      rgba(55, 13, 1, .96) 79%,
+      rgba(39, 8, 1, 1) 88%,
+      rgba(22, 5, 1, 1) 100%
+    ),
+    url('Fatra.png')
+    center / cover
+    no-repeat !important;
+}
+
+
+/* 4. TINUŠKA */
+
+#homePage #faceBtn {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(22, 2, 7, 1) 0%,
+      rgba(39, 3, 12, 1) 12%,
+      rgba(55, 5, 18, .97) 21%,
+      rgba(48, 5, 17, .65) 29%,
+      rgba(24, 3, 9, .20) 36%,
+      rgba(0, 0, 0, 0) 45%,
+      rgba(0, 0, 0, 0) 55%,
+      rgba(24, 3, 9, .20) 64%,
+      rgba(48, 5, 17, .65) 71%,
+      rgba(55, 5, 18, .97) 79%,
+      rgba(39, 3, 12, 1) 88%,
+      rgba(22, 2, 7, 1) 100%
+    ),
+    url('Tinuskafacepainting.png')
+    center / cover
+    no-repeat !important;
+}
+
+
+/* 5. O NÁS */
+
+#homePage #aboutBtn {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 5, 12, 1) 0%,
+      rgba(0, 12, 23, .99) 11%,
+      rgba(0, 23, 38, .80) 21%,
+      rgba(0, 16, 27, .38) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(0, 16, 27, .38) 71%,
+      rgba(0, 23, 38, .80) 79%,
+      rgba(0, 12, 23, .99) 89%,
+      rgba(0, 5, 12, 1) 100%
+    ),
+    url('Onas.png')
+    center / cover
+    no-repeat !important;
+}
+
+
+/* 6. KONTAKT */
+
+#homePage #contactBtn {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(22, 7, 1, 1) 0%,
+      rgba(39, 12, 1, .99) 11%,
+      rgba(54, 19, 2, .82) 21%,
+      rgba(39, 17, 3, .40) 29%,
+      rgba(0, 0, 0, .04) 39%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 0, 0, .04) 61%,
+      rgba(39, 17, 3, .40) 71%,
+      rgba(54, 19, 2, .82) 79%,
+      rgba(39, 12, 1, .99) 89%,
+      rgba(22, 7, 1, 1) 100%
+    ),
+    url('Kontakt.png')
+    center / cover
+    no-repeat !important;
+}
+
+
+/* =========================================================
+   COMMUNITY CHAT BUTTON
+   ========================================================= */
+
+#communityChatBtn.community-chat-btn {
+  position: relative !important;
+
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  min-height: 34px !important;
+  max-width: 34px !important;
+  max-height: 34px !important;
+
+  flex: 0 0 34px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: 2px solid #fff !important;
+  border-radius: 50% !important;
+
+  background: #63dcc6 !important;
+  background-image: none !important;
+
+  color: #fff !important;
+
+  box-shadow:
+    0 3px 12px rgba(0, 0, 0, .22),
+    0 0 10px rgba(99, 220, 198, .25) !important;
+}
+
+#communityChatBtn:active {
+  transform: scale(.97);
+}
+
+#communityChatBtn > span:first-child {
+  font-size: 0 !important;
+}
+
+#communityChatBtn > span:first-child::after {
+  content: "CHAT" !important;
+  font-size: 9px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  color: #fff !important;
+}
+
+#communityChatBtn .chat-unread-dot {
+  position: absolute !important;
+
+  top: 0 !important;
+  right: 0 !important;
+
+  width: 9px !important;
+  height: 9px !important;
+
+  border: 2px solid #fff !important;
+  border-radius: 50% !important;
+
+  background: #ff304f !important;
+}
+
+#homeNotificationSlot {
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+}
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+footer,
+.footer {
+  position: relative !important;
+
+  display: block !important;
+
+  margin: 8px auto 0 !important;
+  padding: 0 10px 8px !important;
+
+  color: var(--cfa-soft) !important;
+
+  text-align: center !important;
+
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+
+
+/* COMMUNITY FOR ALL FOOTER TITLE */
+
+footer::before,
+.footer::before {
+  content: "Community For All";
+
+  display: block;
+
+  margin-bottom: 3px;
+
+  color: var(--cfa-orange);
+
+  font-size: 15px;
+  line-height: 1.1;
+  font-weight: 900;
+}
+
+
+/* BOTTOM MOTTO */
+
+footer::after,
+.footer::after {
+  content:
+    "♥\A SMALL ACTIONS MAKE A BIG DIFFERENCE";
+
+  display: block !important;
+
+  position: relative !important;
+
+  left: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+
+  margin-top: 5px !important;
+
+  color: var(--cfa-orange) !important;
+
+  white-space: pre-line !important;
+
+  text-align: center !important;
+
+  font-size: 10px !important;
+  line-height: 1.7 !important;
+  font-weight: 800 !important;
+  letter-spacing: 1.8px !important;
+
+  background:
+    linear-gradient(
+      var(--cfa-orange),
+      var(--cfa-orange)
+    )
+    calc(50% - 75px)
+    7px / 60px 2px
+    no-repeat,
+
+    linear-gradient(
+      var(--cfa-orange),
+      var(--cfa-orange)
+    )
+    calc(50% + 75px)
+    7px / 60px 2px
+    no-repeat !important;
+}
+
+
+/* =========================================================
+   MOBILE HOME
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+  .container {
+    padding:
+      6px
+      16px
+      4px !important;
+  }
+
+
+  /* TOP BAR */
+
+  .topbar {
+    margin-bottom: 1px !important;
+  }
+
+  .donate-top-btn,
+  .cart-top-btn,
+  .user-btn {
+    min-height: 38px !important;
+  }
+
+  .donate-top-btn {
+    padding: 6px 12px !important;
+    font-size: 14px !important;
+  }
+
+  .cart-top-btn {
+    min-width: 46px !important;
+    font-size: 19px !important;
+  }
+
+  .user-btn {
+    padding: 6px 11px !important;
+    font-size: 15px !important;
+  }
+
+
+  /* LOGO */
+
+  .logo {
+    margin-top: 1px !important;
+    margin-bottom: 1px !important;
+
+    font-size: 32px !important;
+    line-height: .95 !important;
+  }
+
+  .logo::before {
+    width: 62px !important;
+    height: 62px !important;
+
+    margin-bottom: 2px !important;
+  }
+
+
+  /* ORGANISATION */
+
+  .charity {
+    margin-top: 3px !important;
+    padding-bottom: 32px !important;
+
+    font-size: 9px !important;
+    letter-spacing: 2.4px !important;
+  }
+
+  .charity::after {
+    bottom: 17px !important;
+
+    font-size: 8px;
+    letter-spacing: 1.35px;
+  }
+
+
+  /* LANGUAGE */
+
+  .language {
+    width: 210px !important;
+    height: 40px !important;
+
+    margin-top: 13px !important;
+    margin-bottom: 6px !important;
+
+    border-radius: 15px !important;
+  }
+
+  .language::before {
+    top: -24px !important;
+
+    width: 280px;
+
+    font-size: 20px;
+  }
+
+  .lang-btn {
+    min-height: 37px !important;
+    height: 37px !important;
+
+    padding: 3px 15px !important;
+
+    border-radius: 13px !important;
+
+    font-size: 15px !important;
+  }
+
+
+  /* HOME CARDS */
+
+  #homePage {
+    gap: 5px !important;
+  }
+
+  #homePage .menu-btn {
+    min-height: 54px !important;
+    height: 54px !important;
+
+    padding:
+      5px
+      38px
+      5px
+      58px !important;
+
+    border-radius: 16px !important;
+
+    font-size: 16px !important;
+    line-height: 1.05 !important;
+  }
+
+  #homePage .menu-btn::before {
+    left: 15px;
+
+    width: 30px;
+    height: 30px;
+  }
+
+  #homePage .menu-btn::after {
+    right: 13px;
+
+    font-size: 32px;
+  }
+
+  #aboutBtn {
+    padding-left: 58px !important;
+  }
+
+  #aboutBtn::before {
+    left: 16px !important;
+
+    width: 34px !important;
+    height: 27px !important;
+  }
+
+  #fatraBtn,
+  #faceBtn {
+    line-height: 1.05 !important;
+  }
+
+
+  /* FOOTER */
+
+  footer,
+  .footer {
+    margin-top: 5px !important;
+    padding-bottom: 3px !important;
+
+    font-size: 10px !important;
+    line-height: 1.45 !important;
+  }
+
+  footer::before,
+  .footer::before {
+    margin-bottom: 2px;
+
+    font-size: 13px;
+  }
+
+  footer::after,
+  .footer::after {
+    margin-top: 3px !important;
+
+    font-size: 7.5px !important;
+    line-height: 1.5 !important;
+    letter-spacing: 1.35px !important;
+  }
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 390px) {
+
+  .container {
+    padding-left: 13px !important;
+    padding-right: 13px !important;
+  }
+
+  .logo {
+    font-size: 29px !important;
+  }
+
+  .charity {
+    font-size: 8px !important;
+    letter-spacing: 2px !important;
+  }
+
+  .charity::after {
+    font-size: 7px;
+    letter-spacing: 1px;
+  }
+
+  .language {
+    width: 195px !important;
+  }
+
+  #homePage .menu-btn {
+    padding-left: 54px !important;
+
+    font-size: 15px !important;
+  }
+
+  #homePage .menu-btn::before {
+    left: 14px;
+
+    width: 27px;
+    height: 27px;
+  }
+
+  #aboutBtn {
+    padding-left: 54px !important;
+  }
+
+  #aboutBtn::before {
+    left: 14px !important;
+
+    width: 31px !important;
+    height: 25px !important;
+  }
+}
+
+
+/* =========================================================
+   SHORT PHONE SCREENS
+   ========================================================= */
+
+/* ==================================================
+   RESPONSIVE HEIGHT – ALL DEVICES
+   ================================================== */
+
+@media (max-width: 600px) {
+  .container {
+    padding-top: max(16px, env(safe-area-inset-top)) !important;
+  }
+}
+
+
+/* =========================================================
+   END PART 2
+   ========================================================= */
+/* =========================================================
+   COMMUNITY FOR ALL
+   DESIGN.CSS – CLEAN VERSION
+   PART 3
+   Community chat
+   ========================================================= */
+
+
+/* =========================================================
+   CHAT PAGE
+   ========================================================= */
+
+#chatPage {
+  position: fixed;
+  inset: 0;
+
+  z-index: 9999;
+
+  display: flex;
+  flex-direction: column;
+
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+
+  overflow: hidden !important;
+
+  background: #06111d;
+  color: #fff;
+}
+
+
+/* =========================================================
+   CHAT HEADER
+   ========================================================= */
+
+#chatPage .chat-header {
+  flex: 0 0 auto !important;
+
+  min-height: 72px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 12px;
+
+  padding: 10px 14px;
+
+  background: #081b2c;
+
+  border-bottom:
+    1px solid
+    rgba(255, 126, 25, .45);
+}
+
+.chat-back {
+  border: 0;
+
+  background: none;
+
+  color: #ff7a18;
+
+  font-size: 38px;
+
+  cursor: pointer;
+}
+
+.chat-title {
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+
+  font-size: 21px;
+  font-weight: 900;
+}
+
+
+/* =========================================================
+   CHAT NOTIFICATIONS
+   ========================================================= */
+
+.chat-notifications {
+  margin-left: auto;
+
+  display: flex;
+  align-items: center;
+
+  gap: 7px;
+}
+
+.chat-notifications small {
+  font-size: 11px;
+  opacity: .85;
+}
+
+.chat-toggle {
+  width: 45px;
+  height: 24px;
+
+  padding: 2px;
+
+  border: 0;
+  border-radius: 20px;
+
+  cursor: pointer;
+
+  background: #c73535;
+}
+
+.chat-toggle span {
+  display: block;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+
+  background: #fff;
+
+  transition: transform .2s;
+}
+
+.chat-toggle.on {
+  background: #27a85c;
+}
+
+.chat-toggle.on span {
+  transform: translateX(21px);
+}
+
+
+/* =========================================================
+   30 DAY RETENTION INFO
+   ========================================================= */
+
+#chatPage .chat-retention-info {
+  width: 32px;
+  height: 32px;
+
+  flex: 0 0 32px;
+
+  padding: 0;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .35);
+
+  border-radius: 50%;
+
+  background: transparent;
+
+  color: #fff;
+
+  font-size: 20px;
+  line-height: 30px;
+  text-align: center;
+
+  cursor: pointer;
+
+  opacity: .85;
+}
+
+
+/* =========================================================
+   CHAT MESSAGES AREA
+   ========================================================= */
+
+#chatPage .chat-messages {
+  flex: 1 1 auto !important;
+
+  min-height: 0 !important;
+  height: auto !important;
+
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+
+  padding: 16px 12px !important;
+
+  -webkit-overflow-scrolling: touch !important;
+
+  overscroll-behavior-y: contain !important;
+  touch-action: pan-y !important;
+}
+
+
+/* =========================================================
+   SINGLE MESSAGE
+   ========================================================= */
+
+.chat-message {
+  position: relative;
+
+  max-width: 82%;
+
+  margin: 8px 0;
+
+  padding: 9px 12px;
+
+  border-radius: 16px;
+
+  background: #173149;
+}
+
+.chat-message.mine {
+  margin-left: auto;
+
+  padding-right: 34px;
+
+  background: #74330d;
+}
+
+.chat-message-name {
+  font-size: 12px;
+  font-weight: 800;
+
+  color: #ff9a4d;
+}
+
+.chat-message-time {
+  margin-top: 4px;
+
+  font-size: 10px;
+
+  opacity: .65;
+}
+
+
+/* =========================================================
+   DELETE OWN MESSAGE
+   ========================================================= */
+
+.chat-delete-btn {
+  position: absolute;
+
+  top: 5px;
+  right: 6px;
+
+  width: 25px;
+  height: 25px;
+
+  padding: 0;
+
+  border: 0;
+
+  background: transparent;
+
+  font-size: 14px;
+  line-height: 25px;
+
+  cursor: pointer;
+
+  opacity: .65;
+}
+
+.chat-delete-btn:hover {
+  opacity: 1;
+}
+
+
+/* =========================================================
+   CHAT PHOTOS
+   ========================================================= */
+
+.chat-photo-holder {
+  margin-top: 7px;
+}
+
+.chat-photo,
+.chat-message img {
+  display: block;
+
+  width: auto;
+
+  max-width: 100%;
+  max-height: 320px;
+
+  margin-top: 7px;
+
+  border-radius: 12px;
+
+  object-fit: contain;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   FULL SCREEN PHOTO VIEWER
+   ========================================================= */
+
+#chatPhotoViewer {
+  display: none;
+
+  position: fixed;
+  inset: 0;
+
+  z-index: 20000;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 15px;
+
+  background:
+    rgba(0, 0, 0, .96);
+}
+
+#chatPhotoViewerImage {
+  display: block;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  object-fit: contain;
+
+  border-radius: 4px;
+}
+
+#chatPhotoViewerClose {
+  position: fixed;
+
+  top: 12px;
+  right: 15px;
+
+  z-index: 20001;
+
+  width: 46px;
+  height: 46px;
+
+  border: 0;
+  border-radius: 50%;
+
+  background:
+    rgba(0, 0, 0, .65);
+
+  color: #fff;
+
+  font-size: 34px;
+  line-height: 42px;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   CHAT COMPOSER
+   ========================================================= */
+
 #chatPage .chat-compose {
   position: fixed !important;
 
@@ -1544,6 +3064,104 @@ footer::after,
     1px solid
     rgba(255, 126, 25, .35);
 }
+
+#chatMessageInput {
+  flex: 1;
+
+  resize: none;
+
+  max-height: 110px;
+
+  padding: 11px 13px;
+
+  border:
+    1px solid
+    #31536e;
+
+  border-radius: 18px;
+
+  background: #10283a;
+
+  color: #fff;
+
+  font-size: 15px;
+
+  outline: none;
+}
+
+
+/* =========================================================
+   PHOTO + SEND BUTTONS
+   ========================================================= */
+
+.chat-photo-btn,
+.chat-send-btn {
+  width: 43px;
+  height: 43px;
+
+  flex: 0 0 43px;
+
+  border: 0;
+  border-radius: 50%;
+
+  cursor: pointer;
+
+  font-size: 20px;
+}
+
+.chat-photo-btn {
+  background: #18354b;
+  color: #fff;
+}
+
+.chat-send-btn {
+  background: #ff7417;
+  color: #fff;
+}
+
+
+/* =========================================================
+   GENERIC CHAT UNREAD DOT
+   ========================================================= */
+
+.chat-unread-dot {
+  position: absolute;
+
+  top: 2px;
+  right: 2px;
+
+  width: 12px;
+  height: 12px;
+
+  border: 2px solid #fff;
+  border-radius: 50%;
+
+  background: #ff2f45;
+}
+
+
+/* =========================================================
+   SHORT CHAT SCREENS
+   ========================================================= */
+
+@media (max-height: 700px) {
+
+  #chatPage .chat-header {
+    min-height: 58px !important;
+
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+  }
+
+  #chatMessageInput {
+    max-height: 80px !important;
+  }
+}
+
+
+/* =========================================================
+   END PART 3
+   ========================================================= */
 
 #chatMessageInput {
   flex: 1;
