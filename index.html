@@ -8558,6 +8558,59 @@ function addPasswordEye(
 </script>
 
 <script>
+/* ===== ANDROID FIREBASE TOKEN ===== */
+
+let androidFirebaseToken = null;
+
+function requestAndroidFirebaseToken() {
+  if (
+    !window.AndroidFirebase ||
+    typeof window.AndroidFirebase.postMessage !== 'function'
+  ) {
+    return;
+  }
+
+  window.AndroidFirebase.postMessage('requestToken');
+}
+
+if (
+  window.AndroidFirebase &&
+  typeof window.AndroidFirebase.addEventListener === 'function'
+) {
+  window.AndroidFirebase.addEventListener(
+    'message',
+    function(event) {
+      try {
+        const message = JSON.parse(event.data);
+
+        if (
+          message.type !== 'firebaseToken' ||
+          typeof message.token !== 'string' ||
+          !message.token
+        ) {
+          return;
+        }
+
+        androidFirebaseToken = message.token;
+
+        console.log(
+          'Android Firebase token received'
+        );
+
+      } catch (error) {
+        console.error(
+          'Firebase token message error:',
+          error
+        );
+      }
+    }
+  );
+
+  requestAndroidFirebaseToken();
+}
+</script>
+
+<script>
 /* ===== FINAL START ===== */
 
 (async function () {
