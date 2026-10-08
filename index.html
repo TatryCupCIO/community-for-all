@@ -6673,22 +6673,36 @@ function addPasswordEye(
           details
         );
 
-        row.onclick =
+                row.onclick =
           async function () {
 
             window.selectedPrivateUser =
               user;
 
-            if (
-              typeof window
-                .openPrivateChatWithUser ===
-              'function'
-            ) {
-
-              await window
-                .openPrivateChatWithUser(
-                  user
+            try {
+              if (
+                typeof window.openPrivateChatWithUser !==
+                'function'
+              ) {
+                throw new Error(
+                  'PRIVATE_CHAT_FUNCTION_MISSING'
                 );
+              }
+
+              await window.openPrivateChatWithUser(
+                user
+              );
+
+            } catch (error) {
+              console.error(
+                'Private chat opening error:',
+                error
+              );
+
+              alert(
+                'Chyba súkromného chatu / Private chat error:\n' +
+                (error?.message || String(error))
+              );
             }
           };
 
