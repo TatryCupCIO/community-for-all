@@ -805,7 +805,7 @@ async function loadPrivateChatMessages() {
   const { data: senderProfile } =
     await supabaseClient
       .from('user_profiles')
-      .select('display_name')
+      .select('display_name,avatar_url')
       .eq('user_id', message.sender_id)
       .maybeSingle();
 
@@ -815,7 +815,8 @@ async function loadPrivateChatMessages() {
       'Používateľ',
       'User'
     );
-
+message.sender_avatar_url =
+  senderProfile?.avatar_url || null;
   await renderPrivateChatMessage(
     message
   );
@@ -888,32 +889,77 @@ async function renderPrivateChatMessage(
     overflow-wrap:anywhere;
   `;
 
+const senderHeader =
+  document.createElement('div');
+
+senderHeader.style.cssText = `
+  display:flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:4px;
+  justify-content:${mine ? 'flex-end' : 'flex-start'};
+`;
+
+const senderAvatar =
+  document.createElement('div');
+
+senderAvatar.style.cssText = `
+  width:28px;
+  height:28px;
+  min-width:28px;
+  border-radius:50%;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#334155;
+  font-size:16px;
+`;
+
+if (message.sender_avatar_url) {
+  const avatarImage =
+    document.createElement('img');
+
+  avatarImage.src =
+    message.sender_avatar_url;
+
+  avatarImage.alt = '';
+
+  avatarImage.style.cssText = `
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  `;
+
+  avatarImage.onerror = () => {
+    senderAvatar.textContent = '👤';
+  };
+
+  senderAvatar.appendChild(avatarImage);
+} else {
+  senderAvatar.textContent = '👤';
+}
+
 const senderName =
-  document.createElement(
-    'div'
-  );
+  document.createElement('div');
 
 senderName.className =
   'private-message-sender';
 
 senderName.textContent =
   message.sender_name ||
-  T(
-    'Používateľ',
-    'User'
-  );
+  T('Používateľ', 'User');
 
 senderName.style.cssText = `
   font-size:11px;
   font-weight:700;
-  margin-bottom:4px;
   opacity:.85;
-  text-align:${mine ? 'right' : 'left'};
 `;
 
-item.appendChild(
-  senderName
-);
+senderHeader.appendChild(senderAvatar);
+senderHeader.appendChild(senderName);
+
+item.appendChild(senderHeader);
   if (message.message_text) {
     const text =
       document.createElement(
@@ -1966,7 +2012,7 @@ function subscribePrivateChat() {
   const { data: senderProfile } =
     await supabaseClient
       .from('user_profiles')
-      .select('display_name')
+.select('display_name,avatar_url')
       .eq('user_id', message.sender_id)
       .maybeSingle();
 
@@ -1976,7 +2022,8 @@ function subscribePrivateChat() {
       'Používateľ',
       'User'
     );
-
+message.sender_avatar_url =
+  senderProfile?.avatar_url || null;
   await renderPrivateChatMessage(
   message
 );
