@@ -784,23 +784,26 @@ function renderCommunityChatMessage(
   // DELETE OWN MESSAGE / PHOTO
   // ----------------------------------------------------------
 
-  if (ownMessage) {
-    const deleteButton =
-      document.createElement(
-        'button'
-      );
+  function scrollCommunityChatToBottom() {
+  const box = document.getElementById('chatMessages');
+  if (!box) return;
 
-    deleteButton.type =
-      'button';
+  const moveToBottom = () => {
+    if (!communityChatOpen) return;
+    box.scrollTop = box.scrollHeight;
+  };
 
-    deleteButton.className =
-      'chat-delete-btn';
+  requestAnimationFrame(() => {
+    moveToBottom();
+    requestAnimationFrame(moveToBottom);
+  });
 
-    deleteButton.textContent =
-      '🗑️';
-
-    deleteButton.title =
-      T(
+  box.querySelectorAll('img').forEach(image => {
+    if (!image.complete) {
+      image.addEventListener('load', moveToBottom, { once: true });
+    }
+  });
+}
         'Vymazať',
         'Delete'
       );
