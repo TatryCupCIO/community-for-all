@@ -3541,19 +3541,17 @@ function initialisePrivateMembersLongPress(
 // ============================================================
 
 async function closePrivateChat() {
-  privateChatOpen =
-    false;
-if (
-  privateChatOpen &&
-  history.state?.privateChat
-) {
-  history.back();
-  return;
-}
+  if (
+    privateChatOpen &&
+    history.state?.privateChat
+  ) {
+    history.back();
+    return;
+  }
+
+  privateChatOpen = false;
+
   if (currentUser) {
-    await supabaseClient
-      .from('user_profiles')
-      .update({
         presence_status: 'logged_in',
         last_active_at: new Date().toISOString()
       })
