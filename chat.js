@@ -535,24 +535,26 @@ async function loadCommunityChat() {
     return;
   }
 
-  for (
+    for (
     const message
     of data || []
   ) {
+    const { data: senderProfile } =
+      await supabaseClient
+        .from('user_profiles')
+        .select('display_name,avatar_url')
+        .eq('user_id', message.user_id)
+        .maybeSingle();
+
+    message.sender_avatar_url =
+      senderProfile?.avatar_url || null;
+
     renderCommunityChatMessage(
       message
     );
   }
-
-  scrollCommunityChatToBottom();
+    scrollCommunityChatToBottom();
 }
-
-
-// ============================================================
-// RENDER ONE MESSAGE
-// Single renderer for text, photo, delete and read receipt
-// ============================================================
-
 function renderCommunityChatMessage(
   message
 ) {
@@ -612,31 +614,76 @@ function renderCommunityChatMessage(
   // USER NAME
   // ----------------------------------------------------------
 
+   // ----------------------------------------------------------
+  // USER NAME AND AVATAR
+  // ----------------------------------------------------------
+
+  const senderHeader =
+    document.createElement('div');
+
+  senderHeader.style.cssText = `
+    display:flex;
+    align-items:center;
+    gap:7px;
+  `;
+
+  const senderAvatar =
+    document.createElement('div');
+
+  senderAvatar.style.cssText = `
+    width:28px;
+    height:28px;
+    min-width:28px;
+    border-radius:50%;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:#334155;
+    font-size:16px;
+  `;
+
+  if (message.sender_avatar_url) {
+    const avatarImage =
+      document.createElement('img');
+
+    avatarImage.src =
+      message.sender_avatar_url;
+
+    avatarImage.alt = '';
+
+    avatarImage.style.cssText = `
+      width:100%;
+      height:100%;
+      object-fit:cover;
+    `;
+
+    avatarImage.onerror = () => {
+      senderAvatar.textContent = '👤';
+    };
+
+    senderAvatar.appendChild(avatarImage);
+  } else {
+    senderAvatar.textContent = '👤';
+  }
+
   const name =
-    document.createElement(
-      'div'
-    );
+    document.createElement('div');
 
   name.className =
     'chat-message-name';
 
   name.textContent =
     ownMessage
-      ? T(
-          'Ja',
-          'Me'
-        )
+      ? T('Ja', 'Me')
       : (
           message.user_name ||
-          T(
-            'Používateľ',
-            'User'
-          )
+          T('Používateľ', 'User')
         );
 
-  item.appendChild(
-    name
-  );
+  senderHeader.appendChild(senderAvatar);
+  senderHeader.appendChild(name);
+  item.appendChild(senderHeader);
 
 
   // ----------------------------------------------------------
@@ -2215,12 +2262,21 @@ function subscribeCommunityChat() {
         },
 
         async payload => {
-          const message =
-            payload.new;
+  const message = payload.new;
 
-          renderCommunityChatMessage(
-            message
-          );
+  const { data: senderProfile } =
+    await supabaseClient
+      .from('user_profiles')
+      .select('avatar_url')
+      .eq('user_id', message.user_id)
+      .maybeSingle();
+
+  message.sender_avatar_url =
+    senderProfile?.avatar_url || null;
+
+  renderCommunityChatMessage(
+    message
+  );
 
           if (
             communityChatOpen
