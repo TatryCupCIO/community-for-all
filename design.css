@@ -3260,3 +3260,113 @@ footer::after,
 /* =========================================================
    END PART 3
    ========================================================= */
+
+
+/* =========================================================
+   FAMILY OLYMPICS 2027 - EVENT AND RESERVATION UI
+   Scoped to the event page; other app pages are unchanged.
+   ========================================================= */
+
+#eventDetailPage .fo27-summary {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0 20px;
+}
+
+#eventDetailPage .fo27-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+#eventDetailPage .fo27-fact {
+  padding: 12px;
+  border: 1px solid #dce5eb;
+  border-radius: 12px;
+  background: #f8fbfc;
+  overflow-wrap: anywhere;
+}
+
+#eventDetailPage .fo27-fact strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #18354b;
+}
+
+#eventDetailPage .fo27-price-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+#eventDetailPage .fo27-price-card {
+  border: 1px solid #dce5eb;
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
+}
+
+#eventDetailPage .fo27-price-card h3 {
+  margin: 0 0 8px;
+  color: #18354b;
+}
+
+#eventDetailPage .fo27-price-card p {
+  margin: 6px 0;
+}
+
+#eventDetailPage .fo27-quantity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e7edf1;
+}
+
+#eventDetailPage .fo27-quantity-row input,
+#eventDetailPage .fo27-quantity-row select {
+  max-width: 110px;
+  min-width: 75px;
+}
+
+#eventDetailPage .fo27-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+}
+
+#eventDetailPage .fo27-status--available { color: #187847; }
+#eventDetailPage .fo27-status--limited { color: #a65a00; }
+#eventDetailPage .fo27-status--sold-out { color: #ad2732; }
+
+#eventDetailPage .fo27-warning {
+  border-left: 4px solid #d68a1b;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #fff8e9;
+  color: #563b16;
+}
+
+#eventDetailPage .fo27-cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+}
+
+#eventDetailPage .fo27-help {
+  font-size: 0.9rem;
+  color: #526472;
+}
+
+@media (max-width: 600px) {
+  #eventDetailPage .fo27-facts,
+  #eventDetailPage .fo27-price-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
