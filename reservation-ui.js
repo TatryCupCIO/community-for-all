@@ -1,0 +1,411 @@
+/* Community For All: event information, linked reservations and per-option controls. */
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const t = (sk, en) => T(sk, en);
+  const node = (tag, value, cls) => {
+    const n = document.createElement(tag);
+    if (value != null) n.textContent = value;
+    if (cls) n.className = cls;
+    return n;
+  };
+  const setting = (o, key) => o?.booking_form_settings?.[key] !== false;
+  const privateRoom = o => ['private_room_2', 'private_lodge_4'].includes(o.option_code);
+  const errorText = error => {
+    const value = String(error?.message || error || t('Operácia sa nepodarila.', 'The operation failed.'));
+    const parts = value.split(' / ');
+    return parts.length === 2 ? parts[currentLanguage === 'en' ? 1 : 0] : value;
+  };
+  function statusBox(parent) {
+    const box = node('div', '', 'cfa-reservation-message');
+    box.hidden = true;
+    box.setAttribute('role', 'status');
+    parent.appendChild(box);
+    return (message, error = false) => {
+      box.hidden = !message;
+      box.textContent = message;
+      box.classList.toggle('cfa-reservation-error', error);
+      box.setAttribute('role', error ? 'alert' : 'status');
+      if (error) box.scrollIntoView?.({block: 'nearest', behavior: 'smooth'});
+    };
+  }
+  function field(parent, label, min, value = '', max) {
+    const wrap = node('label', null, 'cfa-reservation-field');
+    const input = node('input');
+    input.type = 'number'; input.inputMode = 'numeric'; input.step = '1';
+    input.min = String(min); input.value = String(value); input.required = true;
+    if (max != null) input.max = String(max);
+    wrap.append(node('span', label), input); parent.appendChild(wrap);
+    return input;
+  }
+  function integer(input, min = 0) {
+    if (!input || input.value.trim() === '') return null;
+    const n = Number(input.value);
+    return Number.isInteger(n) && n >= min ? n : null;
+  }
+  function nightsForItem(item) {
+    if (!item?.night_start_date) return [];
+    const date = new Date(item.night_start_date + 'T12:00:00');
+    return Array.from({length: Number(item.number_of_nights || 1)}, (_, i) => {
+      const d = new Date(date); d.setDate(d.getDate() + i); return extDateISO(d);
+    });
+  }
+  let pendingEdit = null, activeEdit = null, renderGeneration = 0;
+  function dayControl(row, option, event) {
+    const form = node('form', null, 'cfa-linked-form');
+    const note = statusBox(form);
+    const quantity = field(form, t('Počet vstupeniek', 'Number of tickets'), 1, 1);
+    const ageBox = node('div', null, 'cfa-reservation-grid'); form.appendChild(ageBox);
+    let ages = [];
+    function ageFields() {
+      const old = ages.map(i => i.value); ages = []; ageBox.replaceChildren();
+      if (!isChild(option)) return;
+      const count = Math.min(500, integer(quantity, 1) || 0);
+      for (let i = 0; i < count; i++) ages.push(field(ageBox, t(`Vek dieťaťa ${i + 1}`, `Child ${i + 1} age`), Number(option.min_age ?? 0), old[i] ?? '', Number(option.max_age ?? 17)));
+    }
+    ageFields();
+    const label = node('label', null, 'cfa-reservation-field');
+    const day = node('select'); day.required = true;
+    const dates = option.option_date ? [option.option_date] : extEventDates(event);
+    if (dates.length !== 1) { const empty = node('option', t('Vyberte deň', 'Select day')); empty.value = ''; day.appendChild(empty); }
+    for (const date of dates) { const item = node('option', extShortDate(date)); item.value = date; day.appendChild(item); }
+    label.append(node('span', t('Deň návštevy', 'Visit date')), day); form.appendChild(label);
+    const summary = node('div', '', 'cfa-package-summary'); summary.setAttribute('aria-live', 'polite');
+    const add = node('button', t('Pridať vstupenky', 'Add tickets'), 'add-btn'); add.type = 'submit';
+    form.append(summary, add); let busy = false;
+    const update = () => { const q = integer(quantity, 1); summary.textContent = q ? t('Spolu: ', 'Total: ') + money(Number(option.price) * q) : ''; add.disabled = busy || !q || q > 500 || isTbd(option); };
+    quantity.oninput = () => { ageFields(); update(); }; update();
+    form.onsubmit = async ev => {
+      ev.preventDefault(); if (busy || isTbd(option) || !form.reportValidity() || !requireLogin()) return;
+      const q = integer(quantity, 1), childAges = ages.map(i => integer(i));
+      if (!q || q > 500 || !dates.includes(day.value) || childAges.some(a => a == null || a < Number(option.min_age ?? 0) || a > Number(option.max_age ?? 17))) return;
+      busy = true; update();
+      try {
+        const result = await supabaseClient.rpc('add_item_to_cart', {p_event_option_id: option.id, p_quantity: q, p_child_ages: childAges,
+          p_number_of_days: 1, p_number_of_nights: 1, p_option_date: day.value, p_adult_count: isChild(option) ? 0 : q});
+        if (result.error) throw result.error;
+        await refreshCartBadge(); note(t('Vstupenky sú v košíku.', 'The tickets are in your cart.'));
+      } catch (error) { note(errorText(error), true); }
+      finally { busy = false; update(); }
+    };
+    row.appendChild(form);
+  }
+  function linkedControl(row, option, event, edit) {
+    const form = node('form', null, 'cfa-linked-form');
+    const note = statusBox(form);
+    const quantities = node('div', null, 'cfa-reservation-grid');
+    form.appendChild(quantities);
+    const unitLabel = currentLanguage === 'en'
+      ? option.booking_form_settings?.unit_label_en
+      : option.booking_form_settings?.unit_label_sk;
+    const tent = ['small_tent', 'large_tent'].includes(option.option_code);
+    const units = field(quantities, unitLabel || (tent ? t('Počet stanov', 'Number of tents') : t('Počet ubytovacích jednotiek', 'Number of accommodation units')), 1, edit?.quantity || 1);
+    if (!setting(option, 'show_unit_counter')) units.closest('label').hidden = true;
+    const minimum = Math.max(1, Number(option.minimum_adults || 1));
+    const adults = field(quantities, t('Dospelí od 18 rokov', 'Adults aged 18+'), minimum, edit?.adult_count ?? '');
+    const children = field(quantities, t('Počet detí (uveďte aj 0)', 'Number of children (enter 0 if none)'), 0, edit ? (edit.child_ages || []).length : '', 500);
+    const ageBox = node('div', null, 'cfa-reservation-grid'); form.appendChild(ageBox);
+    let ageInputs = [];
+    function updateAgeFields() {
+      const saved = ageInputs.map(i => i.value);
+      const count = Math.min(500, integer(children) ?? 0);
+      ageBox.replaceChildren(); ageInputs = [];
+      for (let i = 0; i < count; i++) {
+        ageInputs.push(field(ageBox, t(`Vek dieťaťa ${i + 1}`, `Child ${i + 1} age`), 0,
+          saved[i] ?? edit?.child_ages?.[i] ?? '', 17));
+      }
+    }
+    updateAgeFields();
+    const dates = node('fieldset', null, 'cfa-night-options');
+    dates.appendChild(node('legend', t('Vyberte noci pobytu', 'Select the nights of your stay')));
+    const selected = new Set(edit ? nightsForItem(edit) : []);
+    const eventNights = extEventNights(event);
+    for (const day of eventNights.slice(0, 366)) {
+      const label = node('label'); const input = node('input');
+      input.type = 'checkbox'; input.value = day; input.checked = selected.has(day);
+      input.onchange = () => { input.checked ? selected.add(day) : selected.delete(day); update(); };
+      label.append(input, node('span', extNightLabel(day))); dates.appendChild(label);
+    }
+    form.appendChild(dates);
+    const summary = node('div', '', 'cfa-package-summary'); summary.setAttribute('aria-live', 'polite');
+    const info = node('p', t('Vstupenky pre všetkých uvedených hostí sa pridajú automaticky za celý pobyt.',
+      'Tickets for every listed guest are added automatically for the full stay.'), 'cfa-reservation-help');
+    if (!setting(option, 'show_linked_ticket_note')) info.hidden = true;
+    const button = node('button', edit ? t('Uložiť zmeny rezervácie', 'Save booking changes') : tent ? t('Pridať stan aj vstupenky', 'Add tent and tickets') : t('Pridať ubytovanie aj vstupenky', 'Add accommodation and tickets'), 'add-btn');
+    button.type = 'submit';
+    form.append(summary, info, button);
+    if (edit) {
+      const cancel = node('button', t('Zrušiť úpravu', 'Cancel editing'), 'cfa-reservation-secondary'); cancel.type = 'button';
+      cancel.onclick = () => { activeEdit = null; pendingEdit = null; showEventDetail(event.id); };
+      form.appendChild(cancel);
+    }
+    const all = () => (allEventOptions || []);
+    let busy = false;
+    function details() {
+      const q = integer(units, 1), a = integer(adults, minimum), c = integer(children);
+      const ages = ageInputs.map(i => integer(i));
+      const tickets = [option.adult_ticket_option_id, option.child_ticket_option_id, option.free_child_ticket_option_id]
+        .map(id => all().find(o => Number(o.id) === Number(id)));
+      if (q == null || a == null || c == null || c > 500 || ages.length !== c || ages.some(v => v == null || v > 17)) return null;
+      const capacity = Number(option.max_occupancy || 0) * q;
+      if (!capacity || a + c > capacity) return {error: t(`Maximálna kapacita je ${capacity} osôb.`, `Maximum capacity is ${capacity} people.`)};
+      if (!selected.size || selected.size > 366) return null;
+      const nights = [...selected].sort();
+      const positions = nights.map(d => eventNights.indexOf(d));
+      if (positions.some((n, i) => n < 0 || (i > 0 && n !== positions[i - 1] + 1))) return {error: t('Vyberte po sebe nasledujúce noci.', 'Select consecutive nights.')};
+      if (!tickets[0]) return {error: t('Prepojené vstupenky ešte nie sú zapnuté. Kontaktujte organizátora.', 'Linked tickets are not enabled yet. Contact the organiser.')};
+      let paid = 0, free = 0;
+      for (const age of ages) {
+        const matches = [1, 2].filter(i => tickets[i] && age >= Number(tickets[i].min_age) && age <= Number(tickets[i].max_age));
+        if (matches.length !== 1) return {error: t('Pre uvedený vek dieťaťa nie je dostupná správna vstupenka.', 'A matching ticket is unavailable for a child’s age.')};
+        matches[0] === 1 ? paid++ : free++;
+      }
+      const nightly = ['per_night', 'per_tent_per_night', 'per_room_per_night', 'per_vehicle_per_night'].includes(option.pricing_unit);
+      const accommodation = Number(option.price || 0) * q * (nightly ? nights.length : 1);
+      return {q, a, c, ages, nights, paid, free, tickets, accommodation,
+        total: accommodation + a * Number(tickets[0].price) + paid * Number(tickets[1]?.price || 0) + free * Number(tickets[2]?.price || 0)};
+    }
+    function update() {
+      const d = details(); button.disabled = busy || !d || !!d.error;
+      summary.replaceChildren();
+      if (!d) { summary.textContent = t('Vyplňte počty osôb, veky detí a noci pobytu.', 'Enter all guest counts, child ages and nights.'); return; }
+      if (d.error) { summary.textContent = d.error; return; }
+      summary.append(node('strong', t(`Spolu ${d.a + d.c} osôb · ${money(d.total)} za pobyt`, `${d.a + d.c} guests · ${money(d.total)} for the stay`)));
+      summary.append(node('div', `${d.a}× ${localName(d.tickets[0])}: ${money(d.a * Number(d.tickets[0].price))}`));
+      if (d.paid) summary.append(node('div', `${d.paid}× ${localName(d.tickets[1])}: ${money(d.paid * Number(d.tickets[1].price))}`));
+      if (d.free) summary.append(node('div', `${d.free}× ${localName(d.tickets[2])}: ${money(d.free * Number(d.tickets[2].price))}`));
+      summary.append(node('div', `${localName(option)}: ${money(d.accommodation)}`));
+    }
+    children.oninput = () => { updateAgeFields(); update(); };
+    form.addEventListener('input', update);
+    form.onsubmit = async ev => {
+      ev.preventDefault(); if (busy || !form.reportValidity()) return;
+      if (!requireLogin()) return;
+      const d = details(); if (!d || d.error) { note(d?.error || t('Doplňte všetky údaje.', 'Complete every field.'), true); return; }
+      busy = true; update(); note(t('Ukladám rezerváciu…', 'Saving booking…'));
+      try {
+        const args = {p_adult_count: d.a, p_child_ages: d.ages, p_nights: d.nights, p_quantity: d.q};
+        const rpc = edit ? 'update_camping_package_in_cart' : 'add_camping_package_to_cart';
+        if (edit) args.p_booking_item_id = edit.id; else args.p_event_option_id = option.id;
+        const result = await supabaseClient.rpc(rpc, args); if (result.error) throw result.error;
+        await refreshCartBadge();
+        const cart = await getActiveCart(); if (cart && typeof extSetBookingLanguage === 'function') await extSetBookingLanguage(cart.id);
+        if (edit) { activeEdit = null; await showCartPage(); }
+        else { note(t('Ubytovanie aj správne vstupenky sú v košíku.', 'The accommodation and matching tickets are in your cart.')); button.hidden = true;
+          const next = node('button', t('Otvoriť košík', 'Open cart'), 'cfa-reservation-secondary'); next.type = 'button'; next.onclick = () => showCartPage(); form.appendChild(next);
+          const another = node('button', t('Nová rezervácia', 'New booking'), 'cfa-reservation-secondary'); another.type = 'button'; another.onclick = () => showEventDetail(event.id); form.appendChild(another); }
+      } catch (error) { note(errorText(error), true); }
+      finally { busy = false; update(); }
+    };
+    row.appendChild(form); update();
+  }
+  function applyOptionSettings(row, option) {
+    const hide = (selector, key) => row.querySelectorAll(selector).forEach(n => { if (!setting(option, key)) n.hidden = true; });
+    hide('.option-description', 'show_description'); hide('.option-price', 'show_price');
+    hide('.extension-availability', 'show_availability'); hide('.guest-title', 'show_guest_title');
+    hide('.paid-child-title', 'show_bed_child_title'); hide('.capacity-note', 'show_capacity_note');
+    if (option.option_code === 'day_parking') hide('.option-special', 'show_parking_note');
+    if (option.option_code === 'electric_hookup') hide('.option-special', 'show_electric_note');
+    if (privateRoom(option)) {
+      const box = row.querySelector('.child-free-note');
+      if (box) {
+        if (!setting(option, 'allow_extra_guests')) box.hidden = true;
+        hide('.child-free-note .free-child-title', 'show_extra_title');
+        hide('.child-free-note .free-price', 'show_extra_price');
+        const counters = box.querySelectorAll('.guest-counter');
+        if (!setting(option, 'allow_extra_adults') && counters[0]) counters[0].hidden = true;
+        if (!setting(option, 'allow_extra_children') && counters[1]) {
+          counters[1].hidden = true; box.querySelectorAll('.child-age-list').forEach(n => n.hidden = true);
+        }
+        for (const n of box.children) {
+          if (!n.className && !setting(option, 'show_extra_note')) n.hidden = true;
+        }
+        if (!setting(option, 'show_extra_frame')) box.classList.add('cfa-unframed-note');
+      }
+      if (!setting(option, 'allow_bed_children')) {
+        const title = row.querySelector('.paid-child-title'); if (title) title.closest('.guest-section').hidden = true;
+      }
+      if (!setting(option, 'allow_extra_guests') || (!setting(option, 'allow_extra_adults') && !setting(option, 'allow_extra_children'))) {
+        const capacity = row.querySelector('.capacity-note');
+        const quantity = Number(row.querySelector('.guest-counter .guest-count')?.textContent || 1);
+        if (capacity && setting(option, 'show_capacity_note')) capacity.textContent = t(`Kapacita lôžok: ${Number(option.max_occupancy) * quantity} osôb.`, `Bed capacity: ${Number(option.max_occupancy) * quantity} people.`);
+      }
+    }
+    const labels = row.querySelectorAll('.guest-counter-label');
+    if (labels[0] && option.is_accommodation) {
+      const configured = currentLanguage === 'en' ? option.booking_form_settings?.unit_label_en : option.booking_form_settings?.unit_label_sk;
+      if (configured) labels[0].textContent = configured;
+      else if (option.option_code === 'private_lodge_4') labels[0].textContent = t('Počet izieb', 'Number of rooms');
+      if (!setting(option, 'show_unit_counter')) labels[0].closest('.guest-counter').hidden = true;
+    }
+    hide('.child-age-list > .small, .child-box > .small', 'show_age_heading');
+    if (!row._cfaSettingsListener) {
+      row._cfaSettingsListener = true;
+      row.addEventListener('click', () => queueMicrotask(() => applyOptionSettings(row, option)));
+    }
+  }
+  const previousControl = reservationControl;
+  reservationControl = function (row, option, event) {
+    row.dataset.cfaOptionId = String(option.id);
+    if (option.requires_linked_tickets) linkedControl(row, option, event, Number(activeEdit?.event_option_id) === Number(option.id) ? activeEdit : null);
+    else if (option.admission_type === 'day') dayControl(row, option, event);
+    else previousControl(row, option, event);
+    applyOptionSettings(row, option);
+  };
+
+  function textSection(parent, title, value, warning = false) {
+    if (!value || !String(value).trim()) return;
+    const section = node('section', null, 'cfa-event-section' + (warning ? ' cfa-event-warning' : ''));
+    section.append(node('h3', title), node('div', value, 'cfa-full-text')); parent.appendChild(section);
+  }
+  function ticketWarning(options) {
+    const linked = options.find(o => o.requires_linked_tickets);
+    const free = linked ? options.find(o => Number(o.id) === Number(linked.free_child_ticket_option_id))
+      : options.find(o => o.category === 'ticket' && Number(o.price) === 0 && o.min_age != null && o.max_age != null && Number(o.max_age) <= 17);
+    const range = free ? `${free.min_age}–${free.max_age}` : null;
+    if (!linked) return t(
+      `Každý návštevník musí mať vlastnú platnú vstupenku zodpovedajúcu skutočnej vekovej kategórii. ${range ? `Deti vo veku ${range} rokov majú vstup zdarma, musia však byť uvedené v rezervácii.` : 'Aj osoby s oprávneným bezplatným vstupom musia byť uvedené v rezervácii.'}\n\nJedna vstupenka platí iba pre jednu osobu. Pri vstupe organizátori skontrolujú počet osôb a vekové kategórie. Osobám bez zodpovedajúcej platnej vstupenky nebude umožnený vstup. Pri pochybnostiach môžu organizátori požiadať o primerané preukázanie veku.\n\nPo kontrole dostane každý návštevník identifikačný náramok, ktorý musí nosiť počas pobytu. Pred dokončením rezervácie sa oboznámte s podmienkami podujatia.`,
+      `Every visitor must have their own valid ticket matching their actual age category. ${range ? `Children aged ${range} have free admission but must be included in the booking.` : 'Visitors eligible for free admission must also be included in the booking.'}\n\nOne ticket admits one person only. Organisers will check guest numbers and age categories at the entrance. Visitors without a matching valid ticket will not be admitted. Organisers may request reasonable proof of age if there is doubt.\n\nEach visitor will receive an identification wristband after the check and must wear it throughout their stay. Read the event conditions before completing your booking.`);
+    return t(
+      `Každý návštevník je povinný zakúpiť si vstupenku zodpovedajúcu svojej skutočnej vekovej kategórii. ${range ? `Deti vo veku ${range} rokov majú vstup zdarma, musia však byť uvedené v rezervácii.` : 'Aj osoby s oprávneným bezplatným vstupom musia byť uvedené v rezervácii.'}\n\nJedna vstupenka oprávňuje na vstup výhradne jednu osobu.\n\nPri vstupe do areálu budú všetky vstupenky dôsledne kontrolované. Organizátori overia počet prichádzajúcich osôb a príslušné vekové kategórie podľa zakúpených vstupeniek. Po kontrole dostane každý návštevník identifikačný náramok, ktorý musí nosiť počas pobytu.\n\nRezervácia stanového miesta neoprávňuje na vstup ďalších osôb bez platných víkendových vstupeniek.\n\nKaždá rezervácia stanu musí zahŕňať minimálne jednu dospelú osobu vo veku 18 rokov alebo viac. Samostatné stanovanie maloletých osôb nie je povolené.\n\nAk počet prichádzajúcich osôb alebo ich vekové kategórie nezodpovedajú zakúpeným vstupenkám, osobám bez zodpovedajúcej platnej vstupenky nebude umožnený vstup do areálu. Pri pochybnostiach môžu organizátori požiadať o primerané preukázanie veku.\n\nÚmyselné uvedenie nepravdivého počtu osôb alebo nesprávnych vekových kategórií nezakladá nárok na vstup ani na bezplatné ubytovanie.\n\nCelodenné vstupenky neoprávňujú na prenocovanie v areáli.\n\nVšetci návštevníci sú povinní oboznámiť sa s týmito podmienkami pred dokončením rezervácie.`,
+      `Every visitor must have a ticket matching their actual age category. ${range ? `Children aged ${range} have free admission but must be included in the booking.` : 'Visitors eligible for free admission must also be included in the booking.'}\n\nOne ticket admits one person only.\n\nAll tickets will be checked carefully at the entrance. Organisers will check the number of arriving guests and their age categories against the tickets purchased. Each visitor will receive an identification wristband after the check and must wear it throughout their stay.\n\nA tent pitch reservation does not admit additional guests without valid weekend tickets.\n\nEvery tent booking must include at least one adult aged 18 or over. Minors are not permitted to camp unaccompanied.\n\nGuests without a ticket matching their actual age category will not be admitted if the arriving party does not match the tickets purchased. Organisers may request reasonable proof of age if there is doubt.\n\nDeliberately declaring incorrect guest numbers or age categories does not create any entitlement to admission or free accommodation.\n\nDay tickets do not permit an overnight stay.\n\nAll visitors must read these conditions before completing a booking.`);
+  }
+  function renderEventInformation(event, options) {
+    const root = $('eventDetailContent'); const head = root?.querySelector('.card'); if (!head) return;
+    const settings = event.display_settings || {};
+    head.id = 'cfaEventInformation'; head.classList.add('cfa-event-information'); head.replaceChildren();
+    head.append(node('h2', currentLanguage === 'en' ? settings.title_en || event.title : event.title, 'event-title'));
+    head.append(node('p', `${formatDate(event.start_date)} – ${formatDate(event.end_date || event.start_date)}`));
+    if (event.venue_name) head.append(node('p', event.venue_name));
+    if (event.address || event.postcode) head.append(node('p', [event.address, event.postcode].filter(Boolean).join(', ')));
+    if (event.maps_url) {
+      try { const url = new URL(event.maps_url); if (['https:', 'http:'].includes(url.protocol)) {
+        const link = node('a', t('Otvoriť mapu', 'Open map')); link.href = url.href; link.target = '_blank'; link.rel = 'noopener noreferrer'; head.appendChild(link);
+      } } catch (_) { /* An invalid optional map link does not hide the event text. */ }
+    }
+    const seen = new Set();
+    const add = (key, sk, en, fallback, warning) => {
+      if (settings['show_' + key] === false) return;
+      const value = currentLanguage === 'en' ? settings[key + '_en'] || fallback : settings[key + '_sk'] || fallback;
+      if (!value || seen.has(value)) return; seen.add(value); textSection(head, t(sk, en), value, warning);
+    };
+    add('short_description', 'O podujatí', 'About the event', event.short_description);
+    add('description', 'Ďalšie informácie', 'Further information', localEventDescription(event));
+    if (event.description && ![event.description_sk, event.description_en].includes(event.description) && !seen.has(event.description)) {
+      seen.add(event.description); textSection(head, t('Ďalší uložený opis', 'Additional saved description'), event.description);
+    }
+    add('event_details', 'Praktické informácie', 'Practical information', event.event_details);
+    add('programme', 'Program', 'Programme', event.programme);
+    add('important_information', 'Dôležité informácie', 'Important information', event.important_information, true);
+    add('booking_information', 'Podmienky rezervácie a ubytovania', 'Booking and accommodation conditions', event.booking_information);
+    if (options.some(o => o.category === 'ticket' || o.requires_linked_tickets)) {
+      textSection(head, t('DÔLEŽITÉ UPOZORNENIE: POVINNÁ KONTROLA VSTUPENIEK', 'IMPORTANT: MANDATORY TICKET CHECKS'), ticketWarning(options), true);
+    }
+    const reserve = root.querySelector('.reserve-heading');
+    if (reserve) {
+      reserve.id = 'cfaReservationForm'; reserve.tabIndex = -1;
+      const go = node('button', t('Pokračovať na rezerváciu ↓', 'Continue to booking ↓'), 'cfa-reservation-primary'); go.type = 'button';
+      go.onclick = () => { reserve.scrollIntoView({behavior: 'smooth', block: 'start'}); reserve.focus({preventScroll: true}); };
+      head.appendChild(go);
+      const back = node('button', t('↑ Späť k informáciám', '↑ Back to information'), 'cfa-reservation-secondary'); back.type = 'button';
+      back.onclick = () => head.scrollIntoView({behavior: 'smooth', block: 'start'}); reserve.insertAdjacentElement('afterend', back);
+    }
+  }
+  function capacityOverview(options) {
+    const wrap = node('section', null, 'cfa-capacity-overview');
+    wrap.appendChild(node('h3', t('Prehľad kapacít', 'Capacity overview')));
+    const scroll = node('div', null, 'cfa-capacity-scroll'); const table = node('table');
+    const header = node('tr'); for (const title of [t('Položka', 'Item'), t('Celkom', 'Total'), t('Rezervované', 'Reserved'), t('Predané', 'Sold'), t('Voľné', 'Remaining')]) header.appendChild(node('th', title));
+    const thead = node('thead'); thead.appendChild(header); table.appendChild(thead);
+    const body = node('tbody');
+    for (const o of options) {
+      const row = node('tr'); const left = o.stock_capacity == null ? null : Math.max(0, Number(o.stock_capacity) - Number(o.reserved_quantity || 0) - Number(o.sold_quantity || 0));
+      const ratio = o.stock_capacity ? 100 * left / Number(o.stock_capacity) : 0;
+      row.dataset.level = left == null || ratio > Number(o.availability_green_threshold ?? 50) ? 'green' : ratio > Number(o.availability_orange_threshold ?? 25) ? 'orange' : 'red';
+      for (const value of [localName(o) + (o.enabled ? '' : t(' (vypnuté)', ' (disabled)')), o.stock_capacity ?? '∞', o.reserved_quantity || 0, o.sold_quantity || 0, left ?? '∞']) row.appendChild(node('td', String(value)));
+      body.appendChild(row);
+    }
+    table.appendChild(body); scroll.appendChild(table); wrap.appendChild(scroll); return wrap;
+  }
+  const previousDetail = showEventDetail;
+  showEventDetail = async function(id) {
+    const generation = ++renderGeneration; activeEdit = pendingEdit; pendingEdit = null;
+    await previousDetail(id);
+    if (generation !== renderGeneration || Number(currentEvent?.id) !== Number(id)) return;
+    renderEventInformation(currentEvent, allEventOptions || []);
+    const rows = document.querySelectorAll('#eventDetailContent .option-row');
+    const includedTickets = new Set((allEventOptions || []).filter(o => o.requires_linked_tickets)
+      .flatMap(o => [o.adult_ticket_option_id, o.child_ticket_option_id, o.free_child_ticket_option_id]).filter(id => id != null).map(Number));
+    rows.forEach((row, index) => {
+      const option = currentEventOptions?.[index]; if (!option) return;
+      row.dataset.cfaOptionId = String(option.id);
+      if (includedTickets.has(Number(option.id)) && currentEvent.reservation_settings?.show_standalone_weekend_tickets !== true) row.hidden = true;
+      if (activeEdit?.event_option_id === option.id && option.requires_linked_tickets && !row.querySelector('.cfa-linked-form')) linkedControl(row, option, currentEvent, activeEdit);
+      applyOptionSettings(row, option);
+    });
+    $('eventDetailContent').querySelectorAll('.option-group').forEach(group => {
+      const children = [...group.querySelectorAll('.option-row')]; if (children.length && children.every(row => row.hidden)) group.hidden = true;
+    });
+    if (activeEdit) {
+      const target = [...rows].find(row => Number(row.dataset.cfaOptionId) === Number(activeEdit.event_option_id));
+      target?.scrollIntoView?.({block: 'start'});
+    }
+    if (currentUser) {
+      const userId = currentUser.id;
+      try {
+        const permission = await supabaseClient.rpc('cfa_can_manage_events');
+        if (!permission.error && permission.data === true && generation === renderGeneration && currentUser?.id === userId) {
+          const result = await supabaseClient.from('event_options').select('*').eq('event_id', id).order('sort_order');
+          if (!result.error && generation === renderGeneration && currentUser?.id === userId) $('eventDetailContent').prepend(capacityOverview(result.data || []));
+        }
+      } catch (error) { console.warn('Capacity overview:', error); }
+    }
+  };
+  const previousGuestHtml = guestCartHtml;
+  guestCartHtml = function(item) {
+    if (!item.camping_group_id) return previousGuestHtml(item);
+    const div = node('div');
+    if (item.camping_item_role === 'pitch') {
+      const nights = nightsForItem(item);
+      if (nights.length) div.appendChild(node('div', nights.map(extNightLabel).join(' · '), 'small'));
+      div.appendChild(node('div', t(`Dospelí: ${item.adult_count}`, `Adults: ${item.adult_count}`), 'small'));
+      div.appendChild(node('div', t(`Deti: ${(item.child_ages || []).length}`, `Children: ${(item.child_ages || []).length}`), 'small'));
+    }
+    if (item.child_ages?.length) div.appendChild(node('div', t('Vek detí: ', 'Children’s ages: ') + item.child_ages.join(', '), 'small'));
+    return div.innerHTML;
+  };
+  let lastItems = [], lastBooking = null, lastUser = null;
+  const previousGetItems = getCartItems;
+  getCartItems = async function(id) {
+    const items = await previousGetItems(id); lastItems = items; lastBooking = id; lastUser = currentUser?.id; return items;
+  };
+  const previousCart = showCartPage;
+  showCartPage = async function() {
+    await previousCart(); if (!currentUser || !activeCart) return;
+    const items = lastBooking === activeCart.id && lastUser === currentUser.id ? lastItems : await getCartItems(activeCart.id);
+    const rows = document.querySelectorAll('#cartPageContent .cart-item');
+    rows.forEach((row, index) => {
+      const item = items[index]; if (!item?.camping_group_id) return;
+      const remove = row.querySelector('.remove-btn'); if (!remove) return;
+      if (item.camping_item_role !== 'pitch') {
+        remove.hidden = true;
+        if (setting(item.event_options, 'show_linked_ticket_note')) row.appendChild(node('div', t('Súčasť rezervácie stanu', 'Part of the tent booking'), 'small'));
+        return;
+      }
+      remove.textContent = t('Odstrániť stan aj vstupenky', 'Remove tent and tickets');
+      remove.onclick = async () => {
+        if (!window.confirm(t('Odstrániť tento stan aj všetky jeho prepojené vstupenky?', 'Remove this tent and all its linked tickets?'))) return;
+        remove.disabled = true;
+        const note = statusBox(row);
+        try {
+          const result = await supabaseClient.rpc('remove_cart_item', {p_booking_item_id: item.id});
+          if (result.error) throw result.error; await refreshCartBadge(); await showCartPage();
+        } catch (error) { note(errorText(error), true); remove.disabled = false; }
+      };
+      const edit = node('button', t('Upraviť osoby a noci', 'Edit guests and nights'), 'cfa-reservation-secondary'); edit.type = 'button';
+      edit.onclick = () => { pendingEdit = item; return showEventDetail(activeCart.event_id); };
+      row.appendChild(edit);
+    });
+  };
+  window.CFAReservationUI = {capacityOverview, applyOptionSettings};
+})();
