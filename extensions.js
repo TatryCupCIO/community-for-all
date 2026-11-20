@@ -292,7 +292,7 @@ function extValidAges(
   max = 17
 ) {
   return ages.every(age =>
-    age !== '' &&
+    age !== null && age !== undefined && String(age).trim() !== '' &&
     Number.isInteger(
       Number(age)
     ) &&
@@ -503,6 +503,10 @@ function extAgeInputs(
       input.max = String(max);
       input.inputMode = 'numeric';
       input.value = age;
+      input.required = true;
+      input.step = '1';
+      input.placeholder = T('Zadaj vek', 'Enter age');
+      input.setAttribute('aria-label', T('Vek dieťaťa ', 'Child age ') + (index + 1));
 
 
       input.oninput = () => {
@@ -566,7 +570,7 @@ reservationControl = function(
 
   let ticketAges =
     isChild(o)
-      ? [childMin]
+      ? ['']
       : [];
 
 
@@ -1422,9 +1426,7 @@ reservationControl = function(
           ticketAges.length <
           quantity
         ) {
-          ticketAges.push(
-            childMin
-          );
+          ticketAges.push('');
         }
 
         renderTicketAges();
@@ -1464,9 +1466,7 @@ reservationControl = function(
       ticketAges.length <
       quantity
     ) {
-      ticketAges.push(
-        childMin
-      );
+      ticketAges.push('');
     }
 
 
@@ -1518,6 +1518,8 @@ reservationControl = function(
       return;
     }
 
+
+    if (!cfaValidateChildAgeFields(row)) return;
 
     if (isTbd(o)) {
 
