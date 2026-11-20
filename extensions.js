@@ -2149,6 +2149,13 @@ guestCartHtml = function(item) {
 // ============================================================
 
 function extTranslatedItemName(item) {
+
+  const option = item?.event_options;
+  const customName = currentLanguage === 'sk'
+    ? (option?.name_sk || option?.name_en)
+    : (option?.name_en || option?.name_sk);
+  if (customName) return customName;
+
   const code =
     item?.event_options
       ?.option_code || '';
@@ -2176,6 +2183,12 @@ const extBaseLocalName =
   localName;
 
 localName = function(o) {
+
+  // Admin-defined names take precedence over the original breakfast labels.
+  const customName = currentLanguage === 'sk'
+    ? (o?.name_sk || o?.name_en)
+    : (o?.name_en || o?.name_sk);
+  if (customName) return customName;
 
   if (
     o?.option_code ===
@@ -2528,7 +2541,7 @@ showBookings =
             'booking_items'
           )
           .select(
-            '*,event_options(option_code,is_accommodation,free_with_accommodation)'
+            '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation)'
           )
           .eq(
             'booking_id',
