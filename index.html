@@ -837,6 +837,39 @@
       }
     }
   </style>
+
+<style id="cfa-compact-notification-settings">
+#cfaWebPushSettings {
+  margin: 8px 0 12px !important;
+  padding: 8px 12px !important;
+  border-radius: 10px !important;
+}
+#cfaWebPushSettings > div {
+  gap: 8px !important;
+  flex-wrap: nowrap !important;
+}
+#cfaWebPushSettings strong {
+  font-size: 14px !important;
+  line-height: 1.3 !important;
+}
+#cfaWebPushSettings button[role="switch"] {
+  flex-shrink: 0;
+  min-width: 96px !important;
+  min-height: 44px !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 6px 10px !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+  border-width: 1px !important;
+}
+#cfaWebPushSettings > p {
+  margin: 3px 0 0 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+  overflow-wrap: anywhere;
+}
+</style>
 </head>
 
 <body>
@@ -1905,22 +1938,22 @@ function getUsername(u) {
 }
 
 function localEventDescription(e) {
-
   if (!e) return '';
-
-  return currentLanguage === 'sk'
-    ? (
-        e.description_sk ||
-        e.description ||
-        e.description_en ||
-        ''
-      )
-    : (
-        e.description_en ||
-        e.description ||
-        e.description_sk ||
-        ''
-      );
+  const value = currentLanguage === 'en' ? e.description_en : e.description_sk;
+  if (value) return value;
+  return e.description || e.description_sk || e.description_en
+    ? T('Slovenský preklad popisu zatiaľ nie je vyplnený.', 'The English description has not been filled in yet.') : '';
+}
+function cfaLocalizedEventTitle(e) {
+  if (!e) return '';
+  return currentLanguage === 'en'
+    ? e.display_settings?.title_en || 'The English event title has not been filled in yet.'
+    : e.title || '';
+}
+function cfaLocalizedEventText(e, key) {
+  if (!e) return '';
+  if (currentLanguage === 'sk') return e.display_settings?.[key + '_sk'] || e[key] || '';
+  return e.display_settings?.[key + '_en'] || (e[key] ? 'The English translation has not been filled in yet.' : '');
 }
 
 function showLogin() {
@@ -2191,8 +2224,8 @@ const optionNames = {
 function localName(o) {
 
   const customName = currentLanguage === 'sk'
-    ? (o.name_sk || o.name_en)
-    : (o.name_en || o.name_sk);
+    ? o.name_sk
+    : o.name_en;
   if (customName) return customName;
 
   const names =
@@ -2205,25 +2238,15 @@ function localName(o) {
           : 1
       ]
     : (
-        o.name || ''
+        T('Slovenský názov nie je vyplnený', 'English name has not been filled in')
       );
 }
 
 function localDescription(o) {
-
-  return currentLanguage === 'sk'
-    ? (
-        o.description_sk ||
-        o.description ||
-        o.description_en ||
-        ''
-      )
-    : (
-        o.description_en ||
-        o.description ||
-        o.description_sk ||
-        ''
-      );
+  const value = currentLanguage === 'en' ? o.description_en : o.description_sk;
+  if (value) return value;
+  return o.description || o.description_sk || o.description_en
+    ? T('Slovenský preklad popisu zatiaľ nie je vyplnený.', 'The English description has not been filled in yet.') : '';
 }
 
 function localNoBed(o) {
@@ -2442,7 +2465,7 @@ async function showEvents() {
 
     c.innerHTML = `
       <div class="event-title">
-        ${escapeHtml(currentLanguage === 'en' ? e.display_settings?.title_en || e.title : e.title)}
+        ${escapeHtml(cfaLocalizedEventTitle(e))}
       </div>
 
       <div class="event-info">
@@ -2462,8 +2485,8 @@ async function showEvents() {
       }
 
       ${
-        (currentLanguage === 'en' ? e.display_settings?.short_description_en || e.short_description : e.short_description)
-          ? `<p>${escapeHtml((currentLanguage === 'en' ? e.display_settings?.short_description_en || e.short_description : e.short_description))}</p>`
+        cfaLocalizedEventText(e, 'short_description')
+          ? `<p>${escapeHtml(cfaLocalizedEventText(e, 'short_description'))}</p>`
           : ''
       }
 
@@ -4077,7 +4100,7 @@ async function getCartItems(id) {
     await supabaseClient
       .from('booking_items')
       .select(
-        '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation,booking_form_settings,requires_linked_tickets)'
+        '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation,booking_form_settings,requires_linked_tickets,min_age,max_age,category,price,is_free,admission_type)'
       )
       .eq(
         'booking_id',
@@ -4698,7 +4721,7 @@ async function showBookings() {
       await supabaseClient
         .from('booking_items')
         .select(
-          '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation,booking_form_settings,requires_linked_tickets)'
+          '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation,booking_form_settings,requires_linked_tickets,min_age,max_age,category,price,is_free,admission_type)'
         )
         .eq(
           'booking_id',
@@ -5788,7 +5811,7 @@ supabaseClient.auth
   );
 </script>
 
-<script src="extensions.js?v=20261120-reservations-2"></script>
+<script src="extensions.js?v=20261120-reservations-4"></script>
 <script src="chat.js?v=4"></script>
 
 <script>
@@ -8875,6 +8898,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   ];
   const cfaEventTexts = [
     ['title','Názov podujatia po anglicky','English event title'],
+    ['legacy_description','Pôvodný spoločný opis po anglicky','English original shared description'],
     ['short_description','Úvodný popis po anglicky','English introductory description'],
     ['event_details','Praktické informácie po anglicky','English practical information'],
     ['programme','Program po anglicky','English programme'],
@@ -8884,6 +8908,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   const cfaEventSections = [
     ['short_description','Zobraziť úvodný popis','Show introductory description'],
     ['description','Zobraziť ďalšie informácie','Show further information'],
+    ['legacy_description','Zobraziť odlišný pôvodný opis','Show a distinct original description'],
     ['event_details','Zobraziť praktické informácie','Show practical information'],
     ['programme','Zobraziť program','Show programme'],
     ['important_information','Zobraziť doplnkové upozornenia','Show additional notices'],
@@ -8898,6 +8923,25 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   for(const [key,sk,en] of cfaEventSections)eventFields.push(['cfa_event_show_'+key,tr(sk,en),'checkbox']);
   eventFields.push(['cfa_event_show_standalone_weekend_tickets',tr('Zobraziť prepojené víkendové vstupenky aj na samostatný predaj','Also display linked weekend tickets for standalone sale'),'checkbox']);
   eventFields.push(['cfa_event_block_day_tickets_with_camping',tr('Zakázať kombináciu stanovania a celodenných vstupeniek v jednej rezervácii','Block camping and day tickets in the same booking'),'checkbox']);
+  function cfaEventName(record){return currentLanguage==='en'?record?.display_settings?.title_en||text('Chýba preklad názvu','Event title translation missing'):record?.title||'';}
+  function cfaValidateEventTranslations(record){
+    const display=record.display_settings||{};
+    if(!String(record.title||'').trim()||!String(display.title_en||'').trim()){message(text('Doplň názov podujatia v slovenčine aj angličtine.','Enter the event title in both Slovak and English.'),true);return false;}
+    for(const key of ['short_description','event_details','programme','important_information','booking_information']){
+      if(display['show_'+key]===false)continue;
+      if(!!String(record[key]||'').trim()!==!!String(display[key+'_en']||'').trim()){message(text('Doplň slovenský aj anglický text v sekcii: ','Enter both the Slovak and English text for: ')+eventFields.find(f=>f[0]===key)?.[1]?.[currentLanguage==='en'?1:0],true);return false;}
+    }
+    if(display.show_description!==false&&!!String(record.description_sk||'').trim()!==!!String(record.description_en||'').trim()){message(text('Doplň slovenský aj anglický popis podujatia.','Enter the event description in both Slovak and English.'),true);return false;}
+    const legacy=record.description&&!['',record.description_sk,record.description_en].includes(record.description);
+    if(legacy&&display.show_legacy_description!==false&&!String(display.legacy_description_en||'').trim()){message(text('Doplň anglický preklad odlišného pôvodného opisu.','Translate the distinct original description into English.'),true);return false;}
+    return true;
+  }
+  function cfaValidateOptionTranslations(record){
+    if(!String(record.name_sk||record.name||'').trim()||!String(record.name_en||'').trim()){message(text('Doplň názov možnosti v slovenčine aj angličtine.','Enter the option name in both Slovak and English.'),true);return false;}
+    for(const key of ['description','child_no_bed_note']){if(key==='description'&&record.booking_form_settings?.show_description===false)continue;
+      if(!!String(record[key+'_sk']||'').trim()!==!!String(record[key+'_en']||'').trim()){message(text('Doplň slovenský aj anglický popis alebo poznámku.','Enter both the Slovak and English description or note.'),true);return false;}}
+    return true;
+  }
   function cfaEventRecord(record){const value={...record};const display=record.display_settings||{};
     for(const [key] of cfaEventTexts)value['cfa_event_'+key+'_en']=display[key+'_en']||'';
     for(const [key] of cfaEventSections)value['cfa_event_show_'+key]=display['show_'+key]!==false;
@@ -8939,6 +8983,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     for(const key of ['unit_label_sk','unit_label_en'])data.booking_form_settings[key]=form.elements.namedItem('cfa_ui_'+key).value.trim();
     for(const key of ['adult_ticket_option_id','child_ticket_option_id','free_child_ticket_option_id']){const value=form.elements.namedItem(key)?.value;data[key]=value?Number(value):null;}
     if(!selectedOption)data.option_code=form.elements.namedItem('cfa_new_option_type')?.value||null;
+    if(data.enabled&&!cfaValidateOptionTranslations(data))return false;
     if(data.enabled&&data.price===0&&!data.is_free&&!data.is_included&&!data.free_with_accommodation){message(text('Pri nulovej cene označ Bezplatné alebo Zahrnuté v cene.','For a zero price, select Free of charge or Included in price.'),true);return false;}
     if(data.requires_linked_tickets){if(!data.is_accommodation||!data.adult_ticket_option_id||data.minimum_adults<1){message(text('Prepojená ponuka musí byť ubytovanie, mať dospelú vstupenku a minimálne jedného dospelého.','A linked option must be accommodation, have an adult ticket and require at least one adult.'),true);return false;}data.collect_guest_details=true;}
     return true;
@@ -8983,7 +9028,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     button(bar,'Nové podujatie','New event',()=>{selectedEvent=null;dirty=false;showEventForm();},true);
     button(bar,'Obnoviť zoznam','Refresh list',async()=>{await requireAdmin();await loadEvents();showList();});
     if(!events.length)content.appendChild(node('p',text('Zatiaľ nemáte žiadne podujatia.','There are no events yet.')));
-    for(const e of events){const card=node('section',null,'cfa-card');card.appendChild(node('h3',e.title));card.appendChild(node('p',`${e.start_date} – ${e.end_date} · ${statusLabel(e.status)}`));
+    for(const e of events){const card=node('section',null,'cfa-card');card.appendChild(node('h3',cfaEventName(e)));card.appendChild(node('p',`${e.start_date} – ${e.end_date} · ${statusLabel(e.status)}`));
       const actions=node('div',null,'cfa-bar');card.appendChild(actions);
       button(actions,'Upraviť','Edit',()=>{selectedEvent=e;dirty=false;showEventForm();});
       button(actions,'Ceny a možnosti','Prices and options',async()=>{selectedEvent=e;await loadOptions();showOptions();});
@@ -8991,6 +9036,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
       for(const [s,sk,en] of [['published','Zverejniť','Publish'],['hidden','Skryť','Hide'],['archived','Archivovať','Archive']]){
         if(e.status===s)continue;
         button(actions,sk,en,async()=>{if(!window.confirm(text('Zmeniť stav podujatia','Change event status')+` „${e.title}“: ${statusLabel(s)}?`))return;
+          if(s==='published'&&!cfaValidateEventTranslations(e)){selectedEvent=e;dirty=false;showEventForm();return;}
           await requireAdmin();await query(supabaseClient.from('events').update({status:s}).eq('id',e.id).select('id').single());
           await loadEvents();showList();message(text('Stav podujatia bol uložený.','Event status saved.'));});
       }content.appendChild(card);
@@ -9014,25 +9060,26 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   }
   function back(parent,sk,en,fn){button(parent,sk,en,()=>{if(confirmLeave()){dirty=false;message('');return fn();}});}
   function showEventForm(){reset('event');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zoznam podujatí','Event list',showList);
-    content.appendChild(node('h3',selectedEvent?selectedEvent.title:text('Nové podujatie','New event')));
+    content.appendChild(node('h3',selectedEvent?cfaEventName(selectedEvent):text('Nové podujatie','New event')));
     content.appendChild(node('p',text('Nové podujatie je predvolene skryté. Existujúce rezervácie zostávajú zachované.','A new event is hidden by default. Existing bookings are preserved.'),'cfa-muted'));
     content.appendChild(node('p',text('Slovenský a anglický popis sa ukladajú samostatne. Automatický preklad ešte nie je zapojený.','Slovak and English descriptions are saved separately. Automatic translation is not connected yet.'),'cfa-muted'));
     buildForm(eventFields,cfaEventRecord(selectedEvent||{status:'hidden',reservations_open:false,deposit_percent:10,cart_hold_minutes:60,dog_price:0,dogs_allowed:false}),async data=>{
       if(data.end_date<data.start_date){message(text('Koniec podujatia nesmie byť pred začiatkom.','The end date cannot be before the start date.'),true);return;}
       cfaPackEvent(data);
+      if(data.status==='published'&&!cfaValidateEventTranslations(data))return;
       const saved=await query((selectedEvent?supabaseClient.from('events').update(data).eq('id',selectedEvent.id):supabaseClient.from('events').insert(data)).select('*').single());
       dirty=false;selectedEvent=saved;message(text('Podujatie bolo uložené.','Event saved.'));await loadEvents();showEventForm();
     });
   }
   function showOptions(){reset('options');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zoznam podujatí','Event list',showList);
-    content.appendChild(node('h3',selectedEvent.title));const actions=node('div',null,'cfa-bar');content.appendChild(actions);
+    content.appendChild(node('h3',cfaEventName(selectedEvent)));const actions=node('div',null,'cfa-bar');content.appendChild(actions);
     button(actions,'Nová cenová možnosť','New price option',()=>{selectedOption=null;dirty=false;showOptionForm();},true);
     if(window.CFAReservationUI)content.appendChild(window.CFAReservationUI.capacityOverview(options));
     content.appendChild(node('p',text('Odstránenie z predaja urobíš vypnutím možnosti. Existujúce rezervácie sa nemažú.','Disable an option to remove it from sale. Existing bookings are not deleted.'),'cfa-muted'));
     for(const o of options){const card=node('section',null,'cfa-card');card.appendChild(node('h3',localName(o)));card.appendChild(node('p',`${Number(o.price).toFixed(2)} GBP · ${o.enabled?text('Zapnuté','Enabled'):text('Vypnuté','Disabled')}`));
       card.appendChild(node('p',text('Rezervované','Reserved')+`: ${o.reserved_quantity} · `+text('Predané','Sold')+`: ${o.sold_quantity}`,'cfa-muted'));
       const bar=node('div',null,'cfa-bar');card.appendChild(bar);button(bar,'Upraviť','Edit',()=>{selectedOption=o;dirty=false;showOptionForm();});
-      button(bar,o.enabled?'Vypnúť':'Zapnúť',o.enabled?'Disable':'Enable',async()=>{await requireAdmin();await query(supabaseClient.from('event_options').update({enabled:!o.enabled}).eq('id',o.id).eq('event_id',selectedEvent.id).select('id').single());await loadOptions();showOptions();message(text('Dostupnosť predaja bola uložená.','Sale availability saved.'));});content.appendChild(card);
+      button(bar,o.enabled?'Vypnúť':'Zapnúť',o.enabled?'Disable':'Enable',async()=>{if(!o.enabled&&!cfaValidateOptionTranslations(o))return;await requireAdmin();await query(supabaseClient.from('event_options').update({enabled:!o.enabled}).eq('id',o.id).eq('event_id',selectedEvent.id).select('id').single());await loadOptions();showOptions();message(text('Dostupnosť predaja bola uložená.','Sale availability saved.'));});content.appendChild(card);
     }
   }
   function showOptionForm(){reset('option');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Ceny a možnosti','Prices and options',showOptions);
@@ -9083,7 +9130,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   function readableDate(value){return value?new Date(value).toLocaleString(currentLanguage==='en'?'en-GB':'sk-SK'):text('Bez obmedzenia','Unlimited');}
   function showDiscounts(){
     reset('discounts');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zoznam podujatí','Event list',showList);
-    content.appendChild(node('h3',text('Zľavy: ','Discounts: ')+selectedEvent.title));
+    content.appendChild(node('h3',text('Zľavy: ','Discounts: ')+cfaEventName(selectedEvent)));
     const actions=node('div',null,'cfa-bar');content.appendChild(actions);
     button(actions,'Vytvoriť zľavu','Create discount',async()=>{await requireOwner();await loadOptions();dirty=false;showDiscountForm();},true);
     content.appendChild(node('p',text('Zľavy spravuje iba vlastníčka. Jednorazový kód môže použiť ten, komu ho pošleš; zatiaľ nie je viazaný na konkrétny účet.','Only an owner manages discounts. A single-use code can be used by its recipient; it is not yet bound to a specific account.'),'cfa-muted'));
@@ -9107,7 +9154,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   }
   function showDiscountForm(){
     reset('discountForm');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zľavy','Discounts',showDiscounts);
-    content.appendChild(node('h3',text('Nová zľava: ','New discount: ')+selectedEvent.title));
+    content.appendChild(node('h3',text('Nová zľava: ','New discount: ')+cfaEventName(selectedEvent)));
     content.appendChild(node('p',text('Limit 1 znamená jednorazový kód. Prázdny celkový limit umožní spoločnú akciu pre viac ľudí. Konkrétna noc, kategórie a príjemca ešte nie sú zapojené.','A limit of 1 means a single-use code. Leave the total limit blank for a shared promotion. Specific nights, categories and recipients are not connected yet.'),'cfa-muted'));
     const choices=[['','Celá objednávka','Whole booking'],...options.map(o=>[String(o.id),o.name_sk||o.name,o.name_en||o.name_sk||o.name])];
     const fields=[
@@ -9278,7 +9325,7 @@ function cfaValidateChildAgeFields(row) {
 #cfaReservationForm,#cfaEventInformation{scroll-margin-top:20px}
 @media(max-width:520px){.cfa-reservation-grid{grid-template-columns:minmax(0,1fr)}.cfa-linked-form{padding:12px}.cfa-event-section{padding:12px}}
 </style>
-<script src="reservation-ui.js?v=20261120-reservations-2"></script>
+<script src="reservation-ui.js?v=20261120-reservations-4"></script>
 
 </body>
   </html>
