@@ -8622,6 +8622,7 @@ function requestAndroidFirebaseToken() {
 }
 
 async function saveAndroidFirebaseToken() {
+  try { if (localStorage.getItem('cfa.webPush.disabled') === 'true') return; } catch (_) {}
   if (!androidFirebaseToken || androidFirebaseSaving) return;
   androidFirebaseSaving = true;
   try {
@@ -8650,6 +8651,10 @@ async function saveAndroidFirebaseToken() {
         .insert({ user_id: userId, token });
       if (error) throw error;
     }
+    let pushDisabled = false;
+    try { pushDisabled = localStorage.getItem('cfa.webPush.disabled') === 'true'; } catch (_) {}
+    if (pushDisabled) await removeAndroidFirebaseToken(userId);
+    window.dispatchEvent(new Event('cfa:android-push-registered'));
   } catch (error) {
     console.error('Firebase token registration failed:', error);
   } finally {
@@ -9141,6 +9146,6 @@ function cfaValidateChildAgeFields(row) {
 }
 </script>
 
-<script src="web-notifications.js?v=20261120-1"></script>
+<script src="web-notifications.js?v=20261120-switch-2"></script>
 </body>
   </html>
