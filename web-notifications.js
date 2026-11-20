@@ -8,21 +8,27 @@
   const vapidKey='BDzFx23oxkOFWqY4QuBEqzF7NWw8Sv_vUkueSfL3UvCwFWMkkG4AxuXGexQqrXWBQF2TrHolbh08A9mZ8ye5Gvk';
   let sdkPromise=null,registration=null,currentToken=null,registeredUser=null,inFlight=null,ready=false;
   const card=document.querySelector('#accountPage .card');if(!card)return;
+  const language=document.querySelector('.container .language');
   const box=document.createElement('section');box.id='cfaWebPushSettings';box.hidden=true;
-  box.style.cssText='margin-top:16px;padding:14px;border:1px solid #64748b;border-radius:12px;';
-  const button=document.createElement('button');button.type='button';button.className='secondary-btn';
+  box.style.cssText='margin:16px 0;padding:12px 14px;border:1px solid #64748b;border-radius:12px;background:#111827;color:white;';
+  const button=document.createElement('button');button.type='button';button.className='secondary-btn';button.setAttribute('role','switch');button.style.cssText='width:auto;min-height:44px;min-width:130px;margin:0;padding:10px 14px;border-radius:22px;border:2px solid white;color:white;font-size:16px;font-weight:bold;';
   const disable=document.createElement('button');disable.type='button';disable.className='secondary-btn';disable.style.marginTop='10px';
   const status=document.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.style.cssText='font-size:15px;line-height:1.5;margin-bottom:0;';
-  box.append(button,disable,status);card.appendChild(box);
+  const controls=document.createElement('div');controls.style.cssText='display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;';
+  const heading=document.createElement('strong');heading.style.fontSize='17px';controls.append(heading,button);box.append(controls,status);
+  if(language?.parentNode)language.parentNode.insertBefore(box,language.nextSibling);else card.appendChild(box);
   function optedOut(){try{return localStorage.getItem(storageKey)==='true';}catch{return false;}}
   function setOptedOut(value){try{localStorage.setItem(storageKey,String(value));}catch{}}
   function needsHomeScreen(){const ua=navigator.userAgent||'';const apple=/iPhone|iPad|iPod/.test(ua)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);return apple&&!navigator.standalone&&!window.matchMedia?.('(display-mode: standalone)').matches;}
   function supported(){return window.isSecureContext&&'Notification'in window&&'serviceWorker'in navigator&&'PushManager'in window;}
   function render(){
-    box.hidden=native||!currentUser;
-    button.textContent=tr('Zapnúť upozornenia na tomto zariadení','Enable notifications on this device');
+    box.hidden=!currentUser;
+    heading.textContent=tr('Upozornenia','Notifications');
+    button.textContent=inFlight?tr('Nastavujem…','Updating…'):(ready?tr('● Zapnuté','● On'):tr('● Vypnuté','● Off'));
+    button.setAttribute('aria-checked',String(ready));button.setAttribute('aria-label',tr('Upozornenia na tomto zariadení','Notifications on this device'));button.style.background=ready?'#166534':'#991b1b';
     disable.textContent=tr('Vypnúť upozornenia na tomto zariadení','Disable notifications on this device');
-    button.disabled=!!inFlight||ready||!supported();disable.disabled=!!inFlight;disable.hidden=!ready;
+    button.disabled=!!inFlight||(!native&&!supported());disable.hidden=true;
+    if(native){status.textContent=ready?tr('Upozornenia sú zapnuté. Telefón musí mať povolené oznámenia pre aplikáciu.','Notifications are on. Phone notification permission for the app is also required.'):tr('Ťuknutím ich zapneš. Kedykoľvek ich tu môžeš vypnúť.','Tap to enable. You can switch them off here anytime.');return;}
     if(needsHomeScreen()){button.disabled=true;status.textContent=tr('Na iPhone otvor web v Safari, vyber Zdieľať → Pridať na plochu a potom ho otvor cez novú ikonu. Tam zapni upozornenia.','On iPhone, open this site in Safari, choose Share → Add to Home Screen, then open it from the new icon and enable notifications.');}
     else if(!supported())status.textContent=tr('Tento prehliadač nepodporuje webové upozornenia.','This browser does not support web notifications.');
     else if(ready)status.textContent=tr('Upozornenia na tomto zariadení sú zapnuté.','Notifications on this device are enabled.');
@@ -85,14 +91,48 @@
     if(sdkPromise){try{const sdk=await sdkPromise;await sdk.deleteToken(sdk.messaging);}catch(error){console.warn('Web notification token cleanup failed:',error.code||error.message);}}
     currentToken=null;registeredUser=null;ready=false;render();
   };
-  button.addEventListener('click',()=>start(true));
+  async function checkNative(){
+    if(!native||!currentUser)return;
+    if(optedOut()){ready=false;render();return;}
+    if(typeof androidFirebaseToken==='undefined'||!androidFirebaseToken){requestAndroidFirebaseToken();ready=false;render();return;}
+    const id=currentUser.id;
+    const {data,error}=await supabaseClient.from('push_tokens').select('id').eq('user_id',id).eq('token',androidFirebaseToken).limit(1);
+    if(currentUser?.id!==id)return;
+    ready=!error&&!!data?.length;render();
+  }
+  async function toggleNative(){
+    if(inFlight||!currentUser)return;
+    const turnOff=ready;
+    inFlight=(async()=>{
+      if(turnOff){
+        setOptedOut(true);
+        const {error}=await supabaseClient.from('push_tokens').delete().eq('user_id',currentUser.id).eq('token',androidFirebaseToken);
+        if(error){setOptedOut(false);throw error;}
+        ready=false;
+      }
+      else{setOptedOut(false);if(typeof androidFirebaseToken!=='undefined'&&androidFirebaseToken)await saveAndroidFirebaseToken();else requestAndroidFirebaseToken();}
+    })();render();
+    let failure=false;
+    try{await inFlight;}catch(error){failure=true;}
+    finally{inFlight=null;await checkNative();if(failure)status.textContent=tr('Nastavenie sa nepodarilo. Skús to znova.','Could not update the setting. Try again.');}
+  }
+  button.addEventListener('click',async()=>{
+    if(inFlight)return;
+    if(native){await toggleNative();return;}
+    if(!ready){start(true);return;}
+    setOptedOut(true);
+    inFlight=window.cfaWebPushUnregister(currentUser?.id);render();
+    try{await inFlight;}catch(error){console.warn('Notification switch:',error.code||error.message);}
+    finally{inFlight=null;render();}
+  });
+  window.addEventListener('cfa:android-push-registered',()=>{checkNative().catch(()=>{});});
   disable.addEventListener('click',async()=>{if(inFlight)return;setOptedOut(true);disable.disabled=true;try{await window.cfaWebPushUnregister(currentUser?.id);}finally{render();}});
-  function restore(){render();if(!native&&currentUser&&supported()&&Notification.permission==='granted'&&!optedOut())start(false);}
+  function restore(){render();if(native){checkNative().catch(()=>{});return;}if(!native&&currentUser&&supported()&&Notification.permission==='granted'&&!optedOut())start(false);}
   supabaseClient.auth.onAuthStateChange(event=>{
     if(event==='SIGNED_OUT'){ready=false;registeredUser=null;currentToken=null;box.hidden=true;}
     else setTimeout(restore,0);
   });
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)return;render();if(currentUser&&(!ready||registeredUser!==currentUser.id))restore();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)return;render();if(currentUser&&(native||!ready||registeredUser!==currentUser.id))restore();});
   const previousLanguage=window.setLanguage;
   window.setLanguage=function(){const result=previousLanguage.apply(this,arguments);render();return result;};
   restore();
