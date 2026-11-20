@@ -8755,7 +8755,8 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   const text = (sk,en) => currentLanguage === 'en' ? en : sk;
   const dialog = $('cfaAdminDialog');
   const content = $('cfaAdminContent');
-  let allowedUser = null, generation = 0, busy = false, dirty = false;
+  let allowedUser = null, generation = 0, busy = false, dirty = false, isOwner = false;
+  let discounts = [];
   let events = [], selectedEvent = null, options = [], selectedOption = null;
   let view = 'list', focusBeforeOpen = null;
   const tr = (sk,en) => [sk,en];
@@ -8835,11 +8836,11 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   labels();
   async function refreshEntry() {
     const ownGeneration=++generation;
-    try { const id=await permission();if(ownGeneration!==generation)return;allowedUser=id;entry.hidden=!id;if(!id&&dialog.open)forceClose(); }
+    try { const id=await permission();if(ownGeneration!==generation)return;allowedUser=id;isOwner=false;if(id){const owner=await supabaseClient.rpc('cfa_is_owner');if(ownGeneration!==generation)return;isOwner=!owner.error&&owner.data===true;}entry.hidden=!id;if(!id&&dialog.open)forceClose(); }
     catch(e){if(ownGeneration===generation){allowedUser=null;entry.hidden=true;if(dialog.open)forceClose();}console.warn('CFA admin access:',e);}
   }
   function confirmLeave(){return !dirty||window.confirm(text('Zahodiť neuložené zmeny?','Discard unsaved changes?'));}
-  function forceClose(){dirty=false;dialog.close();content.replaceChildren();if(focusBeforeOpen?.isConnected)focusBeforeOpen.focus();}
+  function forceClose(){dirty=false;discounts=[];dialog.close();content.replaceChildren();if(focusBeforeOpen?.isConnected)focusBeforeOpen.focus();}
   function close(){if(busy||!confirmLeave())return;forceClose();}
   $('cfaAdminClose').onclick=close;
   dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
@@ -8859,6 +8860,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
       const actions=node('div',null,'cfa-bar');card.appendChild(actions);
       button(actions,'Upraviť','Edit',()=>{selectedEvent=e;dirty=false;showEventForm();});
       button(actions,'Ceny a možnosti','Prices and options',async()=>{selectedEvent=e;await loadOptions();showOptions();});
+      if(isOwner)button(actions,'Zľavy','Discounts',async()=>{selectedEvent=e;await loadDiscounts();showDiscounts();});
       for(const [s,sk,en] of [['published','Zverejniť','Publish'],['hidden','Skryť','Hide'],['archived','Archivovať','Archive']]){
         if(e.status===s)continue;
         button(actions,sk,en,async()=>{if(!window.confirm(text('Zmeniť stav podujatia','Change event status')+` „${e.title}“: ${statusLabel(s)}?`))return;
@@ -8934,10 +8936,76 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     // Suggestions preserve existing category names rather than inventing new booking categories.
     const list=node('datalist');list.id='cfaAdminCategories';for(const c of new Set(options.map(o=>o.category))){const opt=node('option');opt.value=c;list.appendChild(opt);}form.appendChild(list);form.elements.namedItem('category').setAttribute('list',list.id);
   }
+
+  async function requireOwner(){
+    await requireAdmin();
+    const {data,error}=await supabaseClient.rpc('cfa_is_owner');
+    if(error)throw error;
+    if(data!==true){isOwner=false;throw new Error('Owner access required');}
+  }
+  async function loadDiscounts(){
+    await requireOwner();
+    discounts=await query(supabaseClient.from('discount_codes')
+      .select('id,code,description,event_id,event_option_id,discount_type,discount_value,scope,valid_from,valid_until,max_uses,max_uses_per_user,active')
+      .eq('event_id',selectedEvent.id).order('created_at',{ascending:false}));
+  }
+  function readableDate(value){return value?new Date(value).toLocaleString(currentLanguage==='en'?'en-GB':'sk-SK'):text('Bez obmedzenia','Unlimited');}
+  function showDiscounts(){
+    reset('discounts');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zoznam podujatí','Event list',showList);
+    content.appendChild(node('h3',text('Zľavy: ','Discounts: ')+selectedEvent.title));
+    const actions=node('div',null,'cfa-bar');content.appendChild(actions);
+    button(actions,'Vytvoriť zľavu','Create discount',async()=>{await requireOwner();await loadOptions();dirty=false;showDiscountForm();},true);
+    content.appendChild(node('p',text('Zľavy spravuje iba vlastníčka. Jednorazový kód môže použiť ten, komu ho pošleš; zatiaľ nie je viazaný na konkrétny účet.','Only an owner manages discounts. A single-use code can be used by its recipient; it is not yet bound to a specific account.'),'cfa-muted'));
+    if(!discounts.length)content.appendChild(node('p',text('Zatiaľ nie sú vytvorené žiadne zľavy.','No discounts have been created yet.')));
+    for(const d of discounts){
+      const card=node('section',null,'cfa-card');card.appendChild(node('h3',d.description||text('Zľavový kód','Discount code')));
+      const code=node('input');code.value=d.code;code.readOnly=true;code.setAttribute('aria-label',text('Zľavový kód','Discount code'));card.appendChild(code);
+      card.appendChild(node('p',`${d.discount_value}${d.discount_type==='percent'?' %':' GBP'} · ${d.active?text('Zapnutá','Enabled'):text('Vypnutá','Disabled')}`));
+      card.appendChild(node('p',text('Platnosť: ','Validity: ')+readableDate(d.valid_from)+' – '+readableDate(d.valid_until),'cfa-muted'));
+      card.appendChild(node('p',text('Celkový limit použití: ','Total usage limit: ')+(d.max_uses??text('Bez limitu','Unlimited'))+' · '+text('Na účet: ','Per account: ')+d.max_uses_per_user,'cfa-muted'));
+      const bar=node('div',null,'cfa-bar');card.appendChild(bar);
+      button(bar,'Kopírovať kód','Copy code',async()=>{
+        try{await navigator.clipboard.writeText(d.code);message(text('Kód bol skopírovaný.','Code copied.'));}
+        catch(e){code.focus();code.select();message(text('Podrž prst na označenom kóde a vyber Kopírovať.','Press and hold the selected code and choose Copy.'));}
+      });
+      button(bar,d.active?'Vypnúť':'Zapnúť',d.active?'Disable':'Enable',async()=>{
+        await requireOwner();await query(supabaseClient.from('discount_codes').update({active:!d.active}).eq('id',d.id).select('id').single());
+        await loadDiscounts();showDiscounts();message(text('Stav zľavy bol uložený.','Discount status saved.'));
+      });content.appendChild(card);
+    }
+  }
+  function showDiscountForm(){
+    reset('discountForm');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zľavy','Discounts',showDiscounts);
+    content.appendChild(node('h3',text('Nová zľava: ','New discount: ')+selectedEvent.title));
+    content.appendChild(node('p',text('Limit 1 znamená jednorazový kód. Prázdny celkový limit umožní spoločnú akciu pre viac ľudí. Konkrétna noc, kategórie a príjemca ešte nie sú zapojené.','A limit of 1 means a single-use code. Leave the total limit blank for a shared promotion. Specific nights, categories and recipients are not connected yet.'),'cfa-muted'));
+    const choices=[['','Celá objednávka','Whole booking'],...options.map(o=>[String(o.id),o.name_sk||o.name,o.name_en||o.name_sk||o.name])];
+    const fields=[
+      ['percent',tr('Zľava (%)','Discount (%)'),'number',true,null,1,100],
+      ['event_option_id',tr('Na čo platí','Applies to'),'select',false,choices],
+      ['valid_from',tr('Platí od','Valid from'),'datetime-local',true],
+      ['valid_until',tr('Platí do','Valid until'),'datetime-local',true],
+      ['max_uses',tr('Celkový počet použití (prázdne = bez limitu)','Total uses (blank = unlimited)'),'integer',false,null,1],
+      ['max_uses_per_user',tr('Počet použití na jeden účet','Uses per account'),'integer',true,null,1],
+      ['description',tr('Tvoja poznámka','Your note'),'text']
+    ];
+    const localDate=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,16);};
+    const now=new Date();
+    const form=buildForm(fields,{percent:50,event_option_id:'',valid_from:localDate(now),valid_until:localDate(new Date(now.getTime()+7*86400000)),max_uses:1,max_uses_per_user:1},async data=>{
+      await requireOwner();
+      if(new Date(data.valid_until)<=new Date(data.valid_from)){message(text('Koniec platnosti musí byť neskôr než začiatok.','Validity must end after it starts.'),true);return;}
+      data.event_id=selectedEvent.id;
+      data.valid_from=new Date(data.valid_from).toISOString();data.valid_until=new Date(data.valid_until).toISOString();
+      const result=await query(supabaseClient.rpc('cfa_create_discount',{p_data:data}));
+      const created=Array.isArray(result)?result[0]:result;
+      dirty=false;await loadDiscounts();showDiscounts();message(text('Kód bol vytvorený: ','Code created: ')+(created?.code||''));
+    });
+    form.querySelector('button[type="submit"]')?.replaceChildren(document.createTextNode(text('Vygenerovať kód','Generate code')));
+  }
+
   const previousAccount=window.showAccount;
   window.showAccount=function(){const result=previousAccount.apply(this,arguments);setTimeout(refreshEntry,0);return result;};
   const previousLanguage=window.setLanguage;
-  window.setLanguage=function(){const result=previousLanguage.apply(this,arguments);labels();if(dialog.open&&!dirty&&!busy){if(view==='list')showList();else if(view==='event')showEventForm();else if(view==='options')showOptions();else showOptionForm();}return result;};
+  window.setLanguage=function(){const result=previousLanguage.apply(this,arguments);labels();if(dialog.open&&!dirty&&!busy){if(view==='list')showList();else if(view==='event')showEventForm();else if(view==='options')showOptions();else if(view==='discounts')showDiscounts();else if(view==='discountForm')showDiscountForm();else showOptionForm();}return result;};
   supabaseClient.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT'){generation++;allowedUser=null;entry.hidden=true;if(dialog.open)forceClose();}else setTimeout(refreshEntry,0);});
   refreshEntry();
 })();
