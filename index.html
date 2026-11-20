@@ -8685,5 +8685,35 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
 })();
 </script>
 
+<script>
+/* OWNER activity: record only real interactions, never session refreshes. */
+(function () {
+  const OWNER_ID = 'd6a65190-8826-46f4-b78c-4f83f8f4a288';
+  const MIN_INTERVAL_MS = 5 * 60 * 1000;
+  let lastAttempt = 0;
+  let inFlight = false;
+
+  async function recordOwnerInteraction(event) {
+    if (event.type === 'keydown' && !event.isTrusted) return;
+    if (!event.isTrusted || inFlight || !currentUser || currentUser.id !== OWNER_ID) return;
+    const now = Date.now();
+    if (now - lastAttempt < MIN_INTERVAL_MS) return;
+    lastAttempt = now;
+    inFlight = true;
+    try {
+      const { error } = await supabaseClient.rpc('record_owner_activity');
+      if (error) console.warn('Owner activity could not be recorded:', error.message);
+    } catch (error) {
+      console.warn('Owner activity could not be recorded:', error);
+    } finally {
+      inFlight = false;
+    }
+  }
+
+  document.addEventListener('pointerdown', recordOwnerInteraction, { passive: true });
+  document.addEventListener('keydown', recordOwnerInteraction);
+})();
+</script>
+
 </body>
   </html>
