@@ -2442,7 +2442,7 @@ async function showEvents() {
 
     c.innerHTML = `
       <div class="event-title">
-        ${escapeHtml(e.title)}
+        ${escapeHtml(currentLanguage === 'en' ? e.display_settings?.title_en || e.title : e.title)}
       </div>
 
       <div class="event-info">
@@ -2462,8 +2462,8 @@ async function showEvents() {
       }
 
       ${
-        e.short_description
-          ? `<p>${escapeHtml(e.short_description)}</p>`
+        (currentLanguage === 'en' ? e.display_settings?.short_description_en || e.short_description : e.short_description)
+          ? `<p>${escapeHtml((currentLanguage === 'en' ? e.display_settings?.short_description_en || e.short_description : e.short_description))}</p>`
           : ''
       }
 
@@ -2655,6 +2655,7 @@ async function showEventDetail(id) {
 
           r.className =
             'option-row';
+          r.dataset.cfaOptionId = String(o.id);
 
           const price =
             o.is_free
@@ -4076,7 +4077,7 @@ async function getCartItems(id) {
     await supabaseClient
       .from('booking_items')
       .select(
-        '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation)'
+        '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation,booking_form_settings,requires_linked_tickets)'
       )
       .eq(
         'booking_id',
@@ -4697,7 +4698,7 @@ async function showBookings() {
       await supabaseClient
         .from('booking_items')
         .select(
-          '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation)'
+          '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation,booking_form_settings,requires_linked_tickets)'
         )
         .eq(
           'booking_id',
@@ -5787,7 +5788,7 @@ supabaseClient.auth
   );
 </script>
 
-<script src="extensions.js?v=20261120-required-child-ages-1"></script>
+<script src="extensions.js?v=20261120-reservations-2"></script>
 <script src="chat.js?v=4"></script>
 
 <script>
@@ -8848,6 +8849,101 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     ['child_no_bed_note_sk',tr('Poznámka k dieťaťu bez lôžka po slovensky','Slovak child without bed note'),'textarea'],
     ['child_no_bed_note_en',tr('Poznámka k dieťaťu bez lôžka po anglicky','English child without bed note'),'textarea']
   ];
+
+  const cfaNoticeFields = [
+    ['show_description','Popis možnosti','Option description'],
+    ['show_price','Cena možnosti','Option price'],
+    ['show_availability','Hláška dostupnosti','Availability notice'],
+    ['show_guest_title','Nadpis Hostia v rezervácii','Guest details heading'],
+    ['show_unit_counter','Počet ubytovacích jednotiek','Accommodation unit counter'],
+    ['show_bed_child_title','Nadpis detí s lôžkom','Child bed heading'],
+    ['show_extra_title','Nadpis osôb bez lôžka','Extra guest heading'],
+    ['show_extra_price','Hláška zdarma pri osobách bez lôžka','Free extra guest notice'],
+    ['show_extra_note','Vysvetlenie osôb bez lôžka','Extra guest explanation'],
+    ['show_extra_frame','Farebný rámček osôb bez lôžka','Extra guest coloured panel'],
+    ['show_capacity_note','Doplnková hláška kapacity','Additional capacity notice'],
+    ['show_age_heading','Doplnkový nadpis vekov detí','Additional child age heading'],
+    ['show_parking_note','Doplnková hláška parkovania','Additional parking notice'],
+    ['show_electric_note','Doplnková hláška elektriny','Additional electricity notice'],
+    ['show_linked_ticket_note','Vysvetlenie prepojených vstupeniek','Linked ticket explanation']
+  ];
+  const cfaRoomFields = [
+    ['allow_extra_guests','Povoliť osoby bez vlastného lôžka','Allow guests without their own bed'],
+    ['allow_extra_adults','Povoliť dospelých bez vlastného lôžka','Allow adults without their own bed'],
+    ['allow_extra_children','Povoliť deti bez vlastného lôžka','Allow children without their own bed'],
+    ['allow_bed_children','Povoliť deti s vlastným lôžkom','Allow children with their own bed']
+  ];
+  const cfaEventTexts = [
+    ['title','Názov podujatia po anglicky','English event title'],
+    ['short_description','Úvodný popis po anglicky','English introductory description'],
+    ['event_details','Praktické informácie po anglicky','English practical information'],
+    ['programme','Program po anglicky','English programme'],
+    ['important_information','Dôležité informácie po anglicky','English important information'],
+    ['booking_information','Rezervačné informácie po anglicky','English booking information']
+  ];
+  const cfaEventSections = [
+    ['short_description','Zobraziť úvodný popis','Show introductory description'],
+    ['description','Zobraziť ďalšie informácie','Show further information'],
+    ['event_details','Zobraziť praktické informácie','Show practical information'],
+    ['programme','Zobraziť program','Show programme'],
+    ['important_information','Zobraziť doplnkové upozornenia','Show additional notices'],
+    ['booking_information','Zobraziť rezervačné informácie','Show booking information']
+  ];
+  optionFields.push(
+    ['requires_linked_tickets',tr('Automaticky pridať prepojené vstupenky','Automatically add linked tickets'),'checkbox'],
+    ['minimum_adults',tr('Minimálny počet dospelých','Minimum number of adults'),'integer',true,null,0],
+    ['admission_type',tr('Platnosť vstupenky','Ticket admission type'),'select',false,[['','Netýka sa / nenastavené','Not applicable / not configured'],['day','Celodenná','Day'],['weekend','Celý pobyt / víkend','Full stay / weekend']]]
+  );
+  for(const [key,sk,en] of cfaEventTexts)eventFields.push(['cfa_event_'+key+'_en',tr(sk,en),key==='title'?'text':'textarea']);
+  for(const [key,sk,en] of cfaEventSections)eventFields.push(['cfa_event_show_'+key,tr(sk,en),'checkbox']);
+  eventFields.push(['cfa_event_show_standalone_weekend_tickets',tr('Zobraziť prepojené víkendové vstupenky aj na samostatný predaj','Also display linked weekend tickets for standalone sale'),'checkbox']);
+  eventFields.push(['cfa_event_block_day_tickets_with_camping',tr('Zakázať kombináciu stanovania a celodenných vstupeniek v jednej rezervácii','Block camping and day tickets in the same booking'),'checkbox']);
+  function cfaEventRecord(record){const value={...record};const display=record.display_settings||{};
+    for(const [key] of cfaEventTexts)value['cfa_event_'+key+'_en']=display[key+'_en']||'';
+    for(const [key] of cfaEventSections)value['cfa_event_show_'+key]=display['show_'+key]!==false;
+    value.cfa_event_show_standalone_weekend_tickets=record.reservation_settings?.show_standalone_weekend_tickets===true;
+    value.cfa_event_block_day_tickets_with_camping=record.reservation_settings?.block_day_tickets_with_camping!==false;return value;
+  }
+  function cfaPackEvent(data){data.display_settings={...(selectedEvent?.display_settings||{})};
+    for(const [key] of cfaEventTexts){data.display_settings[key+'_en']=data['cfa_event_'+key+'_en'];delete data['cfa_event_'+key+'_en'];}
+    for(const [key] of cfaEventSections){data.display_settings['show_'+key]=data['cfa_event_show_'+key];delete data['cfa_event_show_'+key];}
+    data.reservation_settings={...(selectedEvent?.reservation_settings||{}),block_day_tickets_with_camping:data.cfa_event_block_day_tickets_with_camping,show_standalone_weekend_tickets:data.cfa_event_show_standalone_weekend_tickets};delete data.cfa_event_block_day_tickets_with_camping;delete data.cfa_event_show_standalone_weekend_tickets;
+  }
+  function cfaOptionExtras(form,record){const details=node('details');details.appendChild(node('summary',text('Samostatné prepínače doplnkov a hlášok','Individual optional feature and notice switches')));
+    const grid=node('div',null,'cfa-grid');details.appendChild(grid);
+    for(const [key,sk,en] of [...cfaNoticeFields,...cfaRoomFields]){const label=node('label',null,'cfa-check');
+      if(cfaRoomFields.some(d=>d[0]===key))label.classList.add('cfa-private-setting');
+      const input=node('input');input.type='checkbox';input.name='cfa_ui_'+key;input.checked=record.booking_form_settings?.[key]!==false;label.append(input,node('span',text(sk,en)));grid.appendChild(label);
+    }
+    for(const [key,sk,en] of [['unit_label_sk','Názov počítadla jednotiek po slovensky','Slovak unit counter label'],['unit_label_en','Názov počítadla jednotiek po anglicky','English unit counter label']]){
+      const label=node('label',text(sk,en));const input=node('input');input.type='text';input.name='cfa_ui_'+key;input.value=record.booking_form_settings?.[key]||'';label.appendChild(input);grid.appendChild(label);
+    }
+    form.insertBefore(details,form.lastChild);
+    const setRoomVisible=code=>form.querySelectorAll('.cfa-private-setting').forEach(n=>{n.hidden=!['private_room_2','private_lodge_4'].includes(code);});
+    setRoomVisible(record.option_code);
+    if(!selectedOption){const label=node('label',text('Prednastavenie novej možnosti','New option preset'));const select=node('select');select.name='cfa_new_option_type';
+      const presets=[['','Vlastná možnosť','Custom option'],['small_tent','Malý stan','Small tent'],['large_tent','Veľký stan','Large tent'],['private_lodge_4','Štvorlôžková izba','Four-bed room'],['private_room_2','Dvojlôžková izba','Two-bed room'],['adult_weekend_ticket','Víkendový vstup dospelý','Adult weekend admission'],['child_weekend_ticket','Víkendový vstup dieťa','Child weekend admission'],['free_child_weekend_ticket','Bezplatná víkendová registrácia dieťaťa','Free child weekend registration'],['adult_day_ticket','Celodenný vstup dospelý','Adult day admission'],['child_0_5_ticket','Celodenný vstup dieťa','Child day admission'],['free_child_day_ticket','Bezplatná celodenná registrácia dieťaťa','Free child day registration']];
+      for(const [value,sk,en] of presets){const opt=node('option',text(sk,en));opt.value=value;select.appendChild(opt);}label.appendChild(select);form.prepend(label);
+      select.onchange=()=>{const code=select.value;setRoomVisible(code);if(!code)return;
+        const accommodation=['small_tent','large_tent','private_lodge_4','private_room_2'].includes(code);const linked=['small_tent','large_tent'].includes(code);const day=code.includes('day');const child=code.includes('child');const free=code.startsWith('free_');
+        const put=(name,value)=>{const f=form.elements.namedItem(name);if(!f)return;if(f.type==='checkbox')f.checked=!!value;else f.value=value??'';};
+        const preset=presets.find(p=>p[0]===code);put('name',preset[1]);put('name_en',preset[2]);put('category',accommodation?'accommodation':'ticket');put('pricing_unit','per_stay');
+        put('price',linked||free?0:accommodation?(code==='private_lodge_4'?160:80):child?(day?10:15):(day?20:35));
+        put('is_accommodation',accommodation);put('collect_guest_details',accommodation);put('requires_linked_tickets',linked);put('minimum_adults',linked?1:0);put('is_free',free);put('is_included',linked||accommodation);put('admission_type',accommodation?'':day?'day':'weekend');
+        put('max_occupancy',accommodation?(code==='large_tent'?12:code==='private_room_2'?2:4):'');put('min_age',accommodation?'':free?0:child?5:18);put('max_age',accommodation?'':free?4:child?17:'');dirty=true;
+      };
+    }
+  }
+  function cfaPackOption(form,data,record){data.booking_form_settings={...(record.booking_form_settings||{})};
+    for(const [key] of [...cfaNoticeFields,...cfaRoomFields])data.booking_form_settings[key]=form.elements.namedItem('cfa_ui_'+key).checked;
+    for(const key of ['unit_label_sk','unit_label_en'])data.booking_form_settings[key]=form.elements.namedItem('cfa_ui_'+key).value.trim();
+    for(const key of ['adult_ticket_option_id','child_ticket_option_id','free_child_ticket_option_id']){const value=form.elements.namedItem(key)?.value;data[key]=value?Number(value):null;}
+    if(!selectedOption)data.option_code=form.elements.namedItem('cfa_new_option_type')?.value||null;
+    if(data.enabled&&data.price===0&&!data.is_free&&!data.is_included&&!data.free_with_accommodation){message(text('Pri nulovej cene označ Bezplatné alebo Zahrnuté v cene.','For a zero price, select Free of charge or Included in price.'),true);return false;}
+    if(data.requires_linked_tickets){if(!data.is_accommodation||!data.adult_ticket_option_id||data.minimum_adults<1){message(text('Prepojená ponuka musí byť ubytovanie, mať dospelú vstupenku a minimálne jedného dospelého.','A linked option must be accommodation, have an adult ticket and require at least one adult.'),true);return false;}data.collect_guest_details=true;}
+    return true;
+  }
+
   function node(tag,value,cls) { const n=document.createElement(tag); if(value!=null)n.textContent=value;if(cls)n.className=cls;return n; }
   function statusLabel(s) { return ({hidden:text('Skryté','Hidden'),published:text('Zverejnené','Published'),archived:text('Archivované','Archived')})[s] || s; }
   function message(value,error=false) { $('cfaAdminMessage').textContent=value; $('cfaAdminMessage').className=error?'cfa-error':'cfa-success'; }
@@ -8921,8 +9017,9 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     content.appendChild(node('h3',selectedEvent?selectedEvent.title:text('Nové podujatie','New event')));
     content.appendChild(node('p',text('Nové podujatie je predvolene skryté. Existujúce rezervácie zostávajú zachované.','A new event is hidden by default. Existing bookings are preserved.'),'cfa-muted'));
     content.appendChild(node('p',text('Slovenský a anglický popis sa ukladajú samostatne. Automatický preklad ešte nie je zapojený.','Slovak and English descriptions are saved separately. Automatic translation is not connected yet.'),'cfa-muted'));
-    buildForm(eventFields,selectedEvent||{status:'hidden',reservations_open:false,deposit_percent:10,cart_hold_minutes:60,dog_price:0,dogs_allowed:false},async data=>{
+    buildForm(eventFields,cfaEventRecord(selectedEvent||{status:'hidden',reservations_open:false,deposit_percent:10,cart_hold_minutes:60,dog_price:0,dogs_allowed:false}),async data=>{
       if(data.end_date<data.start_date){message(text('Koniec podujatia nesmie byť pred začiatkom.','The end date cannot be before the start date.'),true);return;}
+      cfaPackEvent(data);
       const saved=await query((selectedEvent?supabaseClient.from('events').update(data).eq('id',selectedEvent.id):supabaseClient.from('events').insert(data)).select('*').single());
       dirty=false;selectedEvent=saved;message(text('Podujatie bolo uložené.','Event saved.'));await loadEvents();showEventForm();
     });
@@ -8930,6 +9027,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   function showOptions(){reset('options');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zoznam podujatí','Event list',showList);
     content.appendChild(node('h3',selectedEvent.title));const actions=node('div',null,'cfa-bar');content.appendChild(actions);
     button(actions,'Nová cenová možnosť','New price option',()=>{selectedOption=null;dirty=false;showOptionForm();},true);
+    if(window.CFAReservationUI)content.appendChild(window.CFAReservationUI.capacityOverview(options));
     content.appendChild(node('p',text('Odstránenie z predaja urobíš vypnutím možnosti. Existujúce rezervácie sa nemažú.','Disable an option to remove it from sale. Existing bookings are not deleted.'),'cfa-muted'));
     for(const o of options){const card=node('section',null,'cfa-card');card.appendChild(node('h3',localName(o)));card.appendChild(node('p',`${Number(o.price).toFixed(2)} GBP · ${o.enabled?text('Zapnuté','Enabled'):text('Vypnuté','Disabled')}`));
       card.appendChild(node('p',text('Rezervované','Reserved')+`: ${o.reserved_quantity} · `+text('Predané','Sold')+`: ${o.sold_quantity}`,'cfa-muted'));
@@ -8942,7 +9040,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     content.appendChild(node('p',text('Počty rezervovaných a predaných miest riadi existujúci rezervačný systém.','Reserved and sold quantities are managed by the existing booking system.'),'cfa-muted'));
     const record=selectedOption
       ? {...selectedOption, name:selectedOption.name_sk||selectedOption.name, name_en:selectedOption.name_en||''}
-      : {price:0,pricing_unit:'item',category:options[0]?.category||'',enabled:false,availability_mode:'automatic',availability_green_threshold:50,availability_orange_threshold:25,sort_order:0};
+      : {price:0,pricing_unit:'item',category:options[0]?.category||'',enabled:false,availability_mode:'automatic',availability_green_threshold:50,availability_orange_threshold:25,sort_order:0,minimum_adults:0};
     content.appendChild(node('p',text('Názvy aj popisy môžeš upraviť samostatne v slovenčine a angličtine. Automatický preklad zatiaľ nie je zapojený.','Names and descriptions can be edited separately in Slovak and English. Automatic translation is not connected yet.'),'cfa-muted'));
     const form=buildForm(optionFields,record,async data=>{
       if(data.availability_mode==='manual'&&!data.manual_availability_status){message(text('Vyber ručný stav dostupnosti.','Select a manual availability status.'),true);return;}
@@ -8952,6 +9050,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
       data.name_sk=data.name;
       const relation=key=>{const value=form.elements.namedItem(key)?.value;return value||null;};
       data.parent_option_id=relation('parent_option_id');data.child_bed_option_id=relation('child_bed_option_id');
+      if(!cfaPackOption(form,data,record))return;
       if(!selectedOption)data.event_id=selectedEvent.id;
       const saved=await query((selectedOption?supabaseClient.from('event_options').update(data).eq('id',selectedOption.id).eq('event_id',selectedEvent.id):supabaseClient.from('event_options').insert(data)).select('*').single());
       dirty=false;selectedOption=saved;message(text('Cenová možnosť bola uložená.','Price option saved.'));await loadOptions();showOptionForm();
@@ -8959,11 +9058,12 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     // Existing booking codes remain unchanged: their names are interpreted by the booking application.
     if(selectedOption?.option_code)content.appendChild(node('p',text('Prepojenie s rezervačným systémom','Booking system reference')+': '+selectedOption.option_code,'cfa-muted'));
     const links=node('div',null,'cfa-grid');
-    for(const [key,sk,en] of [['parent_option_id','Nadradená možnosť','Parent option'],['child_bed_option_id','Možnosť detského lôžka','Child bed option']]){
+    for(const [key,sk,en] of [['parent_option_id','Nadradená možnosť','Parent option'],['child_bed_option_id','Možnosť detského lôžka','Child bed option'],['adult_ticket_option_id','Prepojená dospelá víkendová vstupenka','Linked adult weekend ticket'],['child_ticket_option_id','Prepojená detská víkendová vstupenka','Linked child weekend ticket'],['free_child_ticket_option_id','Prepojená bezplatná detská registrácia','Linked free child registration']]){
       const label=node('label',text(sk,en));const select=node('select');select.name=key;const empty=node('option',text('Bez prepojenia','No link'));empty.value='';select.appendChild(empty);
       for(const o of options){if(o.id===selectedOption?.id)continue;const opt=node('option',o.name);opt.value=String(o.id);select.appendChild(opt);}select.value=record[key]==null?'':String(record[key]);
       label.appendChild(select);links.appendChild(label);
     }form.insertBefore(links,form.lastChild);
+    cfaOptionExtras(form,record);
     // Suggestions preserve existing category names rather than inventing new booking categories.
     const list=node('datalist');list.id='cfaAdminCategories';for(const c of new Set(options.map(o=>o.category))){const opt=node('option');opt.value=c;list.appendChild(opt);}form.appendChild(list);form.elements.namedItem('category').setAttribute('list',list.id);
   }
@@ -9147,5 +9247,38 @@ function cfaValidateChildAgeFields(row) {
 </script>
 
 <script src="web-notifications.js?v=20261120-switch-2"></script>
+<style id="cfaReservationStyles">
+#eventDetailPage,#eventDetailContent{height:auto!important;max-height:none!important;overflow:visible!important}
+#eventDetailContent .detail-text,#eventDetailContent .option-description,#eventDetailContent .cfa-full-text{display:block!important;white-space:pre-wrap!important;overflow:visible!important;max-height:none!important;-webkit-line-clamp:unset!important;line-clamp:unset!important;overflow-wrap:anywhere;line-height:1.6}
+#eventDetailContent .option-row[hidden],#eventDetailContent .option-group[hidden],#eventDetailContent .option-row [hidden],#cartPageContent .cart-item [hidden],.cfa-linked-form [hidden]{display:none!important}
+.cfa-event-section{margin:20px 0;padding:16px;border:1px solid #526480;border-radius:12px}
+.cfa-event-section h3{margin:0 0 12px;font-size:19px;line-height:1.4}
+.cfa-event-warning,.cfa-reservation-error{border:2px solid #fb7185!important;background:#491c29!important;color:#fff!important}
+.cfa-reservation-primary,.cfa-reservation-secondary{min-height:46px;border:1px solid #67e8f9;border-radius:10px;padding:12px 16px;color:white;background:#0e7490;font-size:16px;cursor:pointer;margin:8px 8px 8px 0}
+.cfa-reservation-primary{display:block;width:100%;font-weight:700}
+.cfa-linked-form{margin-top:18px;padding:16px;border:1px solid #526480;border-radius:12px}
+.cfa-reservation-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.cfa-reservation-field{display:block;margin:10px 0;font-size:16px}
+.cfa-reservation-field input,.cfa-reservation-field select{box-sizing:border-box;display:block;width:100%;min-height:46px;margin-top:8px;border:1px solid #94a3b8;border-radius:8px;padding:10px;background:#10243b;color:#fff;font-size:18px}
+.cfa-night-options{margin:16px 0;padding:12px;border:1px solid #64748b;border-radius:10px}
+.cfa-night-options label{display:flex;align-items:center;gap:10px;min-height:46px;margin:6px 0}
+.cfa-night-options input{width:24px;height:24px;flex-shrink:0}
+.cfa-package-summary{padding:14px;background:#102c3e;border-radius:10px;line-height:1.7;margin:14px 0}
+.cfa-reservation-help{line-height:1.5;white-space:pre-wrap}
+.cfa-reservation-message{padding:14px;margin:12px 0;border:1px solid #4ade80;border-radius:10px;background:#123e32;color:#fff;white-space:pre-wrap;font-size:16px;line-height:1.5}
+.cfa-unframed-note{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+.cfa-capacity-overview{padding:16px;margin:16px 0;border:1px solid #67e8f9;border-radius:12px;background:#10243b;color:white}
+.cfa-capacity-scroll{overflow-x:auto}
+.cfa-capacity-overview table{width:100%;border-collapse:collapse;font-size:14px;text-align:left}
+.cfa-capacity-overview th,.cfa-capacity-overview td{padding:10px;border-bottom:1px solid #526480;white-space:nowrap}
+.cfa-capacity-overview td:first-child{white-space:normal;min-width:150px}
+.cfa-capacity-overview tr[data-level=green] td:last-child{color:#86efac;font-weight:700}
+.cfa-capacity-overview tr[data-level=orange] td:last-child{color:#fbbf24;font-weight:700}
+.cfa-capacity-overview tr[data-level=red] td:last-child{color:#fda4af;font-weight:700}
+#cfaReservationForm,#cfaEventInformation{scroll-margin-top:20px}
+@media(max-width:520px){.cfa-reservation-grid{grid-template-columns:minmax(0,1fr)}.cfa-linked-form{padding:12px}.cfa-event-section{padding:12px}}
+</style>
+<script src="reservation-ui.js?v=20261120-reservations-2"></script>
+
 </body>
   </html>
