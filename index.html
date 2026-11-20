@@ -2186,6 +2186,11 @@ const optionNames = {
 
 function localName(o) {
 
+  const customName = currentLanguage === 'sk'
+    ? (o.name_sk || o.name_en)
+    : (o.name_en || o.name_sk);
+  if (customName) return customName;
+
   const names =
     optionNames[o.option_code];
 
@@ -2403,9 +2408,9 @@ async function showEvents() {
     await supabaseClient
       .from('events')
       .select('*')
-      .eq(
+      .in(
         'status',
-        'published'
+        ['published', 'hidden']
       )
       .order('start_date');
 
@@ -4062,7 +4067,7 @@ async function getCartItems(id) {
     await supabaseClient
       .from('booking_items')
       .select(
-        '*,event_options(option_code,is_accommodation,free_with_accommodation)'
+        '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation)'
       )
       .eq(
         'booking_id',
@@ -4670,7 +4675,7 @@ async function showBookings() {
       await supabaseClient
         .from('booking_items')
         .select(
-          '*,event_options(option_code,is_accommodation,free_with_accommodation)'
+          '*,event_options(option_code,name,name_sk,name_en,is_accommodation,free_with_accommodation)'
         )
         .eq(
           'booking_id',
@@ -5756,7 +5761,7 @@ supabaseClient.auth
   );
 </script>
 
-<script src="extensions.js?v=20260919-1"></script>
+<script src="extensions.js?v=20261120-admin-names-1"></script>
 <script src="chat.js?v=4"></script>
 
 <script>
@@ -8780,7 +8785,8 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   ];
   const units = [['item','Za položku','Per item'],['per_person','Za osobu','Per person'],['per_day','Za deň','Per day'],['per_person_per_day','Za osobu a deň','Per person per day'],['per_night','Za noc','Per night'],['per_person_per_night','Za osobu a noc','Per person per night'],['per_room_per_night','Za izbu a noc','Per room per night'],['per_tent_per_night','Za stan a noc','Per tent per night'],['per_vehicle_per_night','Za vozidlo a noc','Per vehicle per night'],['per_vehicle_per_day','Za vozidlo a deň','Per vehicle per day'],['per_stay','Za pobyt','Per stay']];
   const optionFields = [
-    ['name',tr('Názov možnosti','Option name'),'text',true],
+    ['name',tr('Názov po slovensky','Slovak name'),'text',true],
+    ['name_en',tr('Názov po anglicky','English name'),'text'],
     ['category',tr('Kategória','Category'),'text',true],
     ['price',tr('Cena (£)','Price (£)'),'number',true,null,0],
     ['pricing_unit',tr('Účtovanie','Pricing unit'),'select',true,units],
@@ -8892,21 +8898,25 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     content.appendChild(node('h3',selectedEvent.title));const actions=node('div',null,'cfa-bar');content.appendChild(actions);
     button(actions,'Nová cenová možnosť','New price option',()=>{selectedOption=null;dirty=false;showOptionForm();},true);
     content.appendChild(node('p',text('Odstránenie z predaja urobíš vypnutím možnosti. Existujúce rezervácie sa nemažú.','Disable an option to remove it from sale. Existing bookings are not deleted.'),'cfa-muted'));
-    for(const o of options){const card=node('section',null,'cfa-card');card.appendChild(node('h3',o.name));card.appendChild(node('p',`${Number(o.price).toFixed(2)} GBP · ${o.enabled?text('Zapnuté','Enabled'):text('Vypnuté','Disabled')}`));
+    for(const o of options){const card=node('section',null,'cfa-card');card.appendChild(node('h3',localName(o)));card.appendChild(node('p',`${Number(o.price).toFixed(2)} GBP · ${o.enabled?text('Zapnuté','Enabled'):text('Vypnuté','Disabled')}`));
       card.appendChild(node('p',text('Rezervované','Reserved')+`: ${o.reserved_quantity} · `+text('Predané','Sold')+`: ${o.sold_quantity}`,'cfa-muted'));
       const bar=node('div',null,'cfa-bar');card.appendChild(bar);button(bar,'Upraviť','Edit',()=>{selectedOption=o;dirty=false;showOptionForm();});
       button(bar,o.enabled?'Vypnúť':'Zapnúť',o.enabled?'Disable':'Enable',async()=>{await requireAdmin();await query(supabaseClient.from('event_options').update({enabled:!o.enabled}).eq('id',o.id).eq('event_id',selectedEvent.id).select('id').single());await loadOptions();showOptions();message(text('Dostupnosť predaja bola uložená.','Sale availability saved.'));});content.appendChild(card);
     }
   }
   function showOptionForm(){reset('option');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Ceny a možnosti','Prices and options',showOptions);
-    content.appendChild(node('h3',selectedOption?selectedOption.name:text('Nová cenová možnosť','New price option')));
+    content.appendChild(node('h3',selectedOption?localName(selectedOption):text('Nová cenová možnosť','New price option')));
     content.appendChild(node('p',text('Počty rezervovaných a predaných miest riadi existujúci rezervačný systém.','Reserved and sold quantities are managed by the existing booking system.'),'cfa-muted'));
-    const record=selectedOption||{price:0,pricing_unit:'item',category:options[0]?.category||'',enabled:false,availability_mode:'automatic',availability_green_threshold:50,availability_orange_threshold:25,sort_order:0};
+    const record=selectedOption
+      ? {...selectedOption, name:selectedOption.name_sk||selectedOption.name, name_en:selectedOption.name_en||''}
+      : {price:0,pricing_unit:'item',category:options[0]?.category||'',enabled:false,availability_mode:'automatic',availability_green_threshold:50,availability_orange_threshold:25,sort_order:0};
+    content.appendChild(node('p',text('Názvy aj popisy môžeš upraviť samostatne v slovenčine a angličtine. Automatický preklad zatiaľ nie je zapojený.','Names and descriptions can be edited separately in Slovak and English. Automatic translation is not connected yet.'),'cfa-muted'));
     const form=buildForm(optionFields,record,async data=>{
       if(data.availability_mode==='manual'&&!data.manual_availability_status){message(text('Vyber ručný stav dostupnosti.','Select a manual availability status.'),true);return;}
       if(data.availability_orange_threshold>data.availability_green_threshold){message(text('Oranžová hranica nesmie byť vyššia než zelená.','The orange threshold cannot exceed the green threshold.'),true);return;}
       if(data.min_age!=null&&data.max_age!=null&&data.max_age<data.min_age){message(text('Maximálny vek nesmie byť nižší než minimálny.','Maximum age cannot be below minimum age.'),true);return;}
       if(data.availability_mode==='automatic')data.manual_availability_status=null;
+      data.name_sk=data.name;
       const relation=key=>{const value=form.elements.namedItem(key)?.value;return value||null;};
       data.parent_option_id=relation('parent_option_id');data.child_bed_option_id=relation('child_bed_option_id');
       if(!selectedOption)data.event_id=selectedEvent.id;
