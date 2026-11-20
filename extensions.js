@@ -2159,32 +2159,8 @@ guestCartHtml = function(item) {
 // ============================================================
 
 function extTranslatedItemName(item) {
-
-  const option = item?.event_options;
-  const customName = currentLanguage === 'sk'
-    ? (option?.name_sk || option?.name_en)
-    : (option?.name_en || option?.name_sk);
-  if (customName) return customName;
-
-  const code =
-    item?.event_options
-      ?.option_code || '';
-
-  if (
-    code &&
-    optionNames?.[code]
-  ) {
-    return optionNames[code][
-      currentLanguage === 'sk'
-        ? 0
-        : 1
-    ];
-  }
-
-  return item?.item_name || '';
+  return item?.event_options ? localName(item.event_options) : item?.item_name || '';
 }
-
-
 // ============================================================
 // BREAKFAST NAMES
 // ============================================================
@@ -2196,8 +2172,8 @@ localName = function(o) {
 
   // Admin-defined names take precedence over the original breakfast labels.
   const customName = currentLanguage === 'sk'
-    ? (o?.name_sk || o?.name_en)
-    : (o?.name_en || o?.name_sk);
+    ? o?.name_sk
+    : o?.name_en;
   if (customName) return customName;
 
   if (
