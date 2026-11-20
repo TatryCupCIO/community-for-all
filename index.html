@@ -4380,6 +4380,8 @@ async function showCartPage() {
       }"
     ></div>`;
 
+  cfaAttachCartDiscount(box, cart.id);
+
   items.forEach(i => {
 
     const d =
@@ -4441,6 +4443,17 @@ async function showCartPage() {
       activeCart
         ?.total_amount
     );
+
+  if (activeCart?.discount_code_id) {
+    const summary = document.createElement('div');
+    summary.id = 'cfaCartDiscountSummary';
+    const subtotalLine = document.createElement('div');
+    subtotalLine.textContent = T('Medzisúčet: ', 'Subtotal: ') + money(activeCart.subtotal_amount);
+    const discountLine = document.createElement('div');
+    discountLine.textContent = T('Zľava: −', 'Discount: −') + money(activeCart.discount_amount);
+    summary.append(subtotalLine, discountLine);
+    box.appendChild(summary);
+  }
 
   box.appendChild(total);
 
@@ -9011,6 +9024,75 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
 })();
 </script>
 <!-- END CFA ADMIN EVENTS v1 -->
+
+<style id="cfaCartDiscountStyles">
+#cfaCartDiscount{margin:16px 0;padding:14px;border:1px solid #64748b;border-radius:12px;background:#0f172a;color:#f8fafc}
+#cfaCartDiscount label{display:block;margin:0 0 8px;font-size:16px;font-weight:bold}
+#cfaCartDiscount .cfa-discount-row{display:flex;flex-wrap:wrap;gap:10px}
+#cfaCartDiscount input{box-sizing:border-box;flex:1 1 180px;min-width:0;width:100%;min-height:44px;margin:0;padding:12px;border:1px solid #94a3b8;border-radius:9px;background:#1e293b;color:white;font-size:16px}
+#cfaCartDiscount button{min-height:44px;padding:10px 16px;margin:0;border:1px solid #67e8f9;border-radius:9px;background:#0e7490;color:white;font-size:16px;cursor:pointer}
+#cfaCartDiscount button:disabled{opacity:.6;cursor:wait}
+#cfaCartDiscount p{font-size:15px;line-height:1.45;margin:10px 0 0}
+#cfaCartDiscount .cfa-discount-error{color:#fda4af}
+#cfaCartDiscount .cfa-discount-ok{color:#86efac}
+#cfaCartDiscountSummary{padding-top:12px;font-size:16px;line-height:1.65}
+</style>
+<script id="cfaCartDiscountModule">
+/* Existing RPCs validate the owner of the cart, eligibility, dates and discount limits. */
+function cfaAttachCartDiscount(box, bookingId) {
+  const tr = (sk,en) => currentLanguage === 'en' ? en : sk;
+  const form = document.createElement('form');
+  form.id = 'cfaCartDiscount';
+  const label = document.createElement('label');
+  label.htmlFor = 'cfaCartDiscountCode';
+  label.textContent = tr('Zľavový kód','Discount code');
+  const row = document.createElement('div');
+  row.className = 'cfa-discount-row';
+  const input = document.createElement('input');
+  input.id = 'cfaCartDiscountCode';input.type = 'text';input.name = 'discount_code';
+  input.placeholder = tr('Sem vlož zľavový kód','Enter your discount code');
+  input.autocomplete = 'off';input.spellcheck = false;input.autocapitalize = 'characters';
+  const apply = document.createElement('button');apply.type = 'submit';apply.textContent = tr('Použiť','Apply');
+  const remove = document.createElement('button');remove.type = 'button';remove.textContent = tr('Odstrániť zľavu','Remove discount');
+  remove.hidden = !activeCart?.discount_code_id;
+  const feedback = document.createElement('p');feedback.setAttribute('role','status');feedback.setAttribute('aria-live','polite');
+  if(activeCart?.discount_code_id){feedback.textContent=tr('Zľava je uplatnená: ','Discount applied: ')+money(activeCart.discount_amount);feedback.className='cfa-discount-ok';}
+  row.append(input,apply);if(!remove.hidden)row.appendChild(remove);form.append(label,row,feedback);box.appendChild(form);
+  let pending = false;
+  const errors = [
+    ['Invalid or expired discount code','Kód je neplatný, vypnutý alebo mu skončila platnosť.','This code is invalid, disabled or expired.'],
+    ['Discount code usage limit reached','Kód už dosiahol povolený počet použití.','This code has reached its usage limit.'],
+    ['Discount code already used','Tento kód si už použil/a.','You have already used this code.'],
+    ['Minimum booking amount not reached','Košík nedosahuje minimálnu sumu pre túto zľavu.','Your cart does not meet the minimum amount for this discount.'],
+    ['This discount code does not apply to this cart','Kód neplatí na položky v tomto košíku.','This code does not apply to the items in this cart.'],
+    ['Cart not found or expired','Košík už nie je dostupný alebo mu vypršal čas.','This cart is no longer available or has expired.'],
+    ['Authentication required','Prihlás sa a skús to znova.','Sign in and try again.']
+  ];
+  async function submit(removing) {
+    if(pending)return;
+    const code=input.value.trim();
+    if(!removing&&!code){feedback.textContent=tr('Najprv vlož zľavový kód.','Enter a discount code first.');feedback.className='cfa-discount-error';input.focus();return;}
+    pending=true;apply.disabled=true;remove.disabled=true;input.disabled=true;form.setAttribute('aria-busy','true');
+    feedback.textContent=tr('Overujem zľavu…','Checking discount…');feedback.className='';
+    try {
+      const {data,error}=await supabaseClient.rpc(removing?'remove_discount_code':'apply_discount_code',removing?{p_booking_id:bookingId}:{p_booking_id:bookingId,p_code:code});
+      if(error)throw error;
+      const result=Array.isArray(data)?data[0]:data;
+      if(!result)throw new Error('No discount result');
+      // Always reload authoritative totals and keep the original countdown machinery.
+      if(activeCart?.id===bookingId){activeCart.subtotal_amount=result.subtotal;activeCart.discount_amount=result.discount;activeCart.total_amount=result.total;}
+      await showCartPage();
+    } catch(error) {
+      console.error('Cart discount:',error);
+      const match=errors.find(([message])=>String(error.message||'').includes(message));
+      feedback.textContent=match?tr(match[1],match[2]):tr('Zľavu sa nepodarilo upraviť. Kód zostal v políčku; skús to znova.','The discount could not be updated. Your code is still in the field; try again.');
+      feedback.className='cfa-discount-error';
+    } finally {pending=false;apply.disabled=false;remove.disabled=false;input.disabled=false;form.removeAttribute('aria-busy');}
+  }
+  form.addEventListener('submit',event=>{event.preventDefault();submit(false);});
+  remove.addEventListener('click',()=>submit(true));
+}
+</script>
 
 </body>
   </html>
