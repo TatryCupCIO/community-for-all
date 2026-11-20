@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "Community For All",
+  "short_name": "Community For All",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#111827",
+  "icons": [
+    {
+      "src": "/app/src/main/res/drawable/tatry_cup_cio_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
