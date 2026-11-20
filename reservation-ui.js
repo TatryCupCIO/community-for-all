@@ -43,6 +43,16 @@
     const n = Number(input.value);
     return Number.isInteger(n) && n >= min ? n : null;
   }
+  function validationSummary(box, button, message, error, disabled) {
+    box.classList.toggle('cfa-reservation-error', !!error);
+    box.setAttribute('role', error ? 'alert' : 'status');
+    box.setAttribute('aria-live', error ? 'assertive' : 'polite');
+    if (message != null) box.textContent = message;
+    button.disabled = !!disabled;
+    button.setAttribute('aria-disabled', String(!!disabled));
+    button.style.setProperty('opacity', disabled ? '0.45' : '1', 'important');
+    button.style.cursor = disabled ? 'not-allowed' : 'pointer';
+  }
   function nightsForItem(item) {
     if (!item?.night_start_date) return [];
     const date = new Date(item.night_start_date + 'T12:00:00');
@@ -73,8 +83,19 @@
     const summary = node('div', '', 'cfa-package-summary'); summary.setAttribute('aria-live', 'polite');
     const add = node('button', t('Pridať vstupenky', 'Add tickets'), 'add-btn'); add.type = 'submit';
     form.append(summary, add); let busy = false;
-    const update = () => { const q = integer(quantity, 1); summary.textContent = q ? t('Spolu: ', 'Total: ') + money(Number(option.price) * q) : ''; add.disabled = busy || !q || q > 500 || isTbd(option); };
-    quantity.oninput = () => { ageFields(); update(); }; update();
+    const update = () => {
+      const q = integer(quantity, 1);
+      let error = '';
+      if (quantity.value.trim() !== '' && (!q || q > 500)) error = t('Zadajte platný celý počet vstupeniek.', 'Enter a valid whole number of tickets.');
+      const invalidAge = ages.some(i => i.value.trim() !== '' && (integer(i) == null || Number(i.value) < Number(option.min_age ?? 0) || Number(i.value) > Number(option.max_age ?? 17)));
+      if (invalidAge) error = t(`Vek dieťaťa musí byť ${option.min_age ?? 0}–${option.max_age ?? 17} rokov.`, `The child’s age must be ${option.min_age ?? 0}–${option.max_age ?? 17}.`);
+      if (isTbd(option)) error = t('Cena tejto možnosti ešte nie je nastavená.', 'The price for this option has not been set.');
+      const missing = ages.some(i => i.value.trim() === '') || !day.value || !q;
+      const message = error || (missing ? t('Vyplňte počet vstupeniek, veky všetkých detí a deň návštevy.', 'Enter the ticket quantity, every child’s age and the visit date.') : t('Spolu: ', 'Total: ') + money(Number(option.price) * q));
+      validationSummary(summary, add, message, !!error, busy || !!error || missing);
+    };
+    quantity.oninput = () => { ageFields(); update(); };
+    form.addEventListener('input', update); day.addEventListener('change', update); update();
     form.onsubmit = async ev => {
       ev.preventDefault(); if (busy || isTbd(option) || !form.reportValidity() || !requireLogin()) return;
       const q = integer(quantity, 1), childAges = ages.map(i => integer(i));
@@ -146,9 +167,14 @@
       const ages = ageInputs.map(i => integer(i));
       const tickets = [option.adult_ticket_option_id, option.child_ticket_option_id, option.free_child_ticket_option_id]
         .map(id => all().find(o => Number(o.id) === Number(id)));
-      if (q == null || a == null || c == null || c > 500 || ages.length !== c || ages.some(v => v == null || v > 17)) return null;
+      if (units.value.trim() !== '' && q == null) return {error: t('Počet ubytovacích jednotiek musí byť celé číslo aspoň 1.', 'Accommodation quantity must be a whole number of at least 1.')};
+      if (adults.value.trim() !== '' && a == null) return {error: t(`Rezervácia musí zahŕňať aspoň ${minimum} dospelú osobu vo veku 18 rokov alebo viac. Zadajte celý počet dospelých.`, `The booking must include at least ${minimum} adult aged 18 or over. Enter a whole number of adults.`)};
+      if (children.value.trim() !== '' && (c == null || c > 500)) return {error: t('Zadajte platný celý počet detí. Ak deti neprídu, zadajte 0.', 'Enter a valid whole number of children. Enter 0 if no children are coming.')};
+      if (q == null || a == null || c == null) return null;
       const capacity = Number(option.max_occupancy || 0) * q;
-      if (!capacity || a + c > capacity) return {error: t(`Maximálna kapacita je ${capacity} osôb.`, `Maximum capacity is ${capacity} people.`)};
+      if (!capacity || a + c > capacity) return {error: t(`Zadali ste ${a + c} osôb. Maximálna kapacita je ${capacity} osôb. Znížte počet hostí.`, `You entered ${a + c} guests. Maximum capacity is ${capacity} people. Reduce the guest count.`)};
+      if (ageInputs.some(i => i.value.trim() !== '' && (integer(i) == null || Number(i.value) > 17))) return {error: t('Pri každom dieťati zadajte celý vek od 0 do 17 rokov.', 'Enter a whole age from 0 to 17 for every child.')};
+      if (ages.length !== c || ages.some(v => v == null)) return null;
       if (!selected.size || selected.size > 366) return null;
       const nights = [...selected].sort();
       const positions = nights.map(d => eventNights.indexOf(d));
@@ -166,7 +192,8 @@
         total: accommodation + a * Number(tickets[0].price) + paid * Number(tickets[1]?.price || 0) + free * Number(tickets[2]?.price || 0)};
     }
     function update() {
-      const d = details(); button.disabled = busy || !d || !!d.error;
+      const d = details();
+      validationSummary(summary, button, null, !!d?.error, busy || !d || !!d.error);
       summary.replaceChildren();
       if (!d) { summary.textContent = t('Vyplňte počty osôb, veky detí a noci pobytu.', 'Enter all guest counts, child ages and nights.'); return; }
       if (d.error) { summary.textContent = d.error; return; }
@@ -274,7 +301,7 @@
     const root = $('eventDetailContent'); const head = root?.querySelector('.card'); if (!head) return;
     const settings = event.display_settings || {};
     head.id = 'cfaEventInformation'; head.classList.add('cfa-event-information'); head.replaceChildren();
-    head.append(node('h2', currentLanguage === 'en' ? settings.title_en || event.title : event.title, 'event-title'));
+    head.append(node('h2', currentLanguage === 'en' ? settings.title_en || t('Chýba anglický názov podujatia.', 'The English event title has not been filled in yet.') : event.title, 'event-title'));
     head.append(node('p', `${formatDate(event.start_date)} – ${formatDate(event.end_date || event.start_date)}`));
     if (event.venue_name) head.append(node('p', event.venue_name));
     if (event.address || event.postcode) head.append(node('p', [event.address, event.postcode].filter(Boolean).join(', ')));
@@ -286,13 +313,14 @@
     const seen = new Set();
     const add = (key, sk, en, fallback, warning) => {
       if (settings['show_' + key] === false) return;
-      const value = currentLanguage === 'en' ? settings[key + '_en'] || fallback : settings[key + '_sk'] || fallback;
+      const source = key === 'description' ? event.description_sk || event.description : event[key];
+      const value = currentLanguage === 'en' ? settings[key + '_en'] || (key === 'description' ? localEventDescription(event) : source ? t('Chýba anglický preklad.', 'The English translation has not been filled in yet.') : '') : settings[key + '_sk'] || fallback;
       if (!value || seen.has(value)) return; seen.add(value); textSection(head, t(sk, en), value, warning);
     };
     add('short_description', 'O podujatí', 'About the event', event.short_description);
     add('description', 'Ďalšie informácie', 'Further information', localEventDescription(event));
-    if (event.description && ![event.description_sk, event.description_en].includes(event.description) && !seen.has(event.description)) {
-      seen.add(event.description); textSection(head, t('Ďalší uložený opis', 'Additional saved description'), event.description);
+    if (settings.show_legacy_description !== false && event.description && ![event.description_sk, event.description_en].includes(event.description) && !seen.has(event.description)) {
+      seen.add(event.description); textSection(head, t('Ďalší uložený opis', 'Additional saved description'), currentLanguage === 'en' ? settings.legacy_description_en || 'The English translation of the original description has not been filled in yet.' : event.description);
     }
     add('event_details', 'Praktické informácie', 'Practical information', event.event_details);
     add('programme', 'Program', 'Programme', event.programme);
