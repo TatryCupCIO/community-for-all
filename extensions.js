@@ -537,6 +537,14 @@ function extAgeInputs(
 // RESERVATION CONTROL
 // ============================================================
 
+function cfaReservationAlert(row, message) {
+  let box = row.querySelector('.cfa-reservation-message');
+  if (!box) {box=document.createElement('div');box.className='cfa-reservation-message';row.appendChild(box);}
+  const success = message === T('Položka bola pridaná do košíka.','Item added to cart.');
+  box.hidden=false;box.textContent=message;box.classList.toggle('cfa-reservation-error',!success);
+  box.setAttribute('role',success?'status':'alert');box.scrollIntoView?.({block:'nearest',behavior:'smooth'});
+}
+
 reservationControl = function(
   row,
   o,
@@ -1523,7 +1531,7 @@ reservationControl = function(
 
     if (isTbd(o)) {
 
-      return alert(
+      return cfaReservationAlert(row, 
         T(
           'Cena tejto položky ešte nie je nastavená.',
           'The price for this item has not been set yet.'
@@ -1545,7 +1553,7 @@ reservationControl = function(
       selectedDates.length === 0
     ) {
 
-      return alert(
+      return cfaReservationAlert(row, 
         T(
           dayPricing
             ? 'Vyberte aspoň jeden deň.'
@@ -1573,7 +1581,7 @@ reservationControl = function(
 
       if (totalGuests < 1) {
 
-        return alert(
+        return cfaReservationAlert(row, 
           T(
             'Uveďte aspoň jedného hosťa.',
             'Please add at least one guest.'
@@ -1591,7 +1599,7 @@ reservationControl = function(
         )
       ) {
 
-        return alert(
+        return cfaReservationAlert(row, 
           T(
             'Zadajte vek každého dieťaťa od 0 do 17 rokov.',
             'Enter the age of every child from 0 to 17.'
@@ -1613,7 +1621,7 @@ reservationControl = function(
 
         if (noBedTotal > 3) {
 
-          return alert(
+          return cfaReservationAlert(row, 
             T(
               'Povolené sú maximálne 3 ďalšie osoby bez lôžka spolu.',
               'A maximum of 3 additional guests without a bed are allowed.'
@@ -1641,7 +1649,7 @@ reservationControl = function(
           bedTotal > maxBeds
         ) {
 
-          return alert(
+          return cfaReservationAlert(row, 
             T(
               `Kapacita lôžok je maximálne ${maxBeds} osôb.`,
               `Bed capacity is a maximum of ${maxBeds} people.`
@@ -1674,7 +1682,7 @@ reservationControl = function(
           maxGuests
         ) {
 
-          return alert(
+          return cfaReservationAlert(row, 
             T(
               `Maximálna kapacita je ${maxGuests} osôb.`,
               `Maximum capacity is ${maxGuests} people.`
@@ -1698,7 +1706,7 @@ reservationControl = function(
       )
     ) {
 
-      return alert(
+      return cfaReservationAlert(row, 
         T(
           `Zadajte vek každého dieťaťa od ${childMin} do ${childMax} rokov.`,
           `Enter the age of every child from ${childMin} to ${childMax}.`
@@ -1838,7 +1846,7 @@ reservationControl = function(
       await refreshCartBadge();
 
 
-      alert(
+      cfaReservationAlert(row, 
         T(
           'Položka bola pridaná do košíka.',
           'Item added to cart.'
@@ -1847,7 +1855,7 @@ reservationControl = function(
 
     } catch (error) {
 
-      alert(
+      cfaReservationAlert(row, 
         T(
           'Nepodarilo sa pridať položku: ',
           'Could not add item: '
