@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="sk">
 <head>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/app/src/main/res/drawable/tatry_cup_cio_512x512.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="design.css">
   <meta charset="UTF-8">
   <meta
@@ -2921,6 +2925,11 @@ function renderAgeInputs(
       input.value =
         age;
 
+      input.required = true;
+      input.step = '1';
+      input.placeholder = T('Zadaj vek', 'Enter age');
+      input.setAttribute('aria-label', T('Vek dieťaťa ', 'Child age ') + (i + 1));
+
       input.oninput =
         () => {
 
@@ -2969,7 +2978,7 @@ function reservationControl(
 
   let ticketAges =
     isChild(o)
-      ? [childMin]
+      ? ['']
       : [];
 
   let capacityNote =
@@ -3696,9 +3705,7 @@ function reservationControl(
           ticketAges.length <
           q
         ) {
-          ticketAges.push(
-            childMin
-          );
+          ticketAges.push('');
         }
 
         renderAgeInputs(
@@ -3739,6 +3746,8 @@ function reservationControl(
       if (!requireLogin()) {
         return;
       }
+
+      if (!cfaValidateChildAgeFields(row)) return;
 
       if (isTbd(o)) {
 
@@ -5014,6 +5023,10 @@ async function logoutUser() {
     await removeAndroidFirebaseToken(currentUser.id);
   }
 
+  if (currentUser && typeof window.cfaWebPushUnregister === 'function') {
+    await window.cfaWebPushUnregister(currentUser.id);
+  }
+
   const { error: signOutError } = await supabaseClient.auth.signOut();
   if (signOutError) {
     console.error('Sign out failed:', signOutError);
@@ -5774,7 +5787,7 @@ supabaseClient.auth
   );
 </script>
 
-<script src="extensions.js?v=20261120-admin-names-1"></script>
+<script src="extensions.js?v=20261120-required-child-ages-1"></script>
 <script src="chat.js?v=4"></script>
 
 <script>
@@ -9094,5 +9107,40 @@ function cfaAttachCartDiscount(box, bookingId) {
 }
 </script>
 
+<style id="cfaRequiredAgeStyles">
+#eventDetailContent .cfa-age-error{display:block!important;width:100%;padding:16px;margin:12px 0;border:3px solid #f87171;border-radius:12px;background:#7f1d1d;color:#fff;font-size:18px;font-weight:bold;line-height:1.5}
+#eventDetailContent .child-age-row input[aria-invalid="true"]{border:3px solid #f87171!important;background:#450a0a!important;color:white!important;outline:2px solid #fca5a5;outline-offset:2px}
+#eventDetailContent .child-age-row input::placeholder{color:#cbd5e1;opacity:1}
+</style>
+<script id="cfaRequiredAgeModule">
+function cfaValidateChildAgeFields(row) {
+  const inputs=Array.from(row.querySelectorAll('.child-age-row input'));
+  row.querySelectorAll('.cfa-age-error').forEach(node=>node.remove());
+  let first=null;
+  for(const input of inputs){
+    const raw=input.value.trim();const value=Number(raw);
+    const min=input.min===''?0:Number(input.min);
+    const max=input.max===''?17:Number(input.max);
+    const invalid=raw===''||!Number.isInteger(value)||value<min||value>max;
+    input.setAttribute('aria-invalid',String(invalid));
+    if(invalid&&!first)first=input;
+  }
+  if(!first)return true;
+  const error=document.createElement('div');error.className='cfa-age-error';
+  error.setAttribute('role','alert');error.setAttribute('aria-live','assertive');
+  error.textContent=T(
+    '⚠ Vyplň vek každého dieťaťa. Bez toho sa položka nedá pridať do košíka. Zadaj celé číslo v uvedenom vekovom rozsahu. Pre dieťa mladšie než rok zadaj 0.',
+    '⚠ Enter the age of every child. This item cannot be added to the cart until all ages are entered. Use a whole number within the stated age range. For a child under one year old, enter 0.'
+  );
+  const ageRow=first.closest('.child-age-row');
+  const parent=ageRow?.parentNode||row;
+  parent.insertBefore(error,ageRow||parent.firstChild);
+  error.scrollIntoView({behavior:'smooth',block:'center'});
+  first.focus({preventScroll:true});
+  return false;
+}
+</script>
+
+<script src="web-notifications.js?v=20261120-1"></script>
 </body>
   </html>
