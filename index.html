@@ -870,6 +870,12 @@
   overflow-wrap: anywhere;
 }
 </style>
+<style id="cfa-room-mattress-layout">
+.cfa-room-mattress { margin: 12px 0; padding: 8px 0; }
+.cfa-room-extra-frame { border-top: 1px solid #64748b; border-bottom: 1px solid #64748b; }
+.cfa-room-mattress p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
+.cfa-room-form h4 { margin: 4px 0 12px; }
+</style>
 </head>
 
 <body>
@@ -8881,14 +8887,15 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     ['show_unit_counter','Počet ubytovacích jednotiek','Accommodation unit counter'],
     ['show_bed_child_title','Nadpis detí s lôžkom','Child bed heading'],
     ['show_extra_title','Nadpis osôb bez lôžka','Extra guest heading'],
-    ['show_extra_price','Hláška zdarma pri osobách bez lôžka','Free extra guest notice'],
+    ['show_extra_price','Rozpis vstupného osoby na matraci','Mattress guest admission breakdown'],
     ['show_extra_note','Vysvetlenie osôb bez lôžka','Extra guest explanation'],
     ['show_extra_frame','Farebný rámček osôb bez lôžka','Extra guest coloured panel'],
     ['show_capacity_note','Doplnková hláška kapacity','Additional capacity notice'],
     ['show_age_heading','Doplnkový nadpis vekov detí','Additional child age heading'],
     ['show_parking_note','Doplnková hláška parkovania','Additional parking notice'],
     ['show_electric_note','Doplnková hláška elektriny','Additional electricity notice'],
-    ['show_linked_ticket_note','Vysvetlenie prepojených vstupeniek','Linked ticket explanation']
+    ['show_linked_ticket_note','Vysvetlenie prepojených vstupeniek','Linked ticket explanation'],
+    ['show_breakfast_note','Upozornenie o raňajkách pri bezplatnom vstupe','Breakfast notice for free admission']
   ];
   const cfaRoomFields = [
     ['allow_extra_guests','Povoliť osoby bez vlastného lôžka','Allow guests without their own bed'],
@@ -8962,6 +8969,11 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     for(const [key,sk,en] of [['unit_label_sk','Názov počítadla jednotiek po slovensky','Slovak unit counter label'],['unit_label_en','Názov počítadla jednotiek po anglicky','English unit counter label']]){
       const label=node('label',text(sk,en));const input=node('input');input.type='text';input.name='cfa_ui_'+key;input.value=record.booking_form_settings?.[key]||'';label.appendChild(input);grid.appendChild(label);
     }
+    const mattressLabel=node('label',text('Prídavný matrac na jednu izbu','Extra mattress per room'));
+    mattressLabel.classList.add('cfa-private-setting');
+    const mattressSelect=node('select');mattressSelect.name='cfa_ui_max_extra_guests';
+    for(const [value,sk,en] of [[0,'Bez prídavného matraca','No extra mattress'],[1,'Najviac jedna osoba navyše','At most one extra guest']]){const o=node('option',text(sk,en));o.value=String(value);mattressSelect.appendChild(o);}
+    mattressSelect.value=String(record.booking_form_settings?.max_extra_guests===1?1:0);mattressLabel.appendChild(mattressSelect);grid.appendChild(mattressLabel);
     form.insertBefore(details,form.lastChild);
     const setRoomVisible=code=>form.querySelectorAll('.cfa-private-setting').forEach(n=>{n.hidden=!['private_room_2','private_lodge_4'].includes(code);});
     setRoomVisible(record.option_code);
@@ -8973,16 +8985,18 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
         const put=(name,value)=>{const f=form.elements.namedItem(name);if(!f)return;if(f.type==='checkbox')f.checked=!!value;else f.value=value??'';};
         const preset=presets.find(p=>p[0]===code);put('name',preset[1]);put('name_en',preset[2]);put('category',accommodation?'accommodation':'ticket');put('pricing_unit','per_stay');
         put('price',linked||free?0:accommodation?(code==='private_lodge_4'?160:80):child?(day?10:15):(day?20:35));
-        put('is_accommodation',accommodation);put('collect_guest_details',accommodation);put('requires_linked_tickets',linked);put('minimum_adults',linked?1:0);put('is_free',free);put('is_included',linked||accommodation);put('admission_type',accommodation?'':day?'day':'weekend');
+        put('is_accommodation',accommodation);put('collect_guest_details',accommodation);put('requires_linked_tickets',linked);put('minimum_adults',accommodation?1:0);put('is_free',free);put('is_included',linked||accommodation);put('admission_type',accommodation?'':day?'day':'weekend');
         put('max_occupancy',accommodation?(code==='large_tent'?12:code==='private_room_2'?2:4):'');put('min_age',accommodation?'':free?0:child?5:18);put('max_age',accommodation?'':free?4:child?17:'');dirty=true;
       };
     }
   }
   function cfaPackOption(form,data,record){data.booking_form_settings={...(record.booking_form_settings||{})};
     for(const [key] of [...cfaNoticeFields,...cfaRoomFields])data.booking_form_settings[key]=form.elements.namedItem('cfa_ui_'+key).checked;
+    data.booking_form_settings.max_extra_guests=Number(form.elements.namedItem('cfa_ui_max_extra_guests').value);
     for(const key of ['unit_label_sk','unit_label_en'])data.booking_form_settings[key]=form.elements.namedItem('cfa_ui_'+key).value.trim();
     for(const key of ['adult_ticket_option_id','child_ticket_option_id','free_child_ticket_option_id']){const value=form.elements.namedItem(key)?.value;data[key]=value?Number(value):null;}
     if(!selectedOption)data.option_code=form.elements.namedItem('cfa_new_option_type')?.value||null;
+    if(['private_room_2','private_lodge_4'].includes(data.option_code||record.option_code)){data.collect_guest_details=true;data.minimum_adults=Math.max(1,Number(data.minimum_adults||1));if(data.enabled&&data.booking_form_settings.allow_extra_guests&&data.booking_form_settings.max_extra_guests===1&&(!data.adult_ticket_option_id||!data.child_ticket_option_id||!data.free_child_ticket_option_id)){message(text('Pre osobu na matraci vyberte všetky tri víkendové vstupenky podľa veku.','For a mattress guest, select all three age-based weekend tickets.'),true);return false;}}
     if(data.enabled&&!cfaValidateOptionTranslations(data))return false;
     if(data.enabled&&data.price===0&&!data.is_free&&!data.is_included&&!data.free_with_accommodation){message(text('Pri nulovej cene označ Bezplatné alebo Zahrnuté v cene.','For a zero price, select Free of charge or Included in price.'),true);return false;}
     if(data.requires_linked_tickets){if(!data.is_accommodation||!data.adult_ticket_option_id||data.minimum_adults<1){message(text('Prepojená ponuka musí byť ubytovanie, mať dospelú vstupenku a minimálne jedného dospelého.','A linked option must be accommodation, have an adult ticket and require at least one adult.'),true);return false;}data.collect_guest_details=true;}
@@ -9325,7 +9339,7 @@ function cfaValidateChildAgeFields(row) {
 #cfaReservationForm,#cfaEventInformation{scroll-margin-top:20px}
 @media(max-width:520px){.cfa-reservation-grid{grid-template-columns:minmax(0,1fr)}.cfa-linked-form{padding:12px}.cfa-event-section{padding:12px}}
 </style>
-<script src="reservation-ui.js?v=20261120-reservations-4"></script>
+<script src="reservation-ui.js?v=20261121-rooms-6"></script>
 
 </body>
   </html>
