@@ -9025,19 +9025,19 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     try { const id=await permission();if(ownGeneration!==generation)return;allowedUser=id;isOwner=false;if(id){const owner=await supabaseClient.rpc('cfa_is_owner');if(ownGeneration!==generation)return;isOwner=!owner.error&&owner.data===true;}entry.hidden=!id;if(!id&&dialog.open)forceClose(); }
     catch(e){if(ownGeneration===generation){allowedUser=null;entry.hidden=true;if(dialog.open)forceClose();}console.warn('CFA admin access:',e);}
   }
-  function confirmLeave(){return !dirty||window.confirm(text('Zahodiť neuložené zmeny?','Discard unsaved changes?'));}
-  function forceClose(){dirty=false;discounts=[];dialog.close();content.replaceChildren();if(focusBeforeOpen?.isConnected)focusBeforeOpen.focus();}
-  function close(){if(busy||!confirmLeave())return;forceClose();}
+  function confirmLeave(){if(window.CFAEventPhotos?.isBusy())return false;return (!dirty&&!window.CFAEventPhotos?.hasPendingEdits())||window.confirm(text('Zahodiť neuložené zmeny?','Discard unsaved changes?'));}
+  function forceClose(){window.CFAEventPhotos?.clearEditors();dirty=false;discounts=[];dialog.close();content.replaceChildren();if(focusBeforeOpen?.isConnected)focusBeforeOpen.focus();}
+  function close(){if(busy||window.CFAEventPhotos?.isBusy()||!confirmLeave())return;forceClose();}
   $('cfaAdminClose').onclick=close;
   dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
   function button(parent,sk,en,fn,primary=false){const b=node('button',text(sk,en));b.type='button';if(primary)b.dataset.primary='';b.onclick=()=>run(fn);parent.appendChild(b);return b;}
-  async function run(fn){if(busy)return;busy=true;dialog.setAttribute('aria-busy','true');try{await fn();}catch(e){fail(e);}finally{busy=false;dialog.removeAttribute('aria-busy');dialog.querySelectorAll('button').forEach(b=>b.disabled=false);}}
+  async function run(fn){if(busy||window.CFAEventPhotos?.isBusy())return;busy=true;dialog.setAttribute('aria-busy','true');try{await fn();}catch(e){fail(e);}finally{busy=false;dialog.removeAttribute('aria-busy');dialog.querySelectorAll('button').forEach(b=>{if(!b.closest('.cfa-photo-editor'))b.disabled=false;});}}
   async function requireAdmin(){const id=await permission();if(!id||id!==allowedUser){forceClose();entry.hidden=true;throw new Error('Admin session changed');}}
   async function query(q){const r=await q;if(r.error)throw r.error;return r.data;}
   async function loadEvents(){events=await query(supabaseClient.from('events').select('*').order('start_date'));}
   async function loadOptions(){options=await query(supabaseClient.from('event_options').select('*').eq('event_id',selectedEvent.id).order('sort_order').order('id'));}
   entry.onclick=()=>run(async()=>{focusBeforeOpen=document.activeElement;await refreshEntry();if(!allowedUser)return;await loadEvents();message('');dirty=false;showList();dialog.showModal();});
-  function reset(v){view=v;content.replaceChildren();}
+  function reset(v){window.CFAEventPhotos?.clearEditors();view=v;content.replaceChildren();}
   function showList(){reset('list');const bar=node('div',null,'cfa-bar');content.appendChild(bar);
     button(bar,'Nové podujatie','New event',()=>{selectedEvent=null;dirty=false;showEventForm();},true);
     button(bar,'Obnoviť zoznam','Refresh list',async()=>{await requireAdmin();await loadEvents();showList();});
@@ -9069,7 +9069,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     }
     form.addEventListener('input',()=>{dirty=true;});form.addEventListener('change',()=>{dirty=true;});
     const bar=node('div',null,'cfa-bar');const save=node('button',text('Uložiť','Save'));save.type='submit';save.dataset.primary='';bar.appendChild(save);form.appendChild(bar);
-    form.onsubmit=e=>{e.preventDefault();if(!form.reportValidity())return;run(async()=>{save.disabled=true;await requireAdmin();const data={};for(const [key,label,type] of defs){const f=form.elements.namedItem(key);data[key]=type==='checkbox'?f.checked:(f.value===''?null:((type==='number'||type==='integer')?Number(f.value):f.value.trim()));}await onSave(data);});};
+    form.onsubmit=e=>{e.preventDefault();if(window.CFAEventPhotos?.hasPendingEdits()){message(text('Najprv ulož fotky a ich zverejnenie tlačidlom pri galérii.','First save the photos and publication setting with the gallery button.'),true);return;}if(!form.reportValidity())return;run(async()=>{save.disabled=true;await requireAdmin();const data={};for(const [key,label,type] of defs){const f=form.elements.namedItem(key);data[key]=type==='checkbox'?f.checked:(f.value===''?null:((type==='number'||type==='integer')?Number(f.value):f.value.trim()));}await onSave(data);});};
     content.appendChild(form);return form;
   }
   function back(parent,sk,en,fn){button(parent,sk,en,()=>{if(confirmLeave()){dirty=false;message('');return fn();}});}
@@ -9077,13 +9077,14 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     content.appendChild(node('h3',selectedEvent?cfaEventName(selectedEvent):text('Nové podujatie','New event')));
     content.appendChild(node('p',text('Nové podujatie je predvolene skryté. Existujúce rezervácie zostávajú zachované.','A new event is hidden by default. Existing bookings are preserved.'),'cfa-muted'));
     content.appendChild(node('p',text('Slovenský a anglický popis sa ukladajú samostatne. Automatický preklad ešte nie je zapojený.','Slovak and English descriptions are saved separately. Automatic translation is not connected yet.'),'cfa-muted'));
-    buildForm(eventFields,cfaEventRecord(selectedEvent||{status:'hidden',reservations_open:false,deposit_percent:10,cart_hold_minutes:60,dog_price:0,dogs_allowed:false}),async data=>{
+    const form=buildForm(eventFields,cfaEventRecord(selectedEvent||{status:'hidden',reservations_open:false,deposit_percent:10,cart_hold_minutes:60,dog_price:0,dogs_allowed:false}),async data=>{
       if(data.end_date<data.start_date){message(text('Koniec podujatia nesmie byť pred začiatkom.','The end date cannot be before the start date.'),true);return;}
       cfaPackEvent(data);
       if(data.status==='published'&&!cfaValidateEventTranslations(data))return;
       const saved=await query((selectedEvent?supabaseClient.from('events').update(data).eq('id',selectedEvent.id):supabaseClient.from('events').insert(data)).select('*').single());
       dirty=false;selectedEvent=saved;message(text('Podujatie bolo uložené.','Event saved.'));await loadEvents();showEventForm();
     });
+    if(window.CFAEventPhotos){const record=selectedEvent;form.before(window.CFAEventPhotos.editor('events',record,requireAdmin,settings=>{if(selectedEvent?.id===record.id)selectedEvent.display_settings=settings;}));}
   }
   function showOptions(){reset('options');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zoznam podujatí','Event list',showList);
     content.appendChild(node('h3',cfaEventName(selectedEvent)));const actions=node('div',null,'cfa-bar');content.appendChild(actions);
@@ -9125,6 +9126,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
       label.appendChild(select);links.appendChild(label);
     }form.insertBefore(links,form.lastChild);
     cfaOptionExtras(form,record);
+    if(window.CFAEventPhotos){const selected=selectedOption;form.before(window.CFAEventPhotos.editor('options',selected,requireAdmin,settings=>{record.booking_form_settings=settings;if(selectedOption?.id===selected.id)selectedOption.booking_form_settings=settings;}));}
     // Suggestions preserve existing category names rather than inventing new booking categories.
     const list=node('datalist');list.id='cfaAdminCategories';for(const c of new Set(options.map(o=>o.category))){const opt=node('option');opt.value=c;list.appendChild(opt);}form.appendChild(list);form.elements.namedItem('category').setAttribute('list',list.id);
   }
@@ -9354,7 +9356,8 @@ function cfaValidateChildAgeFields(row) {
 .cfa-information-controls>.cfa-reservation-secondary{font-size:14px;padding:8px 12px;margin-right:6px}
 @media(max-width:520px){.cfa-disclosure-summary{gap:8px}.cfa-event-section>.cfa-disclosure-summary h3{font-size:16px}.cfa-event-section{margin:12px 0}}
 </style>
-<script src="reservation-ui.js?v=20261121-visibility-8"></script>
+<script src="event-photos.js?v=20261121-gallery-9"></script>
+<script src="reservation-ui.js?v=20261121-gallery-9"></script>
 
 </body>
   </html>
