@@ -132,3 +132,29 @@ html.cfa-chat-active #chatPage,html.cfa-chat-active #privateChatPage{position:fi
 
 #cfaApprovedLayout input,#cfaApprovedLayout textarea,#cfaApprovedLayout select{font-size:20px!important}
 #cfaApprovedLayout .tag{font-size:18px}
+
+/* Two full-width partner rows; existing sponsor/media records remain intact. */
+#cfaApprovedLayout #partneri .partner-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:22px!important}
+#cfaApprovedLayout #partneri .partner-grid>.card{min-width:0!important;width:100%!important}
+#cfaApprovedLayout #partneri .partner-grid>.card[hidden]{display:none!important}
+#cfaApprovedLayout #partneri .partner-grid .cfa-content-list{gap:16px!important;scroll-padding-inline:2px}
+#cfaApprovedLayout #partneri .partner-grid .cfa-content-list>.cfa-content-card{flex:0 0 210px!important;max-width:210px!important;min-width:0!important;padding:12px!important}
+#cfaApprovedLayout #partneri .partner-grid .cfa-content-photo-strip img{height:155px!important;object-fit:contain!important}
+#cfaApprovedLayout #partneri .partner-grid .cfa-content-card h3{font-size:22px!important}
+#cfaApprovedLayout #partneri .partner-grid .cfa-content-socials{gap:8px}
+#cfaApprovedLayout #partneri .partner-grid .cfa-content-socials a{width:46px;height:46px;padding:8px!important}
+#cfaApprovedLayout #partneri .cfa-partner-swipe{font-size:18px!important;font-weight:650!important;color:#00666b!important;text-align:right;margin:0 0 5px!important}
+
+/* Team belongs to About us; partner rows above retain all existing records. */
+#cfaApprovedLayout #onas>.cfa-team-section{grid-column:1/-1}
+#cfaApprovedLayout #cfaTeam .cfa-content-list{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;overflow:visible!important;align-items:stretch}
+#cfaApprovedLayout #cfaTeam .cfa-content-card{width:100%;max-width:none;min-width:0;padding:16px}
+.cfa-team-member .cfa-content-photo-strip img{height:180px;object-fit:cover;object-position:center 25%}
+.cfa-team-member .cfa-content-photo-strip{max-height:210px}
+.cfa-team-member .cfa-team-role,#cfaApprovedLayout .cfa-team-member .cfa-team-role{color:#00666b!important;font-size:20px!important;font-weight:750!important;line-height:1.4}
+.cfa-team-member .cfa-content-body,#cfaApprovedLayout .cfa-team-member .cfa-content-body{font-size:19px!important;line-height:1.5!important}
+.cfa-team-avatar-placeholder{display:flex;align-items:center;justify-content:center;height:180px;background:linear-gradient(130deg,#e5f5f1,#f7f4eb);border-radius:12px;font-size:70px;color:#50797c}
+.cfa-team-email{display:block;margin:12px 0;font:650 18px/1.45 system-ui;color:#00666b;overflow-wrap:anywhere;text-decoration:underline;text-underline-offset:3px}
+.cfa-team-email:focus-visible{outline:3px solid #bf4c12;outline-offset:3px}
+.cfa-manage-dialog label[hidden]{display:none!important}
+@media(max-width:700px){#cfaApprovedLayout #cfaTeam .cfa-content-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
