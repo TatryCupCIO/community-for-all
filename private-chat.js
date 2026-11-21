@@ -3965,7 +3965,7 @@ async function refreshPrivateMessageNotifications() {
 
   const grouped = new Map();
   for (const message of unread) {
-  const key = message.sender_id;
+  const key = String(message.conversation_id) + ':' + message.sender_id;
 
   if (!grouped.has(key)) {
     grouped.set(
@@ -3974,7 +3974,8 @@ async function refreshPrivateMessageNotifications() {
         senderId: message.sender_id,
         count: 0,
         latest: message.created_at,
-        conversationId: message.conversation_id
+        conversationId: message.conversation_id,
+        latestMessageId: message.id
       }
     );
   }
@@ -3990,6 +3991,7 @@ async function refreshPrivateMessageNotifications() {
   ) {
     item.latest =
       message.created_at;
+    item.latestMessageId = message.id;
 
     item.conversationId =
       message.conversation_id;
@@ -4059,10 +4061,14 @@ for (const item of grouped.values()) {
           'none';
       }
 
-      await window.openPrivateChatConversation(
-        item.conversationId,
-        sender
-      );
+      if (window.CFANotificationRouter) {
+        await window.CFANotificationRouter.open({
+          type: 'private', conversation_id: item.conversationId,
+          sender_id: item.senderId, message_id: item.latestMessageId
+        });
+      } else {
+        await window.openPrivateChatConversation(item.conversationId, sender);
+      }
 
       await refreshPrivateMessageNotifications();
     };
