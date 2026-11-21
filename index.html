@@ -876,7 +876,7 @@
 .cfa-room-mattress p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
 .cfa-room-form h4 { margin: 4px 0 12px; }
 </style>
-<link rel="stylesheet" href="community-design.css?v=20261121-draft-1">
+<link rel="stylesheet" href="community-design.css?v=20261121-approved-3">
 </head>
 
 <body class="cfa-session-locked">
@@ -2041,60 +2041,26 @@ function showAccount() {
 }
 
 async function updateUserButton() {
-
-  const button =
-    el('userTopBtn');
-
+  const button = el('userTopBtn');
   if (!button) return;
-
-  if (!currentUser) {
-
-    button.innerHTML =
-      T(
-        '👤 Prihlásiť sa',
-        '👤 Sign In'
-      );
-
-    return;
+  const user = currentUser;
+  if (!user) { button.textContent = T('👤 Prihlásiť sa','👤 Sign in'); return; }
+  function render(profile) {
+    if (currentUser?.id !== user.id) return;
+    const name = getUsername(currentUser) || profile?.display_name?.trim() || currentUser.email || T('Používateľ','User');
+    button.replaceChildren();
+    if (profile?.avatar_url) {
+      const avatar = document.createElement('img'); avatar.src = profile.avatar_url; avatar.alt = ''; avatar.className = 'cfa-account-avatar'; button.append(avatar);
+    } else { const icon = document.createElement('span'); icon.textContent = '👤'; icon.setAttribute('aria-hidden','true'); button.append(icon); }
+    const label = document.createElement('span'); label.className = 'cfa-account-name'; label.textContent = name; button.append(label);
+    button.setAttribute('aria-label', T('Účet: ','Account: ') + name);
+    button.title = currentUser.email || name;
   }
-
-  const { data } =
-    await supabaseClient
-      .from('user_profiles')
-      .select('avatar_url')
-      .eq(
-        'user_id',
-        currentUser.id
-      )
-      .maybeSingle();
-
-  if (data?.avatar_url) {
-
-    button.innerHTML = `
-      <img
-        src="${data.avatar_url}"
-        alt=""
-        style="
-          width:34px;
-          height:34px;
-          border-radius:50%;
-          object-fit:cover;
-          vertical-align:middle;
-          margin-right:7px;
-        "
-      >
-      ${T('Môj účet','My Account')}
-    `;
-
-  } else {
-
-    button.innerHTML =
-      '👤 ' +
-      T(
-        'Môj účet',
-        'My Account'
-      );
-  }
+  render(null);
+  try {
+    const { data, error } = await supabaseClient.from('user_profiles').select('avatar_url,display_name').eq('user_id',user.id).maybeSingle();
+    if (!error) render(data);
+  } catch (_) { /* Keep the signed-in account name when the avatar cannot be loaded. */ }
 }
 
 function fillAccount() {
@@ -4669,6 +4635,15 @@ function startCountdowns() {
     );
 }
 
+function cfaBookingCreatedAt(value) {
+  const time = document.createElement('time'); time.className = 'cfa-booking-created-at';
+  const date = new Date(value);
+  if (!value || !Number.isFinite(date.getTime())) { time.textContent = T('Dátum vytvorenia nie je dostupný.','Creation date is unavailable.'); return time; }
+  time.dateTime = date.toISOString();
+  time.textContent = T('Vytvorené: ','Created: ') + new Intl.DateTimeFormat(currentLanguage === 'en' ? 'en-GB' : 'sk-SK',{dateStyle:'medium',timeStyle:'short',timeZone:'Europe/London'}).format(date) + T(' (čas Spojeného kráľovstva)',' (UK time)');
+  return time;
+}
+
 async function showBookings() {
 
   if (!requireLogin()) {
@@ -4758,6 +4733,8 @@ async function showBookings() {
           ${escapeHtml(b.status)}
         </span>
       </div>`;
+
+    c.appendChild(cfaBookingCreatedAt(b.created_at));
 
     (items || [])
       .forEach(i => {
@@ -5818,7 +5795,7 @@ supabaseClient.auth
   );
 </script>
 
-<script src="extensions.js?v=20261120-reservations-4"></script>
+<script src="extensions.js?v=20261121-booking-dates-1"></script>
 <script src="chat.js?v=4"></script>
 
 <script>
@@ -9360,6 +9337,6 @@ function cfaValidateChildAgeFields(row) {
 <script src="event-photos.js?v=20261121-gallery-9"></script>
 <script src="reservation-ui.js?v=20261121-gallery-9"></script>
 
-<script src="community-design.js?v=20261121-draft-1"></script>
+<script src="community-design.js?v=20261121-approved-3"></script>
 </body>
   </html>
