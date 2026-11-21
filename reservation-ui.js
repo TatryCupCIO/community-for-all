@@ -3,6 +3,11 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const t = (sk, en) => T(sk, en);
+  const previousAvailabilityInfo = availabilityInfo;
+  availabilityInfo = function (option) {
+    const info = previousAvailabilityInfo(option);
+    return option?.availability_status === 'sold_out' ? {...info, color: '#ff4d5e'} : info;
+  };
   const node = (tag, value, cls) => {
     const n = document.createElement(tag);
     if (value != null) n.textContent = value;
@@ -332,6 +337,12 @@
   }
 
   function applyOptionSettings(row, option) {
+    row.dataset.cfaAvailability = option.availability_status || 'available';
+    if (option.availability_status === 'sold_out') {
+      for (const child of [...row.children]) {
+        if (child.classList.contains('small') && ['Vypredané', 'Sold out'].includes(child.textContent.trim())) child.remove();
+      }
+    }
     const hide = (selector, key) => row.querySelectorAll(selector).forEach(n => { if (!setting(option, key)) n.hidden = true; });
     hide('.option-description', 'show_description'); hide('.option-price', 'show_price');
     hide('.extension-availability', 'show_availability'); hide('.guest-title', 'show_guest_title');
@@ -387,10 +398,19 @@
     applyOptionSettings(row, option);
   };
 
+  function disclosure(title, cls) {
+    const section = node('details', null, cls);
+    const summary = node('summary', null, 'cfa-disclosure-summary');
+    const label = node('span', '', 'cfa-disclosure-state');
+    const update = () => { label.textContent = section.open ? t('Skryť ↑', 'Hide ↑') : t('Zobraziť ↓', 'Show ↓'); };
+    summary.append(node('h3', title), label); section.appendChild(summary);
+    section.addEventListener('toggle', update); update();
+    return section;
+  }
   function textSection(parent, title, value, warning = false) {
     if (!value || !String(value).trim()) return;
-    const section = node('section', null, 'cfa-event-section' + (warning ? ' cfa-event-warning' : ''));
-    section.append(node('h3', title), node('div', value, 'cfa-full-text')); parent.appendChild(section);
+    const section = disclosure(title, 'cfa-event-section' + (warning ? ' cfa-event-warning' : ''));
+    section.appendChild(node('div', value, 'cfa-full-text')); parent.appendChild(section);
   }
   function ticketWarning(options) {
     const linked = options.find(o => o.requires_linked_tickets);
@@ -439,16 +459,27 @@
     const reserve = root.querySelector('.reserve-heading');
     if (reserve) {
       reserve.id = 'cfaReservationForm'; reserve.tabIndex = -1;
-      const go = node('button', t('Pokračovať na rezerváciu ↓', 'Continue to booking ↓'), 'cfa-reservation-primary'); go.type = 'button';
-      go.onclick = () => { reserve.scrollIntoView({behavior: 'smooth', block: 'start'}); reserve.focus({preventScroll: true}); };
-      head.appendChild(go);
+      const jump = () => { reserve.scrollIntoView({behavior: 'smooth', block: 'start'}); reserve.focus({preventScroll: true}); };
+      const bookingButton = () => {
+        const button = node('button', t('Pokračovať na rezerváciu ↓', 'Continue to booking ↓'), 'cfa-reservation-primary');
+        button.type = 'button'; button.onclick = jump; return button;
+      };
+      const controls = node('div', null, 'cfa-information-controls');
+      controls.appendChild(bookingButton());
+      for (const [open, sk, en] of [[true, 'Rozbaliť všetko', 'Expand all'], [false, 'Skryť všetko', 'Hide all']]) {
+        const button = node('button', t(sk, en), 'cfa-reservation-secondary'); button.type = 'button';
+        button.onclick = () => head.querySelectorAll('details.cfa-event-section').forEach(section => { section.open = open; });
+        controls.appendChild(button);
+      }
+      const firstSection = head.querySelector('.cfa-event-section');
+      head.insertBefore(controls, firstSection);
+      head.appendChild(bookingButton());
       const back = node('button', t('↑ Späť k informáciám', '↑ Back to information'), 'cfa-reservation-secondary'); back.type = 'button';
       back.onclick = () => head.scrollIntoView({behavior: 'smooth', block: 'start'}); reserve.insertAdjacentElement('afterend', back);
     }
   }
   function capacityOverview(options) {
-    const wrap = node('section', null, 'cfa-capacity-overview');
-    wrap.appendChild(node('h3', t('Prehľad kapacít', 'Capacity overview')));
+    const wrap = disclosure(t('Prehľad kapacít', 'Capacity overview'), 'cfa-capacity-overview');
     const scroll = node('div', null, 'cfa-capacity-scroll'); const table = node('table');
     const header = node('tr'); for (const title of [t('Položka', 'Item'), t('Celkom', 'Total'), t('Rezervované', 'Reserved'), t('Predané', 'Sold'), t('Voľné', 'Remaining')]) header.appendChild(node('th', title));
     const thead = node('thead'); thead.appendChild(header); table.appendChild(thead);
