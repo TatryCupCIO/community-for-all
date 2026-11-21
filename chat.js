@@ -349,7 +349,8 @@ function scrollCommunityChatToBottom() {
 async function sendCommunityChatText(text) {
   if (!currentUser || !text) return false;
 
-  const { error } = await supabaseClient
+  const user=currentUser;
+  const { data: sentMessage, error } = await supabaseClient
     .from('chat_messages')
     .insert({
       user_id: currentUser.id,
@@ -357,7 +358,7 @@ async function sendCommunityChatText(text) {
       message: text,
       media_type: null,
       media_url: null
-    });
+    }).select('*').single();
 
   if (error) {
     alert(T('Správu sa nepodarilo odoslať.',
@@ -365,6 +366,11 @@ async function sendCommunityChatText(text) {
     return false;
   }
 
+  if(currentUser?.id===user.id && communityChatOpen && sentMessage){
+    sentMessage.sender_avatar_url=user.user_metadata?.avatar_url||null;
+    renderCommunityChatMessage(sentMessage);
+    scrollCommunityChatToBottom();
+  }
   return true;
 }
 
@@ -495,7 +501,7 @@ async function sendCommunityChatPhoto(file) {
     return false;
   }
 
-  const { error: messageError } = await supabaseClient
+  const { data: sentMessage, error: messageError } = await supabaseClient
     .from('chat_messages')
     .insert({
       user_id: currentUser.id,
@@ -503,7 +509,7 @@ async function sendCommunityChatPhoto(file) {
       message: null,
       media_type: 'image',
       media_url: path
-    });
+    }).select('*').single();
 
   if (messageError) {
     await supabaseClient.storage
@@ -513,6 +519,11 @@ async function sendCommunityChatPhoto(file) {
     return false;
   }
 
+  if(communityChatOpen && sentMessage && sentMessage.user_id===currentUser?.id){
+    sentMessage.sender_avatar_url=currentUser.user_metadata?.avatar_url||null;
+    renderCommunityChatMessage(sentMessage);
+    scrollCommunityChatToBottom();
+  }
   return true;
 }
 
@@ -625,7 +636,8 @@ function showPendingCommunityChatPhoto(file) {
     const input = document.getElementById('chatMessageInput');
 
     if (compose && input) {
-      compose.insertBefore(preview, input);
+      const slot=compose.querySelector('.cfa-chat-preview-slot');
+      if(slot)slot.append(preview);else compose.insertBefore(preview,input);
     }
   }
 
