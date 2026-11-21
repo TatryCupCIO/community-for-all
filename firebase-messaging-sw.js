@@ -1,5 +1,5 @@
 /* Messaging only, without fetch handlers or application asset caches. */
-importScripts('/notification-target.js?v=20261121-nav-9');
+importScripts('/notification-target.js?v=20261121-six-12');
 self.addEventListener('notificationclick',event=>{
   event.notification.close();event.stopImmediatePropagation();
   event.waitUntil((async()=>{
