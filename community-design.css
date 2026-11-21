@@ -182,3 +182,40 @@ html.cfa-chat-active #chatPage,html.cfa-chat-active #privateChatPage{position:fi
 #cfaApprovedLayout>.page:not(#homePage){padding-bottom:calc(80px * var(--cfa-nav-scale))!important}
 .cfa-notification-selected{outline:3px solid #008679!important;outline-offset:3px;box-shadow:0 0 0 7px #a5e6d780!important}
 @media(pointer:coarse){#cfaApprovedLayout #cfaApprovedHeader .head{align-items:flex-start;flex-wrap:wrap}#cfaApprovedLayout #cfaApprovedHeader .actions{flex:1;justify-content:flex-end}#cfaApprovedLayout #cfaApprovedHeader .support{font-size:calc(13px * var(--cfa-nav-scale))!important;min-height:calc(40px * var(--cfa-nav-scale))!important}#cfaApprovedLayout #cfaApprovedHeader .cart-top-btn{font-size:calc(14px * var(--cfa-nav-scale))!important;min-height:calc(44px * var(--cfa-nav-scale))!important}}
+
+/* Brand, original account tools and accessible people/message selection. */
+#cfaApprovedLayout #cfaApprovedHeader .head{display:grid!important;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)!important;align-items:start!important;gap:24px!important}
+#cfaHeaderIdentity,#cfaHeaderTools,#cfaHeaderUserRow{min-width:0}
+#cfaApprovedLayout #cfaHeaderIdentity{display:flex;flex-direction:column;align-items:flex-start;gap:calc(10px * var(--cfa-nav-scale))}
+#cfaApprovedLayout #cfaHeaderIdentity .brand{display:flex;flex-direction:column;align-items:flex-start;gap:calc(7px * var(--cfa-nav-scale));font-size:calc(21px * var(--cfa-nav-scale))!important;line-height:1.2}
+#cfaApprovedLayout #cfaHeaderIdentity .brand img{width:calc(96px * var(--cfa-nav-scale))!important;height:calc(108px * var(--cfa-nav-scale))!important;max-width:100%;object-fit:contain;object-position:left center}
+#cfaApprovedLayout #cfaHeaderIdentity .brand small{font-size:calc(13px * var(--cfa-nav-scale))!important;line-height:1.45;font-weight:650;margin-top:calc(5px * var(--cfa-nav-scale))}
+#cfaApprovedLayout #cfaHeaderIdentity .support{display:inline-flex!important;margin:0!important;font-size:calc(15px * var(--cfa-nav-scale))!important;min-height:calc(44px * var(--cfa-nav-scale))!important;padding:calc(8px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaHeaderTools{display:flex;flex-direction:column;align-items:stretch;gap:calc(7px * var(--cfa-nav-scale))}
+#cfaApprovedLayout #cfaHeaderUserRow{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:calc(5px * var(--cfa-nav-scale))}
+#cfaApprovedLayout #cfaHeaderUserRow #userTopBtn{flex:1;min-width:0;min-height:calc(44px * var(--cfa-nav-scale))!important;font-size:calc(15px * var(--cfa-nav-scale))!important;padding:calc(5px * var(--cfa-nav-scale))!important;justify-content:center}
+#cfaApprovedLayout #cfaHeaderUserRow .cfa-account-avatar{width:calc(25px * var(--cfa-nav-scale))!important;height:calc(25px * var(--cfa-nav-scale))!important;flex-shrink:0}
+#cfaApprovedLayout #cfaHeaderUserRow .cfa-account-name{max-width:100%;overflow-wrap:anywhere;white-space:normal}
+#cfaApprovedLayout #cfaHeaderUserRow .language{display:flex!important;flex:none!important;margin:0!important;width:auto!important;border:0!important;gap:2px!important;background:none!important}
+#cfaApprovedLayout #cfaHeaderUserRow .lang-btn{display:flex!important;align-items:center;justify-content:center;flex:none!important;width:calc(32px * var(--cfa-nav-scale))!important;min-width:0!important;height:calc(44px * var(--cfa-nav-scale))!important;min-height:calc(44px * var(--cfa-nav-scale))!important;padding:0!important;font-size:calc(23px * var(--cfa-nav-scale))!important;border:1px solid #b7d5ce!important;border-radius:8px!important}
+#cfaApprovedLayout #cfaHeaderUserRow .lang-btn.active{box-shadow:inset 0 -4px 0 #006c70;background:#e6f5f2!important}
+#cfaApprovedLayout #cfaApprovedHeader .actions[hidden],#cfaApprovedLayout #cfaApprovedLanguageSlot:empty{display:none!important}
+#cfaApprovedLayout #cfaHeaderTools .cart-top-btn{align-self:flex-end;width:100%!important;font-size:calc(15px * var(--cfa-nav-scale))!important;min-height:calc(44px * var(--cfa-nav-scale))!important;padding:calc(7px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaHeaderTools #cfaWebPushSettings{align-self:flex-end!important;width:auto!important;max-width:100%!important;margin:0!important;padding:0!important}
+#cfaApprovedLayout #cfaHeaderTools #cfaWebPushSettings[hidden]{display:none!important}
+#cfaApprovedLayout #cfaHeaderTools #cfaWebPushSettings>div{justify-content:flex-end!important;gap:calc(4px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaHeaderTools #cfaWebPushSettings strong{font-size:calc(12px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaHeaderTools #cfaWebPushSettings button[role=switch]{font-size:calc(12px * var(--cfa-nav-scale))!important;min-width:0!important;min-height:calc(36px * var(--cfa-nav-scale))!important;padding:calc(5px * var(--cfa-nav-scale)) calc(7px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaHeaderTools #cfaWebPushSettings:focus-within>p{display:block!important;font-size:calc(13px * var(--cfa-nav-scale))!important;line-height:1.45;max-width:100%!important}
+#cfaApprovedLayout #cfaApprovedHeader #globalNotifications{position:relative!important;display:block!important;width:100%!important}
+#cfaApprovedLayout #cfaApprovedHeader #notificationBellBtn{font-size:calc(23px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #privateUsersTitle,#cfaApprovedLayout #cfaMessagesHub h2{font-size:calc(22px * var(--cfa-nav-scale))!important;line-height:1.3}
+#cfaApprovedLayout #privateUsersBackBtn,#cfaApprovedLayout #cfaMessagesHub button{font-size:calc(17px * var(--cfa-nav-scale))!important;min-height:calc(44px * var(--cfa-nav-scale))!important;padding:calc(9px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #privateUserSearch{font-size:calc(17px * var(--cfa-nav-scale))!important;min-height:calc(48px * var(--cfa-nav-scale))!important;padding:calc(10px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #privateUsersList>button{min-height:calc(80px * var(--cfa-nav-scale))!important;padding:calc(12px * var(--cfa-nav-scale))!important;gap:calc(12px * var(--cfa-nav-scale))!important;background:#fff!important;color:#173445!important;border:1px solid #b6d2d1!important;margin:calc(7px * var(--cfa-nav-scale)) 0!important}
+#cfaApprovedLayout #privateUsersList>button>div:first-child{width:calc(52px * var(--cfa-nav-scale))!important;height:calc(52px * var(--cfa-nav-scale))!important;min-width:calc(52px * var(--cfa-nav-scale))!important;font-size:calc(27px * var(--cfa-nav-scale))!important;background:#e7f3ef!important}
+#cfaApprovedLayout #privateUsersList>button>div:nth-child(2)>div:first-child{font-size:calc(18px * var(--cfa-nav-scale))!important;line-height:1.35!important;overflow-wrap:anywhere}
+#cfaApprovedLayout #privateUsersList>button>div:nth-child(2)>div:nth-child(2){font-size:calc(14px * var(--cfa-nav-scale))!important;line-height:1.35!important;color:#47635e!important}
+#cfaApprovedLayout #cfaMessagesHub .card>p{font-size:calc(16px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaMessagesHub #communityChatBtn,#cfaApprovedLayout #cfaPrivateChoice button{width:100%!important;min-height:calc(64px * var(--cfa-nav-scale))!important;font-size:calc(20px * var(--cfa-nav-scale))!important}
+.cfa-session-locked #cfaHeaderTools #userTopBtn,.cfa-session-locked #cfaHeaderTools #globalNotifications,.cfa-session-locked #cfaHeaderTools .cart-top-btn,.cfa-session-locked #cfaHeaderTools #cfaWebPushSettings,.cfa-session-locked #cfaHeaderIdentity .support{display:none!important}
