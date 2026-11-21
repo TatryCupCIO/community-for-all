@@ -9339,7 +9339,22 @@ function cfaValidateChildAgeFields(row) {
 #cfaReservationForm,#cfaEventInformation{scroll-margin-top:20px}
 @media(max-width:520px){.cfa-reservation-grid{grid-template-columns:minmax(0,1fr)}.cfa-linked-form{padding:12px}.cfa-event-section{padding:12px}}
 </style>
-<script src="reservation-ui.js?v=20261121-rooms-6"></script>
+<style id="cfaCollapsibleInformationStyles">
+#eventDetailContent .option-row[data-cfa-availability="sold_out"]{opacity:1!important}
+#eventDetailContent .option-row[data-cfa-availability="sold_out"]>.extension-availability{color:#ff4d5e!important;font-size:16px!important;font-weight:900!important;opacity:1!important;line-height:1.5}
+
+.cfa-disclosure-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;cursor:pointer;list-style:none}
+.cfa-disclosure-summary::-webkit-details-marker{display:none}
+.cfa-event-section>.cfa-disclosure-summary h3,.cfa-capacity-overview>.cfa-disclosure-summary h3{margin:0;font-size:17px;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+.cfa-disclosure-state{flex-shrink:0;font-size:12px;line-height:1.4;white-space:nowrap;color:inherit}
+.cfa-disclosure-summary:focus-visible{outline:2px solid #67e8f9;outline-offset:5px;border-radius:4px}
+#eventDetailContent details.cfa-event-section:not([open])>.cfa-full-text,details.cfa-capacity-overview:not([open])>.cfa-capacity-scroll{display:none!important}
+#eventDetailContent details.cfa-event-section[open]>.cfa-full-text,details.cfa-capacity-overview[open]>.cfa-capacity-scroll{margin-top:14px}
+.cfa-information-controls{margin:12px 0}
+.cfa-information-controls>.cfa-reservation-secondary{font-size:14px;padding:8px 12px;margin-right:6px}
+@media(max-width:520px){.cfa-disclosure-summary{gap:8px}.cfa-event-section>.cfa-disclosure-summary h3{font-size:16px}.cfa-event-section{margin:12px 0}}
+</style>
+<script src="reservation-ui.js?v=20261121-visibility-8"></script>
 
 </body>
   </html>
