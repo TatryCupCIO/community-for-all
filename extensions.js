@@ -2584,6 +2584,8 @@ showBookings =
       `;
 
 
+      card.appendChild(cfaBookingCreatedAt(booking.created_at));
+
       if (itemsError) {
 
         const itemError =
