@@ -477,6 +477,8 @@
       const back = node('button', t('↑ Späť k informáciám', '↑ Back to information'), 'cfa-reservation-secondary'); back.type = 'button';
       back.onclick = () => head.scrollIntoView({behavior: 'smooth', block: 'start'}); reserve.insertAdjacentElement('afterend', back);
     }
+    const gallery=window.CFAEventPhotos?.gallery(settings,currentLanguage==='en'?settings.title_en||'':event.title);
+    if(gallery){const first=head.querySelector('.cfa-event-section');head.insertBefore(gallery,first);}
   }
   function capacityOverview(options) {
     const wrap = disclosure(t('Prehľad kapacít', 'Capacity overview'), 'cfa-capacity-overview');
@@ -505,6 +507,8 @@
     rows.forEach((row, index) => {
       const option = currentEventOptions?.[index]; if (!option) return;
       row.dataset.cfaOptionId = String(option.id);
+      const gallery=window.CFAEventPhotos?.gallery(option.booking_form_settings,localName(option));
+      if(gallery){const name=row.querySelector('.option-name');if(name)name.insertAdjacentElement('afterend',gallery);else row.prepend(gallery);}
       if (includedTickets.has(Number(option.id)) && currentEvent.reservation_settings?.show_standalone_weekend_tickets !== true) row.hidden = true;
       if (activeEdit?.event_option_id === option.id && option.requires_linked_tickets && !row.querySelector('.cfa-linked-form')) linkedControl(row, option, currentEvent, activeEdit);
       applyOptionSettings(row, option);
