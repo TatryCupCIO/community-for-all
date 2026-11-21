@@ -868,6 +868,8 @@ async function renderPrivateChatMessage(
     'private-message-' +
     message.id;
 
+  box.appendChild(item);
+
   item.dataset.createdAt =
     message.created_at || '';
 
@@ -1105,9 +1107,7 @@ item.appendChild(senderHeader);
     );
   }
 
-  box.appendChild(
-    item
-  );
+
     if (mine) {
     await updatePrivateChatReadReceipt(
       message
@@ -1124,6 +1124,9 @@ item.appendChild(senderHeader);
 async function sendPrivateChatText(
   text
 ) {
+  const sendingConversation=privateChatConversationId;
+  const sendingUser=currentUser;
+
   if (
     !currentUser ||
     !privateChatConversationId ||
@@ -1133,7 +1136,7 @@ async function sendPrivateChatText(
   }
 
   const {
-    error
+    data: sentMessage, error
   } =
     await supabaseClient
       .from(
@@ -1154,7 +1157,7 @@ async function sendPrivateChatText(
 
         image_url:
           null
-      });
+      }).select('*').single();
 
   if (error) {
     alert(
@@ -1167,6 +1170,12 @@ async function sendPrivateChatText(
     return false;
   }
 
+  if(sentMessage && sendingUser?.id===currentUser?.id && privateChatOpen && sendingConversation===privateChatConversationId){
+    sentMessage.sender_name=getUsername(sendingUser)||T('Ja','Me');
+    sentMessage.sender_avatar_url=sendingUser.user_metadata?.avatar_url||null;
+    await renderPrivateChatMessage(sentMessage);
+    scrollPrivateChatToBottom();
+  }
   return true;
 }
 
@@ -1446,6 +1455,9 @@ async function compressPrivateChatPhoto(
 async function sendPrivateChatPhoto(
   file
 ) {
+  const sendingConversation=privateChatConversationId;
+  const sendingUser=currentUser;
+
   if (
     !currentUser ||
     !privateChatConversationId ||
@@ -1473,12 +1485,14 @@ async function sendPrivateChatPhoto(
     return false;
   }
 
+  if(currentUser?.id!==sendingUser?.id || privateChatConversationId!==sendingConversation)return false;
+
   if (!photo) {
     return false;
   }
 
   const path =
-    currentUser.id +
+    sendingUser.id +
     '/' +
     privateChatConversationId +
     '/' +
@@ -1520,7 +1534,7 @@ async function sendPrivateChatPhoto(
   }
 
   const {
-    error: messageError
+    data: sentMessage, error: messageError
   } =
     await supabaseClient
       .from(
@@ -1528,10 +1542,10 @@ async function sendPrivateChatPhoto(
       )
       .insert({
         conversation_id:
-          privateChatConversationId,
+          sendingConversation,
 
         sender_id:
-          currentUser.id,
+          sendingUser.id,
 
         receiver_id:
           null,
@@ -1541,7 +1555,7 @@ async function sendPrivateChatPhoto(
 
         image_url:
           path
-      });
+      }).select('*').single();
 
   if (messageError) {
     await supabaseClient.storage
@@ -1562,6 +1576,12 @@ async function sendPrivateChatPhoto(
     return false;
   }
 
+  if(sentMessage && sendingUser?.id===currentUser?.id && privateChatOpen && sendingConversation===privateChatConversationId){
+    sentMessage.sender_name=getUsername(sendingUser)||T('Ja','Me');
+    sentMessage.sender_avatar_url=sendingUser.user_metadata?.avatar_url||null;
+    await renderPrivateChatMessage(sentMessage);
+    scrollPrivateChatToBottom();
+  }
   return true;
 }
 
