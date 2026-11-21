@@ -76,3 +76,59 @@ html.cfa-chat-active #chatPage,html.cfa-chat-active #privateChatPage{position:fi
 #chatPendingPhotoImage,#privateChatPendingPhotoImage{display:block!important;width:auto!important;max-width:100%!important;max-height:135px!important;height:auto!important;object-fit:contain!important;border-radius:8px!important}
 #chatPendingPhotoRemove,#privateChatPendingPhotoRemove{position:absolute!important;right:5px!important;top:5px!important;width:32px!important;height:32px!important;min-height:32px!important;border:0!important;border-radius:50%!important;background:#b32d45!important;color:white!important;font-size:24px!important;line-height:1!important;padding:0!important}
 .cfa-chat-preview-note{font:12px/1.35 system-ui!important;margin:5px 0 0!important;color:#174d44!important}.cfa-chat-emoji-ribbon{display:flex;align-items:center;gap:3px;justify-content:space-between}.cfa-chat-tool{border:0;border-radius:8px;background:transparent;color:#173445;min-width:36px;min-height:36px;padding:4px;font:23px/1.2 system-ui;cursor:pointer}.cfa-chat-tool:focus-visible{outline:2px solid #006c70;outline-offset:1px}.cfa-chat-emoji-panel{max-height:200px;overflow:auto;padding:7px;border:1px solid #bdd8dc;border-radius:12px;background:#f5fbfa}.cfa-chat-emoji-panel[hidden]{display:none!important}.cfa-chat-emoji-panel select{width:100%;padding:6px;font:16px system-ui;background:#fff;color:#173445;border:1px solid #a7c6cc;border-radius:8px}.cfa-chat-emoji-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:2px;margin-top:5px}.cfa-chat-chooser{max-width:min(92vw,380px);box-sizing:border-box;width:92vw;border:1px solid #a7c6cc;border-radius:18px;padding:20px;background:#fff;color:#173445;font:16px system-ui;z-index:20000}.cfa-chat-chooser::backdrop{background:#12344188}.cfa-chat-chooser .cfa-chat-tool{display:block;width:100%;margin:10px 0;padding:14px;border:1px solid #bdd8dc;background:#eff8f6;font-size:18px;text-align:left}.cfa-chat-chooser h2{font-size:21px}
+
+/* Larger, stronger type inside the unchanged approved columns and viewport. */
+#cfaApprovedLayout{font-size:22px;line-height:1.55;font-weight:500}
+#cfaApprovedLayout .hero h1{font-size:clamp(39px,5.25vw,63px);font-weight:800}
+#cfaApprovedLayout h2{font-size:32px;line-height:1.3;font-weight:750}
+#cfaApprovedLayout h3,#cfaApprovedLayout .tile h3{font-size:25px;line-height:1.35;font-weight:750}
+#cfaApprovedLayout p,#cfaApprovedLayout .tile p{font-size:21px;line-height:1.55;color:#294b59;font-weight:500}
+#cfaApprovedLayout .eyebrow{font-size:17px;color:#005d62;font-weight:800}
+#cfaApprovedLayout .subtle{color:#355361;font-size:20px}
+#cfaApprovedLayout header nav a{font-size:18px;font-weight:750}
+#cfaApprovedLayout .brand{font-size:22px}
+#cfaApprovedLayout .brand small{font-size:17px;font-weight:600;color:#355361}
+#cfaApprovedLayout .btn{font-size:20px}
+#cfaApprovedLayout #cfaApprovedHeader .user-btn,#cfaApprovedLayout #cfaApprovedHeader .cart-top-btn{font-size:19px!important}
+#cfaApprovedLayout .bottom .cfa-nav-label{font-size:17px!important;font-weight:750}
+#cfaApprovedLayout #cfaWebPushSettings strong,#cfaWebPushSettings strong{font-size:18px!important}
+#cfaWebPushSettings button[role=switch]{font-size:17px!important}
+#cfaApprovedLayout .detail-text,#cfaApprovedLayout .option-description,#cfaApprovedLayout .event-info,#cfaApprovedLayout .small,#cfaApprovedLayout .guest-required-note{font-size:20px!important;line-height:1.55!important;color:#294b59!important}
+#cfaApprovedLayout .event-card .event-title{font-size:26px!important}
+#cfaApprovedLayout .event-card .event-info,#cfaApprovedLayout .event-card p{font-size:21px!important;color:#294b59!important}
+#cfaApprovedLayout .capacity-note,#cfaApprovedLayout .option-special{font-size:17px!important}
+#cfaApprovedLayout #cartPageContent .cart-item b{font-size:22px!important}
+#cfaApprovedLayout #cartPageContent .cart-item .small{font-size:20px!important}
+#cfaApprovedLayout #cartPageContent .remove-btn{font-size:19px!important}
+#cfaApprovedLayout footer,#cfaApprovedLayout footer small{font-size:18px!important;color:#355361!important}
+.cfa-manage-dialog{font-size:20px}.cfa-manage-dialog input:not([type=checkbox]),.cfa-manage-dialog select,.cfa-manage-dialog textarea{font-size:20px}.cfa-content-button{font-size:19px}
+
+/* Native horizontal touch scrolling, with a full section grid on opening. */
+.cfa-content-list{display:flex!important;flex-wrap:nowrap!important;align-items:stretch;gap:18px;overflow-x:auto!important;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:4px 2px 12px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.cfa-content-list>.cfa-content-card{flex:0 0 280px;min-width:0;max-width:100%;scroll-snap-align:start;border:1px solid #bed6dc;border-radius:14px;background:#fff;padding:14px;box-sizing:border-box}
+.cfa-content-list>.cfa-content-card:only-child{flex-basis:100%}
+.cfa-content-photo-strip{display:flex;gap:14px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:3px 2px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.cfa-content-photo-strip>.cfa-content-photo{flex:0 0 220px;width:220px;max-width:100%;scroll-snap-align:start;min-width:0;min-height:44px}
+.cfa-content-photo-strip>.cfa-content-photo:only-child{flex-basis:100%;width:100%}
+.cfa-content-photo-strip img{display:block;width:100%;height:250px;object-fit:contain;background:#fff}
+.cfa-content-card h3{font-size:25px!important;color:#173445!important}.cfa-content-card .cfa-content-body{font-size:21px!important;color:#294b59!important}
+.cfa-content-socials{display:flex;flex-wrap:wrap;gap:12px}
+.cfa-content-socials a{display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;padding:10px!important;border:1px solid #99bdc7;border-radius:12px;background:#edf8f5;color:#00646c!important}
+.cfa-content-socials a svg{display:block;width:28px;height:28px;flex:none}
+.cfa-content-socials a:focus-visible,.cfa-content-section-heading:focus-visible{outline:3px solid #bf4c12;outline-offset:3px}
+.cfa-content-section-heading{cursor:pointer}
+.cfa-content-overview{width:min(1100px,94vw);max-width:94vw;max-height:92dvh;box-sizing:border-box;font:20px/1.5 system-ui;background:#f5fafa}
+.cfa-content-overview>.cfa-content-toolbar{position:sticky;top:-20px;z-index:2;padding:12px 0;background:#f5fafa;border-bottom:1px solid #bed6dc;align-items:center}
+.cfa-content-overview h2{font:750 28px/1.3 system-ui;color:#173445}
+.cfa-content-overview-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin-top:20px;align-items:start}
+.cfa-content-overview-grid>.cfa-content-card{min-width:0;background:#fff;border:1px solid #bed6dc;border-radius:16px;padding:16px;overflow-wrap:anywhere}
+.cfa-content-overview-grid .cfa-content-photo-strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;scroll-snap-type:none}
+.cfa-content-overview-grid .cfa-content-photo{width:100%;max-width:100%;min-width:0}
+.cfa-content-overview-grid .cfa-content-photo:only-child{grid-column:1/-1}
+.cfa-content-overview-grid .cfa-content-photo img{height:300px;max-height:none;object-fit:contain}
+.cfa-content-single>img{display:block;width:100%;max-height:none;height:auto;object-fit:contain;margin-top:15px}
+@media(min-width:1400px){.cfa-content-overview-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:700px){.cfa-content-overview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.cfa-content-overview-grid .cfa-content-photo img{height:220px}.cfa-content-overview-grid .cfa-content-photo-strip{grid-template-columns:1fr}}
+
+#cfaApprovedLayout input,#cfaApprovedLayout textarea,#cfaApprovedLayout select{font-size:20px!important}
+#cfaApprovedLayout .tag{font-size:18px}
