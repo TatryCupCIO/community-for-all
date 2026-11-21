@@ -226,6 +226,111 @@
     };
     row.appendChild(form); update();
   }
+  function roomControl(row, option, event) {
+    const form = node('form', null, 'cfa-linked-form');
+    form.classList.add('cfa-room-form');
+    const notify = statusBox(form);
+    if (setting(option, 'show_guest_title')) form.append(node('h4', t('Hostia v tejto rezervácii', 'Guests in this booking')));
+    const grid = node('div', null, 'cfa-reservation-grid'); form.append(grid);
+    const unitLabel = option.booking_form_settings?.[currentLanguage === 'en' ? 'unit_label_en' : 'unit_label_sk'];
+    const units = field(grid, unitLabel || t('Počet izieb', 'Number of rooms'), 1, 1, 500);
+    if (!setting(option, 'show_unit_counter')) units.closest('label').hidden = true;
+    const adults = field(grid, t('Dospelí na pevných lôžkach (18+)', 'Adults using permanent beds (18+)'), 0, 1, 500);
+    const children = field(grid, t('Deti na pevných lôžkach (0–17 rokov)', 'Children using permanent beds (aged 0–17)'), 0, 0, 500);
+    if (!setting(option, 'allow_bed_children')) children.closest('label').hidden = true;
+    const bedAgeBox = node('div', null, 'cfa-reservation-grid'); form.append(bedAgeBox);
+    let bedAges = [], extraAges = [];
+    const configured = Number(option.booking_form_settings?.max_extra_guests ?? 0);
+    const maxExtra = setting(option, 'allow_extra_guests') && configured === 1 ? 1 : 0;
+    const extras = node('section', null, 'cfa-room-mattress'); extras.hidden = maxExtra === 0;
+    if (setting(option, 'show_extra_frame')) extras.classList.add('cfa-room-extra-frame');
+    if (setting(option, 'show_extra_title')) extras.append(node('h4', t('Voliteľná osoba na prídavnom matraci', 'Optional guest on an extra mattress')));
+    if (setting(option, 'show_extra_note')) extras.append(node('p', t('Najviac jedna ďalšia osoba na jednu izbu. Za túto osobu sa pripočíta iba celovíkendové vstupné podľa veku. Platené celovíkendové vstupné zahŕňa raňajky aj pre osobu na matraci. Iba dieťa 0–4 roky na matraci s bezplatným vstupom nemá raňajky zdarma.', 'At most one additional guest per room. Only full-weekend admission for their age category is added. Paid full-weekend admission includes breakfast for the mattress guest too. Only a child aged 0–4 staying on the mattress with free admission does not receive complimentary breakfast.')));
+    const extraGrid = node('div', null, 'cfa-reservation-grid'); extras.append(extraGrid);
+    const extraAdults = field(extraGrid, t('Dospelí na prídavnom matraci (18+)', 'Adults on an extra mattress (18+)'), 0, 0, 500);
+    const extraChildren = field(extraGrid, t('Deti na prídavnom matraci (0–17 rokov)', 'Children on an extra mattress (aged 0–17)'), 0, 0, 500);
+    if (!setting(option, 'allow_extra_adults')) extraAdults.closest('label').hidden = true;
+    if (!setting(option, 'allow_extra_children')) extraChildren.closest('label').hidden = true;
+    const extraAgeBox = node('div', null, 'cfa-reservation-grid'); extras.append(extraAgeBox); form.append(extras);
+    function ageFields(input, parent, old, mattress) {
+      const saved = old.map(i => i.value), result = [];
+      parent.replaceChildren();
+      for (let i = 0; i < Math.min(500, integer(input) ?? 0); i++) result.push(field(parent,
+        mattress ? t(`Vek dieťaťa na matraci ${i + 1}`, `Mattress guest child ${i + 1} age`) : t(`Vek dieťaťa na lôžku ${i + 1}`, `Child using a bed ${i + 1} age`), 0, saved[i] ?? '', 17));
+      return result;
+    }
+    const nightly = ['per_room_per_night', 'per_night'].includes(option.pricing_unit);
+    const eventNights = extEventNights(event), selected = new Set();
+    if (nightly) {
+      const dates = node('fieldset', null, 'cfa-night-options'); dates.append(node('legend', t('Vyberte noci pobytu', 'Select the nights of your stay')));
+      for (const day of eventNights.slice(0, 366)) {
+        const label = node('label'), input = node('input'); input.type = 'checkbox'; input.value = day;
+        input.onchange = () => { input.checked ? selected.add(day) : selected.delete(day); update(); };
+        label.append(input, node('span', extNightLabel(day))); dates.append(label);
+      }
+      form.append(dates);
+    } else form.append(node('p', t('Rezervácia izby platí na celý pobyt podujatia.', 'The room booking covers the full event stay.'), 'cfa-reservation-help'));
+    const summary = node('div', '', 'cfa-package-summary');
+    const add = node('button', t('Pridať izbu do košíka', 'Add room to cart'), 'add-btn'); add.type = 'submit'; form.append(summary, add);
+    let busy = false;
+    const ticketFor = id => (allEventOptions || []).find(o => Number(o.id) === Number(id));
+    function details() {
+      const q = integer(units, 1), a = integer(adults), c = integer(children), ea = integer(extraAdults), ec = integer(extraChildren);
+      if ([units, adults, children, extraAdults, extraChildren].some(i => i.value.trim() !== '' && (integer(i) == null || Number(i.value) > 500)) || (units.value.trim() !== '' && !q)) return {error: t('Zadajte platné celé počty osôb a izieb.', 'Enter valid whole numbers of guests and rooms.')};
+      if ([q, a, c, ea, ec].some(n => n == null)) return null;
+      if (a + ea < Math.max(1, Number(option.minimum_adults || 1)) * q) return {error: t('Každá izba musí zahŕňať aspoň jedného dospelého od 18 rokov.', 'Each room must include at least one adult aged 18+.')};
+      if (a + c > Number(option.max_occupancy || 0) * q) return {error: t(`Na pevných lôžkach môže byť najviac ${Number(option.max_occupancy || 0) * q} osôb.`, `At most ${Number(option.max_occupancy || 0) * q} guests may use permanent beds.`)};
+      if (ea + ec > maxExtra * q) return {error: t('Na jednu izbu je povolená najviac jedna ďalšia osoba na matraci, ak je táto možnosť zapnutá.', 'At most one extra mattress guest per room is allowed when enabled.')};
+      if ((!setting(option, 'allow_bed_children') && c) || (!setting(option, 'allow_extra_adults') && ea) || (!setting(option, 'allow_extra_children') && ec)) return {error: t('Táto možnosť je vypnutá.', 'This option is disabled.')};
+      if ([...bedAges, ...extraAges].some(i => i.value.trim() !== '' && (integer(i) == null || Number(i.value) > 17))) return {error: t('Pri každom dieťati zadajte celý vek od 0 do 17 rokov.', 'Enter a whole age from 0 to 17 for every child.')};
+      if (bedAges.length !== c || extraAges.length !== ec || [...bedAges, ...extraAges].some(i => i.value.trim() === '')) return null;
+      const nights = nightly ? [...selected].sort() : eventNights;
+      if (nightly && !nights.length) return null;
+      if (nightly && nights.some((d,i) => eventNights.indexOf(d) < 0 || (i && eventNights.indexOf(d) !== eventNights.indexOf(nights[i-1]) + 1))) return {error: t('Vyberte po sebe nasledujúce noci.', 'Select consecutive nights.')};
+      if (isTbd(option)) return {error: t('Cena izby ešte nie je nastavená.', 'The room price has not been set.')};
+      const items = [], extraPrices = [];
+      for (const age of [...Array(ea).fill(-1), ...extraAges.map(i => integer(i))]) {
+        const ticket = ticketFor(age < 0 ? option.adult_ticket_option_id : age < 5 ? option.free_child_ticket_option_id : option.child_ticket_option_id);
+        if (!ticket || !ticket.enabled || ticket.admission_type !== 'weekend' || ticket.is_accommodation || Number(ticket.event_id) !== Number(option.event_id) || !['per_stay','item','per_person'].includes(ticket.pricing_unit)
+          || (age >= 0 && (ticket.min_age == null || ticket.max_age == null || age < Number(ticket.min_age) || age > Number(ticket.max_age)))
+          || (age < 0 && (Number(ticket.min_age) !== 18 || ticket.max_age != null))) return {error: t('Pre osobu na matraci nie je nastavená správna víkendová vstupenka. Kontaktujte organizátora.', 'The correct weekend ticket for the mattress guest is not configured. Contact the organiser.')};
+        items.push(ticket); extraPrices.push(Number(ticket.price));
+      }
+      const base = Number(option.price) * q * (nightly ? nights.length : 1);
+      return {q, a, c, ea, ec, nights, bedAges: bedAges.map(i => integer(i)), extraAges: extraAges.map(i => integer(i)), base, items, extraPrices, total: base + extraPrices.reduce((s,n) => s+n, 0)};
+    }
+    function update() {
+      const d = details(); validationSummary(summary, add, null, !!d?.error, busy || !d || !!d.error); summary.replaceChildren();
+      if (!d) { summary.textContent = t('Doplňte všetky počty, veky detí a prípadne noci pobytu.', 'Enter all counts, child ages and, where applicable, nights.'); return; }
+      if (d.error) { summary.textContent = d.error; return; }
+      summary.append(node('strong', t('Spolu: ', 'Total: ') + money(d.total)));
+      if (setting(option, 'show_price')) summary.append(node('div', t('Cena izieb: ', 'Room price: ') + money(d.base)));
+      if (setting(option, 'show_extra_price')) d.items.forEach((ticket,i) => summary.append(node('div', t('Vstupné osoby na matraci: ', 'Mattress guest admission: ') + localName(ticket) + ' · ' + money(d.extraPrices[i]))));
+      if (setting(option, 'show_capacity_note')) summary.append(node('div', t(`Osoby na lôžkach: ${d.a + d.c}/${Number(option.max_occupancy) * d.q}. Osoby na matraci: ${d.ea + d.ec}/${maxExtra * d.q}.`, `Guests using beds: ${d.a + d.c}/${Number(option.max_occupancy) * d.q}. Mattress guests: ${d.ea + d.ec}/${maxExtra * d.q}.`)));
+    }
+    children.oninput = () => { bedAges = ageFields(children, bedAgeBox, bedAges, false); update(); };
+    extraChildren.oninput = () => { extraAges = ageFields(extraChildren, extraAgeBox, extraAges, true); update(); };
+    form.addEventListener('input', update);
+    form.onsubmit = async ev => {
+      ev.preventDefault(); if (busy || !form.reportValidity() || !requireLogin()) return;
+      const d = details(); if (!d || d.error) { notify(d?.error || t('Doplňte všetky údaje.', 'Complete every field.'), true); return; }
+      busy = true; update();
+      try {
+        const result = await supabaseClient.rpc('add_accommodation_to_cart', {
+          p_event_option_id: option.id, p_quantity: d.q, p_adult_count: d.a, p_paid_child_ages: d.bedAges,
+          p_free_child_ages: d.extraAges, p_number_of_nights: Math.max(1,d.nights.length),
+          p_night_start_date: nightly ? d.nights[0] : null, p_no_bed_adult_count: d.ea
+        });
+        if (result.error) throw result.error;
+        await refreshCartBadge();
+        const cart = await getActiveCart(); if (cart && typeof extSetBookingLanguage === 'function') await extSetBookingLanguage(cart.id);
+        notify(t('Izba a vstupné osoby na matraci sú zahrnuté v rezervácii v košíku.', 'The room and mattress guest admission are included in the cart booking.'));
+      } catch (error) { notify(errorText(error), true); }
+      finally { busy = false; update(); }
+    };
+    row.append(form); update();
+  }
+
   function applyOptionSettings(row, option) {
     const hide = (selector, key) => row.querySelectorAll(selector).forEach(n => { if (!setting(option, key)) n.hidden = true; });
     hide('.option-description', 'show_description'); hide('.option-price', 'show_price');
@@ -276,7 +381,9 @@
     row.dataset.cfaOptionId = String(option.id);
     if (option.requires_linked_tickets) linkedControl(row, option, event, Number(activeEdit?.event_option_id) === Number(option.id) ? activeEdit : null);
     else if (option.admission_type === 'day') dayControl(row, option, event);
+    else if (privateRoom(option)) roomControl(row, option, event);
     else previousControl(row, option, event);
+    if (option.category === 'ticket' && Number(option.price) === 0 && setting(option, 'show_breakfast_note')) row.append(node('p', t('Bezplatný vstup nezahŕňa raňajky zdarma.', 'Free admission does not include complimentary breakfast.'), 'cfa-reservation-help'));
     applyOptionSettings(row, option);
   };
 
@@ -291,11 +398,11 @@
       : options.find(o => o.category === 'ticket' && Number(o.price) === 0 && o.min_age != null && o.max_age != null && Number(o.max_age) <= 17);
     const range = free ? `${free.min_age}–${free.max_age}` : null;
     if (!linked) return t(
-      `Každý návštevník musí mať vlastnú platnú vstupenku zodpovedajúcu skutočnej vekovej kategórii. ${range ? `Deti vo veku ${range} rokov majú vstup zdarma, musia však byť uvedené v rezervácii.` : 'Aj osoby s oprávneným bezplatným vstupom musia byť uvedené v rezervácii.'}\n\nJedna vstupenka platí iba pre jednu osobu. Pri vstupe organizátori skontrolujú počet osôb a vekové kategórie. Osobám bez zodpovedajúcej platnej vstupenky nebude umožnený vstup. Pri pochybnostiach môžu organizátori požiadať o primerané preukázanie veku.\n\nPo kontrole dostane každý návštevník identifikačný náramok, ktorý musí nosiť počas pobytu. Pred dokončením rezervácie sa oboznámte s podmienkami podujatia.`,
-      `Every visitor must have their own valid ticket matching their actual age category. ${range ? `Children aged ${range} have free admission but must be included in the booking.` : 'Visitors eligible for free admission must also be included in the booking.'}\n\nOne ticket admits one person only. Organisers will check guest numbers and age categories at the entrance. Visitors without a matching valid ticket will not be admitted. Organisers may request reasonable proof of age if there is doubt.\n\nEach visitor will receive an identification wristband after the check and must wear it throughout their stay. Read the event conditions before completing your booking.`);
+      `Každý návštevník musí mať vlastnú platnú vstupenku zodpovedajúcu skutočnej vekovej kategórii. ${range ? `Deti vo veku ${range} rokov majú vstup zdarma, musia však byť uvedené v rezervácii. Bezplatný vstup nezahŕňa raňajky zdarma.` : 'Aj osoby s oprávneným bezplatným vstupom musia byť uvedené v rezervácii.'}\n\nJedna vstupenka platí iba pre jednu osobu. Pri vstupe organizátori skontrolujú počet osôb a vekové kategórie. Osobám bez zodpovedajúcej platnej vstupenky nebude umožnený vstup. Pri pochybnostiach môžu organizátori požiadať o primerané preukázanie veku.\n\nPo kontrole dostane každý návštevník identifikačný náramok, ktorý musí nosiť počas pobytu. Pred dokončením rezervácie sa oboznámte s podmienkami podujatia.`,
+      `Every visitor must have their own valid ticket matching their actual age category. ${range ? `Children aged ${range} have free admission but must be included in the booking. Free admission does not include complimentary breakfast.` : 'Visitors eligible for free admission must also be included in the booking.'}\n\nOne ticket admits one person only. Organisers will check guest numbers and age categories at the entrance. Visitors without a matching valid ticket will not be admitted. Organisers may request reasonable proof of age if there is doubt.\n\nEach visitor will receive an identification wristband after the check and must wear it throughout their stay. Read the event conditions before completing your booking.`);
     return t(
-      `Každý návštevník je povinný zakúpiť si vstupenku zodpovedajúcu svojej skutočnej vekovej kategórii. ${range ? `Deti vo veku ${range} rokov majú vstup zdarma, musia však byť uvedené v rezervácii.` : 'Aj osoby s oprávneným bezplatným vstupom musia byť uvedené v rezervácii.'}\n\nJedna vstupenka oprávňuje na vstup výhradne jednu osobu.\n\nPri vstupe do areálu budú všetky vstupenky dôsledne kontrolované. Organizátori overia počet prichádzajúcich osôb a príslušné vekové kategórie podľa zakúpených vstupeniek. Po kontrole dostane každý návštevník identifikačný náramok, ktorý musí nosiť počas pobytu.\n\nRezervácia stanového miesta neoprávňuje na vstup ďalších osôb bez platných víkendových vstupeniek.\n\nKaždá rezervácia stanu musí zahŕňať minimálne jednu dospelú osobu vo veku 18 rokov alebo viac. Samostatné stanovanie maloletých osôb nie je povolené.\n\nAk počet prichádzajúcich osôb alebo ich vekové kategórie nezodpovedajú zakúpeným vstupenkám, osobám bez zodpovedajúcej platnej vstupenky nebude umožnený vstup do areálu. Pri pochybnostiach môžu organizátori požiadať o primerané preukázanie veku.\n\nÚmyselné uvedenie nepravdivého počtu osôb alebo nesprávnych vekových kategórií nezakladá nárok na vstup ani na bezplatné ubytovanie.\n\nCelodenné vstupenky neoprávňujú na prenocovanie v areáli.\n\nVšetci návštevníci sú povinní oboznámiť sa s týmito podmienkami pred dokončením rezervácie.`,
-      `Every visitor must have a ticket matching their actual age category. ${range ? `Children aged ${range} have free admission but must be included in the booking.` : 'Visitors eligible for free admission must also be included in the booking.'}\n\nOne ticket admits one person only.\n\nAll tickets will be checked carefully at the entrance. Organisers will check the number of arriving guests and their age categories against the tickets purchased. Each visitor will receive an identification wristband after the check and must wear it throughout their stay.\n\nA tent pitch reservation does not admit additional guests without valid weekend tickets.\n\nEvery tent booking must include at least one adult aged 18 or over. Minors are not permitted to camp unaccompanied.\n\nGuests without a ticket matching their actual age category will not be admitted if the arriving party does not match the tickets purchased. Organisers may request reasonable proof of age if there is doubt.\n\nDeliberately declaring incorrect guest numbers or age categories does not create any entitlement to admission or free accommodation.\n\nDay tickets do not permit an overnight stay.\n\nAll visitors must read these conditions before completing a booking.`);
+      `Každý návštevník je povinný zakúpiť si vstupenku zodpovedajúcu svojej skutočnej vekovej kategórii. ${range ? `Deti vo veku ${range} rokov majú vstup zdarma, musia však byť uvedené v rezervácii. Bezplatný vstup nezahŕňa raňajky zdarma.` : 'Aj osoby s oprávneným bezplatným vstupom musia byť uvedené v rezervácii.'}\n\nJedna vstupenka oprávňuje na vstup výhradne jednu osobu.\n\nPri vstupe do areálu budú všetky vstupenky dôsledne kontrolované. Organizátori overia počet prichádzajúcich osôb a príslušné vekové kategórie podľa zakúpených vstupeniek. Po kontrole dostane každý návštevník identifikačný náramok, ktorý musí nosiť počas pobytu.\n\nRezervácia stanového miesta neoprávňuje na vstup ďalších osôb bez platných víkendových vstupeniek.\n\nKaždá rezervácia stanu musí zahŕňať minimálne jednu dospelú osobu vo veku 18 rokov alebo viac. Samostatné stanovanie maloletých osôb nie je povolené.\n\nAk počet prichádzajúcich osôb alebo ich vekové kategórie nezodpovedajú zakúpeným vstupenkám, osobám bez zodpovedajúcej platnej vstupenky nebude umožnený vstup do areálu. Pri pochybnostiach môžu organizátori požiadať o primerané preukázanie veku.\n\nÚmyselné uvedenie nepravdivého počtu osôb alebo nesprávnych vekových kategórií nezakladá nárok na vstup ani na bezplatné ubytovanie.\n\nCelodenné vstupenky neoprávňujú na prenocovanie v areáli.\n\nVšetci návštevníci sú povinní oboznámiť sa s týmito podmienkami pred dokončením rezervácie.`,
+      `Every visitor must have a ticket matching their actual age category. ${range ? `Children aged ${range} have free admission but must be included in the booking. Free admission does not include complimentary breakfast.` : 'Visitors eligible for free admission must also be included in the booking.'}\n\nOne ticket admits one person only.\n\nAll tickets will be checked carefully at the entrance. Organisers will check the number of arriving guests and their age categories against the tickets purchased. Each visitor will receive an identification wristband after the check and must wear it throughout their stay.\n\nA tent pitch reservation does not admit additional guests without valid weekend tickets.\n\nEvery tent booking must include at least one adult aged 18 or over. Minors are not permitted to camp unaccompanied.\n\nGuests without a ticket matching their actual age category will not be admitted if the arriving party does not match the tickets purchased. Organisers may request reasonable proof of age if there is doubt.\n\nDeliberately declaring incorrect guest numbers or age categories does not create any entitlement to admission or free accommodation.\n\nDay tickets do not permit an overnight stay.\n\nAll visitors must read these conditions before completing a booking.`);
   }
   function renderEventInformation(event, options) {
     const root = $('eventDetailContent'); const head = root?.querySelector('.card'); if (!head) return;
@@ -413,7 +520,11 @@
     const items = lastBooking === activeCart.id && lastUser === currentUser.id ? lastItems : await getCartItems(activeCart.id);
     const rows = document.querySelectorAll('#cartPageContent .cart-item');
     rows.forEach((row, index) => {
-      const item = items[index]; if (!item?.camping_group_id) return;
+      const item = items[index];
+      if (item?.event_options && privateRoom(item.event_options) && (Number(item.no_bed_adult_count || 0) + Number(item.free_child_count || 0)) > 0) {
+        row.append(node('p', t('Vstupné osoby na matraci je zahrnuté v uvedenej cene rezervácie. Platené celovíkendové vstupné zahŕňa raňajky. Dieťa 0–4 roky na matraci s bezplatným vstupom nemá raňajky zdarma.', 'Mattress guest admission is included in the displayed booking price. Paid full-weekend admission includes breakfast. A child aged 0–4 staying on the mattress with free admission does not receive complimentary breakfast.'), 'cfa-reservation-help'));
+      }
+      if (!item?.camping_group_id) return;
       const remove = row.querySelector('.remove-btn'); if (!remove) return;
       if (item.camping_item_role !== 'pitch') {
         remove.hidden = true;
