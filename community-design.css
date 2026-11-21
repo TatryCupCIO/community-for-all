@@ -158,3 +158,27 @@ html.cfa-chat-active #chatPage,html.cfa-chat-active #privateChatPage{position:fi
 .cfa-team-email:focus-visible{outline:3px solid #bf4c12;outline-offset:3px}
 .cfa-manage-dialog label[hidden]{display:none!important}
 @media(max-width:700px){#cfaApprovedLayout #cfaTeam .cfa-content-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+/* Navigation alone follows the physical touch size; centre cards keep their approved compact layout. */
+:root{--cfa-nav-scale:1}
+#cfaApprovedLayout #cfaApprovedHeader nav{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;padding:16px 0!important;align-items:stretch}
+#cfaApprovedLayout #cfaApprovedHeader nav a{display:flex!important;align-items:center!important;justify-content:center!important;min-width:0!important;min-height:calc(44px * var(--cfa-nav-scale))!important;padding:calc(6px * var(--cfa-nav-scale))!important;font-size:calc(15px * var(--cfa-nav-scale))!important;line-height:1.25!important;text-align:center!important;font-weight:750!important;border:1px solid #c2dcd9;border-radius:12px;background:#ffffffb8;overflow-wrap:normal}
+#cfaApprovedLayout #cfaHeaderAccountStack{display:flex;flex-direction:column;align-items:stretch;min-width:0;gap:8px}
+#cfaApprovedLayout #cfaApprovedAccountSlot{align-items:flex-start!important}
+#cfaApprovedLayout #cfaHeaderAccountStack #userTopBtn{justify-content:center!important;min-height:calc(44px * var(--cfa-nav-scale))!important;font-size:calc(15px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaHeaderAccountStack .cfa-account-avatar{width:calc(27px * var(--cfa-nav-scale));height:calc(27px * var(--cfa-nav-scale))}
+#cfaApprovedLayout #cfaApprovedHeader #globalNotifications{display:block!important;position:relative!important;flex:none!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important}
+#cfaApprovedLayout #cfaApprovedHeader #notificationBellBtn{display:flex!important;align-items:center!important;justify-content:center!important;gap:calc(7px * var(--cfa-nav-scale))!important;position:relative!important;width:100%!important;height:auto!important;min-height:calc(44px * var(--cfa-nav-scale))!important;padding:calc(7px * var(--cfa-nav-scale))!important;border:1px solid #b4d2cc!important;border-radius:12px!important;background:#e7f6ef!important;color:#075c61!important;font-size:calc(23px * var(--cfa-nav-scale))!important;line-height:1.2!important}
+#cfaApprovedLayout #cfaApprovedHeader #notificationBellBtn .cfa-nav-label{font-size:calc(14px * var(--cfa-nav-scale))!important;font-weight:750!important;line-height:1.2!important}
+#cfaApprovedLayout #cfaApprovedHeader #notificationBadge{top:3px!important;right:3px!important;left:auto!important;min-width:calc(18px * var(--cfa-nav-scale))!important;padding:calc(2px * var(--cfa-nav-scale)) calc(5px * var(--cfa-nav-scale))!important;font-size:calc(11px * var(--cfa-nav-scale))!important;border-radius:50px!important;background:#bf2947!important;color:white!important}
+#cfaApprovedLayout #cfaApprovedHeader #notificationPanel{position:absolute!important;top:calc(100% + 10px)!important;bottom:auto!important;right:0!important;left:auto!important;transform:none!important;width:min(92vw,calc(420px * var(--cfa-nav-scale)))!important;max-width:92vw!important;max-height:65dvh!important;overflow:auto!important;padding:calc(10px * var(--cfa-nav-scale))!important;z-index:1500!important}
+#cfaApprovedLayout #notificationPanelTitle{font-size:calc(18px * var(--cfa-nav-scale))!important;font-weight:750!important}
+#cfaApprovedLayout #notificationPanel button,#cfaNotificationRouteStatus{font-size:calc(16px * var(--cfa-nav-scale))!important;line-height:1.4!important;min-height:calc(44px * var(--cfa-nav-scale))!important;padding:calc(8px * var(--cfa-nav-scale))!important;overflow-wrap:anywhere}
+#cfaApprovedLayout #cfaApprovedBottom{padding:0 0 env(safe-area-inset-bottom)!important;gap:0!important;z-index:900!important}
+#cfaApprovedLayout #cfaApprovedBottom button{flex:1!important;max-width:none!important;min-width:0!important;height:auto!important;min-height:calc(58px * var(--cfa-nav-scale))!important;gap:calc(2px * var(--cfa-nav-scale))!important;padding:calc(5px * var(--cfa-nav-scale)) 2px!important}
+#cfaApprovedLayout #cfaApprovedBottom button>span:first-child{font-size:calc(24px * var(--cfa-nav-scale))!important;line-height:1.1!important}
+#cfaApprovedLayout #cfaApprovedBottom .cfa-nav-label{font-size:calc(15px * var(--cfa-nav-scale))!important;line-height:1.25!important;white-space:nowrap!important;font-weight:750!important}
+#cfaApprovedLayout>footer{padding-bottom:calc(80px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout>.page:not(#homePage){padding-bottom:calc(80px * var(--cfa-nav-scale))!important}
+.cfa-notification-selected{outline:3px solid #008679!important;outline-offset:3px;box-shadow:0 0 0 7px #a5e6d780!important}
+@media(pointer:coarse){#cfaApprovedLayout #cfaApprovedHeader .head{align-items:flex-start;flex-wrap:wrap}#cfaApprovedLayout #cfaApprovedHeader .actions{flex:1;justify-content:flex-end}#cfaApprovedLayout #cfaApprovedHeader .support{font-size:calc(13px * var(--cfa-nav-scale))!important;min-height:calc(40px * var(--cfa-nav-scale))!important}#cfaApprovedLayout #cfaApprovedHeader .cart-top-btn{font-size:calc(14px * var(--cfa-nav-scale))!important;min-height:calc(44px * var(--cfa-nav-scale))!important}}
