@@ -1,0 +1,5 @@
+.cfa-loyalty-notice{padding:10px;border-bottom:1px solid #bcd6ce}
+.cfa-loyalty-notice[hidden],.cfa-loyalty-alert-count[hidden]{display:none!important}
+.cfa-loyalty-notice h3{font-size:calc(17px * var(--cfa-nav-scale));line-height:1.3;margin:0 0 10px;color:#075c61}
+.cfa-loyalty-notice button{display:block;width:100%;text-align:left;background:#fff9e6;border:1px solid #d6c58c;border-radius:10px;color:#173445}
+.cfa-loyalty-alert-count{position:absolute;bottom:0;left:0;max-width:100%;border-radius:12px;background:#fff2c5;color:#624617;font:750 calc(11px * var(--cfa-nav-scale))/1.2 system-ui;padding:calc(2px * var(--cfa-nav-scale)) calc(4px * var(--cfa-nav-scale))}
