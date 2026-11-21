@@ -219,3 +219,34 @@ html.cfa-chat-active #chatPage,html.cfa-chat-active #privateChatPage{position:fi
 #cfaApprovedLayout #cfaMessagesHub .card>p{font-size:calc(16px * var(--cfa-nav-scale))!important}
 #cfaApprovedLayout #cfaMessagesHub #communityChatBtn,#cfaApprovedLayout #cfaPrivateChoice button{width:100%!important;min-height:calc(64px * var(--cfa-nav-scale))!important;font-size:calc(20px * var(--cfa-nav-scale))!important}
 .cfa-session-locked #cfaHeaderTools #userTopBtn,.cfa-session-locked #cfaHeaderTools #globalNotifications,.cfa-session-locked #cfaHeaderTools .cart-top-btn,.cfa-session-locked #cfaHeaderTools #cfaWebPushSettings,.cfa-session-locked #cfaHeaderIdentity .support{display:none!important}
+
+/* Treasure and existing bell share a row; flag/user order above remains unchanged. */
+#cfaApprovedLayout #cfaTreasureRow{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:calc(7px * var(--cfa-nav-scale));align-items:stretch}
+#cfaApprovedLayout #cfaTreasureRow #notificationBellBtn .cfa-nav-label{display:none!important}
+#cfaApprovedLayout #cfaTreasureRow #notificationBellBtn{height:100%!important;min-height:calc(52px * var(--cfa-nav-scale))!important;font-size:calc(30px * var(--cfa-nav-scale))!important}
+#cfaApprovedLayout #cfaTreasureRow #globalNotifications{min-width:0!important}
+#cfaApprovedLayout #cfaTreasureBtn{display:flex;align-items:center;justify-content:center;gap:calc(5px * var(--cfa-nav-scale));min-height:calc(52px * var(--cfa-nav-scale));min-width:0;padding:calc(5px * var(--cfa-nav-scale));position:relative;border:1px solid #ddc991;border-radius:12px;background:linear-gradient(145deg,#fff9e7,#faf3df);color:#634a20}
+#cfaApprovedLayout #cfaTreasureBtn svg{width:calc(39px * var(--cfa-nav-scale));height:calc(35px * var(--cfa-nav-scale));flex-shrink:0}
+#cfaApprovedLayout .cfa-treasure-count{font-size:calc(16px * var(--cfa-nav-scale));font-weight:800;line-height:1}
+#cfaApprovedLayout #cfaHeaderTools .cart-top-btn{background:linear-gradient(120deg,#fff8dc,#fffdf5)!important;border-color:#e6dcc0!important}
+.cfa-session-locked #cfaTreasureRow{display:none!important}
+#cfaTreasureBtn[hidden]{display:none!important}
+.cfa-treasure-dialog{box-sizing:border-box;width:min(94vw,calc(700px * var(--cfa-nav-scale)));max-width:94vw;max-height:90dvh;overflow:auto;border:1px solid #c6d9d7;border-radius:18px;background:#f7fbfa;color:#173445;padding:calc(16px * var(--cfa-nav-scale));font:calc(16px * var(--cfa-nav-scale))/1.5 system-ui,sans-serif}
+.cfa-treasure-dialog::backdrop{background:#16344099}
+.cfa-treasure-dialog *{box-sizing:border-box}
+.cfa-treasure-dialog h2{font-size:calc(23px * var(--cfa-nav-scale));margin:0}
+.cfa-treasure-dialog h3{font-size:calc(20px * var(--cfa-nav-scale));margin:1em 0 .4em}
+.cfa-treasure-dialog h4{font-size:calc(17px * var(--cfa-nav-scale));margin:1em 0 .4em}
+.cfa-treasure-dialog p,.cfa-treasure-dialog li{font-size:inherit;overflow-wrap:anywhere}
+.cfa-treasure-toolbar{display:flex;align-items:center;justify-content:space-between;gap:calc(8px * var(--cfa-nav-scale));flex-wrap:wrap;margin-bottom:calc(10px * var(--cfa-nav-scale))}
+.cfa-treasure-dialog button{min-height:calc(44px * var(--cfa-nav-scale));font:650 calc(15px * var(--cfa-nav-scale))/1.3 system-ui;border:1px solid #a5c7c1;border-radius:10px;padding:calc(8px * var(--cfa-nav-scale));background:#e7f5f0;color:#075c61;cursor:pointer;touch-action:manipulation}
+.cfa-treasure-dialog button[hidden]{display:none!important}
+.cfa-treasure-dialog button:disabled{opacity:.55;cursor:wait}
+.cfa-treasure-dialog :focus-visible{outline:3px solid #bf4c12;outline-offset:3px}
+.cfa-treasure-card{border:1px solid #d6ddcd;border-radius:12px;background:#fffdf5;padding:calc(12px * var(--cfa-nav-scale));margin:calc(12px * var(--cfa-nav-scale)) 0}
+.cfa-treasure-card button{margin:calc(5px * var(--cfa-nav-scale)) calc(5px * var(--cfa-nav-scale)) 0 0}
+.cfa-treasure-dialog input,.cfa-treasure-dialog textarea{display:block;width:100%;min-height:calc(44px * var(--cfa-nav-scale));font:inherit;color:#173445;background:white;border:1px solid #abc8c3;border-radius:9px;padding:calc(8px * var(--cfa-nav-scale))}
+.cfa-treasure-dialog textarea{min-height:calc(85px * var(--cfa-nav-scale));resize:vertical}
+.cfa-treasure-dialog label{display:block;margin-top:calc(12px * var(--cfa-nav-scale))}
+.cfa-treasure-dialog progress{width:100%;height:calc(18px * var(--cfa-nav-scale));accent-color:#007f78}
+.cfa-treasure-dialog .cfa-treasure-total{font-size:calc(25px * var(--cfa-nav-scale));font-weight:800;color:#006c70}
