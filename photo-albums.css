@@ -39,3 +39,6 @@
 @supports(grid-template-rows:subgrid){
  :is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member{grid-template-rows:subgrid;grid-row:span 6}
 }
+
+/* Shared memories first, then the archive, each across the full existing grid. */
+#cfaApprovedLayout #galeria,#cfaApprovedLayout #archiv{grid-column:1/-1!important;width:100%!important;min-width:0!important}
