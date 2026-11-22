@@ -21,3 +21,7 @@
 #cfaApprovedLayout .cfa-legal-gate{font-size:calc(16px * var(--cfa-nav-scale,1))!important}
 #cfaApprovedLayout .cfa-legal-gate button{font-size:inherit!important;width:100%;min-height:calc(44px * var(--cfa-nav-scale,1))}
 #cfaApprovedLayout .cfa-legal-gate input[type=checkbox]{width:calc(24px * var(--cfa-nav-scale,1))!important;height:calc(24px * var(--cfa-nav-scale,1))!important;min-width:calc(24px * var(--cfa-nav-scale,1))!important}
+/* Organisation details remain available at the end, in smaller readable type. */
+.cfa-legal-dialog .cfa-legal-identity{border-top:1px solid #bfd5cf;margin-top:24px;padding-top:12px;font-size:calc(14px * var(--cfa-nav-scale,1));line-height:1.5}
+.cfa-legal-dialog .cfa-legal-identity h3{font-size:calc(15px * var(--cfa-nav-scale,1))}
+.cfa-legal-dialog .cfa-legal-identity p{font-size:inherit}
