@@ -30,8 +30,9 @@
 @media(max-width:400px){.cfa-photo-list{grid-template-columns:1fr 1fr}.cfa-photo-button{padding:7px 9px;margin:3px}.cfa-photo-viewer{padding:9px}}
 `;document.head.appendChild(style);
 
-  let viewer=null;
+  let viewer=null,externalItems=null;
   function closeViewer() {
+    if(externalItems){window.CFAPhotoTools?.closeScope(externalItems);externalItems=null;}
     if(!viewer)return;const old=viewer;viewer=null;old.stopped=true;
     if(typeof old.dialog.close==='function'&&old.dialog.open)old.dialog.close();
     old.dialog.remove();if(old.focus?.isConnected)old.focus.focus();
@@ -45,9 +46,11 @@
     })().catch(e=>{item.loading=null;throw e;});
     return item.loading;
   }
-  function disposeItems(items) { items.forEach(item=>{item.disposed=true;revoke(item.url);}); }
+  function disposeItems(items) {
+    window.CFAPhotoTools?.closeScope(items); items.forEach(item=>{item.disposed=true;revoke(item.url);}); }
   function openViewer(items,start,title) {
     closeViewer();if(!items.length)return;
+    if(window.CFAPhotoTools){externalItems=items;return window.CFAPhotoTools.open(items.map(item=>({getUrl:()=>photoUrl(item),alt:title})),start,title,{scope:items});}
     const dialog=make('dialog',null,'cfa-photo-viewer');dialog.setAttribute('aria-label',tr('Prezeranie fotiek','Photo viewer'));
     const top=make('div',null,'cfa-photo-viewer-top');top.append(make('h2',title,'cfa-photo-viewer-title'),button(tr('Zavrieť ×','Close ×'),closeViewer));
     const image=make('img',null,'cfa-photo-viewer-image');image.hidden=true;image.draggable=false;
@@ -82,6 +85,7 @@
     return root;
   }
   async function prepare(file) {
+    if(window.CFAPhotoTools){const blob=await window.CFAPhotoTools.compress(file);return {blob,url:url(blob)};}
     if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>25*1024*1024)throw new Error(tr('Vyber JPG, PNG alebo WEBP do 25 MB.','Choose JPG, PNG or WEBP up to 25 MB.'));
     const temporary=URL.createObjectURL(file);
     try {
