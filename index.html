@@ -6525,6 +6525,10 @@ function addPasswordEye(
         .sort(
           (a,b) => {
 
+            const recentA = window.CFAQuickChat?.recent?.get(a.user_id)?.time || 0;
+            const recentB = window.CFAQuickChat?.recent?.get(b.user_id)?.time || 0;
+            if (recentA !== recentB) return recentB - recentA;
+
             const statusA =
               priority[
                 a.presence_status
@@ -8180,7 +8184,7 @@ function addPasswordEye(
 })();
 </script>
 
-<script src="private-chat.js?v=20261121-nav-9"></script>
+<script src="private-chat.js?v=20261122-messenger-1"></script>
 
 <script>
 /* ===== APP NAVIGATION ===== */
@@ -9352,5 +9356,6 @@ function cfaValidateChildAgeFields(row) {
 <script src="loyalty-treasure.js?v=20261121-six-12"></script>
 <script src="legal-documents.js?v=20261122-legal-2"></script>
 <script src="legal-registration.js?v=20261122-legal-2"></script>
+<script src="quick-chat.js?v=20261122-messenger-1"></script>
 </body>
   </html>
