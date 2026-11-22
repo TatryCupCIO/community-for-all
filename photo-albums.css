@@ -24,3 +24,18 @@
 .cfa-swipe-stage img{display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;touch-action:pan-y pinch-zoom;user-select:none}
 .cfa-swipe-viewer p{font-size:inherit;line-height:1.35;margin:0;overflow-wrap:anywhere}
 .cfa-swipe-viewer .cfa-swipe-hint{font-size:calc(12px * var(--cfa-nav-scale,1));text-align:center;color:#47645f}
+
+/* Only the team: four aligned cards, full portraits and common content rows. */
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) :is(.cfa-content-list,.cfa-content-overview-grid){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch!important;gap:12px!important;overflow:visible!important}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member{display:grid!important;grid-template-columns:minmax(0,1fr);grid-template-rows:220px 42px 90px 96px 1fr auto;align-content:start;gap:10px!important;min-width:0!important;max-width:none!important;width:100%!important;height:100%;padding:16px!important}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member>.cfa-content-photo-strip,:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member>.cfa-team-avatar-placeholder{grid-row:1;margin:0!important;padding:0!important;height:220px!important;max-height:220px!important;width:100%;overflow:hidden!important;display:flex!important;align-items:center;justify-content:center}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member .cfa-content-photo{height:220px!important;min-height:220px!important;width:100%!important;flex:0 0 100%!important;margin:0!important;padding:0!important}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member .cfa-content-photo img{display:block!important;width:100%!important;height:220px!important;max-height:220px!important;object-fit:contain!important;object-position:center!important}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member>h3{grid-row:2;margin:0!important;line-height:1.35!important;align-self:start}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member>.cfa-team-role{grid-row:3;margin:0!important;line-height:1.4!important;align-self:start}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member>.cfa-team-email{grid-row:4;margin:0!important;line-height:1.45!important;align-self:start;min-width:0;overflow-wrap:anywhere}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member>.cfa-content-body{grid-row:5;margin:0!important;line-height:1.5!important;align-self:start}
+:is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member>.cfa-content-button{grid-row:6;align-self:end;margin:0!important}
+@supports(grid-template-rows:subgrid){
+ :is(#cfaApprovedLayout #cfaTeam,dialog.cfa-content-overview[data-section="team"]) .cfa-team-member{grid-template-rows:subgrid;grid-row:span 6}
+}
