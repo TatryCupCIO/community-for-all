@@ -1,0 +1,23 @@
+.cfa-legal-gate{margin:20px 0;padding:16px;border:1px solid #b3cdc6;border-radius:12px;background:#f3faf7;color:#173445}
+.cfa-legal-gate label,.cfa-legal-preferences label{display:flex!important;align-items:flex-start;gap:12px;margin:16px 0;line-height:1.5;cursor:pointer}
+.cfa-legal-gate input[type=checkbox],.cfa-legal-preferences input[type=checkbox]{width:24px!important;height:24px!important;min-width:24px;margin:2px 0 0!important;flex:none}
+.cfa-legal-gate button,.cfa-legal-link,.cfa-legal-dialog button{font:650 18px/1.4 system-ui;min-height:44px;padding:10px 14px;border:1px solid #a4c4bd;border-radius:10px;background:#e6f4ed;color:#075c61;cursor:pointer;touch-action:manipulation}
+.cfa-legal-link{display:inline-block;margin:12px 0}
+.cfa-legal-dialog{box-sizing:border-box;width:min(96vw,1100px);max-width:96vw;max-height:94dvh;padding:calc(12px * var(--cfa-nav-scale,1));border:1px solid #a4c4bd;border-radius:14px;background:#f8fcfa;color:#173445;font:calc(16px * var(--cfa-nav-scale,1))/1.55 system-ui}
+.cfa-legal-dialog:not([open]){display:none}
+.cfa-legal-dialog[open]{display:flex;flex-direction:column;gap:10px}
+.cfa-legal-dialog::backdrop{background:#16313ecc}
+.cfa-legal-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cfa-legal-toolbar h2{font-size:calc(22px * var(--cfa-nav-scale,1));line-height:1.25;margin:0}
+.cfa-legal-dialog h3{font-size:calc(19px * var(--cfa-nav-scale,1));line-height:1.4}
+.cfa-legal-dialog button{font-size:calc(15px * var(--cfa-nav-scale,1));min-height:calc(44px * var(--cfa-nav-scale,1));flex-shrink:0}
+.cfa-legal-dialog [hidden]{display:none!important}
+.cfa-legal-dialog button:disabled{opacity:.5;cursor:default}
+.cfa-legal-scroll{overflow-y:auto;min-height:0;max-height:60dvh;overscroll-behavior:contain;padding:8px;overflow-wrap:anywhere}
+.cfa-legal-dialog p{font-size:inherit;margin:.7em 0}
+.cfa-legal-end{font-size:calc(13px * var(--cfa-nav-scale,1))!important;margin:0!important}
+.cfa-legal-preferences{border-top:1px solid #b3cdc6;margin-top:20px;padding-top:10px}
+.cfa-legal-dialog :focus-visible,.cfa-legal-gate :focus-visible{outline:3px solid #bd5d21;outline-offset:3px}
+#cfaApprovedLayout .cfa-legal-gate{font-size:calc(16px * var(--cfa-nav-scale,1))!important}
+#cfaApprovedLayout .cfa-legal-gate button{font-size:inherit!important;width:100%;min-height:calc(44px * var(--cfa-nav-scale,1))}
+#cfaApprovedLayout .cfa-legal-gate input[type=checkbox]{width:calc(24px * var(--cfa-nav-scale,1))!important;height:calc(24px * var(--cfa-nav-scale,1))!important;min-width:calc(24px * var(--cfa-nav-scale,1))!important}
