@@ -1176,6 +1176,7 @@ async function sendPrivateChatText(
     await renderPrivateChatMessage(sentMessage);
     scrollPrivateChatToBottom();
   }
+  window.CFAQuickChat?.refresh();
   return true;
 }
 
@@ -3836,6 +3837,7 @@ function scrollPrivateChatToBottom() {
 }
 
 async function refreshPrivateMessageNotifications() {
+  window.CFAQuickChat?.refresh();
   if (!currentUser) return;
 
   const badge =
@@ -4164,6 +4166,7 @@ function startPrivateInboxRealtime() {
           }
 
           await refreshPrivateMessageNotifications();
+          window.CFAQuickChat?.incoming(message);
 
           if (
             chatNotificationsEnabled &&
