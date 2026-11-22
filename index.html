@@ -879,6 +879,7 @@
 <link rel="stylesheet" href="community-design.css?v=20261121-treasure-11">
 <link rel="stylesheet" href="loyalty-six.css?v=20261121-six-12">
 <link rel="stylesheet" href="photo-albums.css?v=20261122-album-rows-15">
+<link rel="stylesheet" href="legal-registration.css?v=20261122-legal-1">
 </head>
 
 <body class="cfa-session-locked">
@@ -4920,6 +4921,7 @@ el('registerForm').onsubmit =
   async e => {
 
     e.preventDefault();
+    if (!window.CFALegal || !window.CFALegal.validate()) return;
 
     const p =
       el('registerPassword')
@@ -4956,6 +4958,7 @@ el('registerForm').onsubmit =
 
           options: {
             data: {
+              ...window.CFALegal.acceptanceMetadata(),
               username:
                 el('registerUsername')
                   .value
@@ -9340,12 +9343,14 @@ function cfaValidateChildAgeFields(row) {
 <script src="reservation-ui.js?v=20261121-gallery-9"></script>
 
 <script src="community-design.js?v=20261121-approved-3"></script>
-<script src="community-content.js?v=20261122-albums-13"></script>
+<script src="community-content.js?v=20261122-legal-1"></script>
 <script src="chat-experience.js?v=20261121-chat-5"></script>
 <script src="photo-tools.js?v=20261122-albums-13"></script>
 <script src="notification-target.js?v=20261121-six-12"></script>
 <script src="navigation-notifications.js?v=20261121-six-12"></script>
 <script src="header-accessibility.js?v=20261121-header-10"></script>
 <script src="loyalty-treasure.js?v=20261121-six-12"></script>
+<script src="legal-documents.js?v=20261122-legal-1"></script>
+<script src="legal-registration.js?v=20261122-legal-1"></script>
 </body>
   </html>
