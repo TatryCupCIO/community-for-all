@@ -17,10 +17,8 @@ import android.webkit.ValueCallback;
 import android.webkit.WebResourceRequest;
 import android.window.OnBackInvokedDispatcher;
 
-import androidx.annotation.NonNull;
 import androidx.webkit.WebViewCompat;
 import androidx.webkit.WebViewFeature;
-import androidx.webkit.WebViewAssetLoader;
 import androidx.webkit.JavaScriptReplyProxy;
 
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -74,6 +72,12 @@ public class MainActivity extends Activity {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
+
+        settings.setUseWideViewPort(true);
+        settings.setLoadWithOverviewMode(true);
+        settings.setSupportZoom(true);
+        settings.setBuiltInZoomControls(true);
+        settings.setDisplayZoomControls(false);
 
         if (WebViewFeature.isFeatureSupported(
                 WebViewFeature.WEB_MESSAGE_LISTENER)) {
