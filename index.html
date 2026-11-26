@@ -876,7 +876,7 @@
 .cfa-room-mattress p { margin: 0 0 10px; font-size: 14px; line-height: 1.5; }
 .cfa-room-form h4 { margin: 4px 0 12px; }
 </style>
-<link rel="stylesheet" href="community-design.css?v=20261121-treasure-11">
+<link rel="stylesheet" href="community-design.css?v=20261126-public-2">
 <link rel="stylesheet" href="loyalty-six.css?v=20261121-six-12">
 <link rel="stylesheet" href="photo-albums.css?v=20261122-album-rows-15">
 <link rel="stylesheet" href="legal-registration.css?v=20261122-legal-2">
@@ -1869,6 +1869,9 @@ function showMessage(
 
   x.className =
     'message ' + type;
+
+  x.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  x.setAttribute('aria-atomic', 'true');
 
   x.textContent =
     text;
@@ -9346,15 +9349,15 @@ function cfaValidateChildAgeFields(row) {
 <script src="event-photos.js?v=20261122-albums-13"></script>
 <script src="reservation-ui.js?v=20261121-gallery-9"></script>
 
-<script src="community-design.js?v=20261121-approved-3"></script>
-<script src="community-content.js?v=20261122-legal-1"></script>
+<script src="community-design.js?v=20261126-public-1"></script>
+<script src="community-content.js?v=20261126-public-1"></script>
 <script src="chat-experience.js?v=20261121-chat-5"></script>
 <script src="photo-tools.js?v=20261122-albums-13"></script>
 <script src="notification-target.js?v=20261121-six-12"></script>
 <script src="navigation-notifications.js?v=20261121-six-12"></script>
 <script src="header-accessibility.js?v=20261121-header-10"></script>
 <script src="loyalty-treasure.js?v=20261121-six-12"></script>
-<script src="legal-documents.js?v=20261122-legal-2"></script>
+<script src="legal-documents.js?v=20261126-public-1"></script>
 <script src="legal-registration.js?v=20261122-legal-2"></script>
 <script src="quick-chat.js?v=20261122-messenger-1"></script>
 </body>
