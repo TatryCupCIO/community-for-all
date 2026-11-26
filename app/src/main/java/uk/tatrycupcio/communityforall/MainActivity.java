@@ -1,6 +1,14 @@
 package uk.tatrycupcio.communityforall;
 
 import android.app.Activity;
+import android.widget.FrameLayout;
+import android.view.WindowManager;
+import android.graphics.Color;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import android.os.Bundle;
 import android.os.Build;
 import android.Manifest;
@@ -66,8 +74,41 @@ public class MainActivity extends Activity {
             );
         }
 
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        getWindow().setSoftInputMode(
+                WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+        );
+
+        FrameLayout safeArea = new FrameLayout(this);
+        safeArea.setBackgroundColor(Color.rgb(245, 249, 251));
         webView = new WebView(this);
-        setContentView(webView);
+        safeArea.addView(webView, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+        ));
+        setContentView(safeArea);
+
+        WindowInsetsControllerCompat systemBars =
+                new WindowInsetsControllerCompat(getWindow(), safeArea);
+        systemBars.setAppearanceLightStatusBars(true);
+        systemBars.setAppearanceLightNavigationBars(true);
+
+        ViewCompat.setOnApplyWindowInsetsListener(safeArea, (view, insets) -> {
+            Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+                            | WindowInsetsCompat.Type.displayCutout()
+            );
+            Insets keyboard = insets.getInsets(WindowInsetsCompat.Type.ime());
+            view.setPadding(
+                    bars.left,
+                    bars.top,
+                    bars.right,
+                    Math.max(bars.bottom, keyboard.bottom)
+            );
+            // The wrapper handles these areas, so WebView must not add them twice.
+            return WindowInsetsCompat.CONSUMED;
+        });
+        safeArea.post(() -> ViewCompat.requestApplyInsets(safeArea));
 
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true);
