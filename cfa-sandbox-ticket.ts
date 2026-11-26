@@ -82,9 +82,9 @@ export async function createTestTicket(order:any,assets:TicketAssets):Promise<Ui
     let subSize=11;while(subSize>6&&bold.widthOfTextAtSize(clean(subtitle),subSize)>width)subSize--;
     text(subtitle,103,main.length===2?365:387,subSize,bold,blue);
     if(eventLogo)image(eventLogo,765,390,58,58);
-    text(date(e.start_date)+(e.end_date!==e.start_date?' - '+date(e.end_date):''),28,351,16,bold);
-    let vy=334;for(const l of wrap([e.venue_name,e.address,e.postcode].filter(Boolean).join(', '),regular,10.5,790)){text(l,28,vy,10.5,regular,muted);vy-=13}
-    y=Math.min(305,vy-12);
+    text(date(e.start_date)+(e.end_date!==e.start_date?' - '+date(e.end_date):''),28,370,16,bold);
+    let vy=353;for(const l of wrap([e.venue_name,e.address,e.postcode].filter(Boolean).join(', '),regular,10.5,790)){text(l,28,vy,10.5,regular,muted);vy-=13}
+    y=Math.min(330,vy-12);
     text('BOOKING HOLDER / DRŽITEĽ REZERVÁCIE',28,y,9,bold,blue);y-=24;
     for(const l of wrap(s.customer.name||s.customer.email,bold,21,790)){text(l,28,y,21,bold);y-=25}
     text([s.customer.email,s.customer.phone].filter(Boolean).join(' | '),28,y+4,10,regular,muted);y-=16;
@@ -107,7 +107,7 @@ export async function createTestTicket(order:any,assets:TicketAssets):Promise<Ui
     if(/weekend|víkend/i.test(all)&&/adult|dospel/i.test(all)&&/18/.test(all)&&!i.is_accommodation)return ['WEEKEND - ADULT 18+','VÍKEND - DOSPELÝ OD 18 ROKOV'];
     if(/weekend|víkend/i.test(all)&&/child|dieťa/i.test(all)&&/5\s*[-–]\s*17/.test(all)&&!i.is_accommodation)return ['WEEKEND - CHILD 5-17','VÍKEND - DIEŤA 5-17 ROKOV'];
     if(/small tent|malý stan/i.test(all))return ['SMALL TENT PITCH','MIESTO PRE VLASTNÝ MALÝ STAN'];
-    if(/four-bed|4.?lôžkov/i.test(all))return ['FOUR-BED SCOUT ROOM','ŠTVORLÔŽKOVÁ SKAUTSKÁ IZBA'];
+    if(/four[ -]*bed|4[ -]*(?:bed|lôžkov)/i.test(all))return ['FOUR-BED SCOUT ROOM','ŠTVORLÔŽKOVÁ SKAUTSKÁ IZBA'];
     return [en,sk];
   };
   const top=y;
