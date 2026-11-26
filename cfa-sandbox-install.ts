@@ -455,24 +455,30 @@ DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_045 CREATE OR REPLACE FUNCTION 
 
 CREATE OR REPLACE FUNCTION public.cfa_loyalty_redeem_reward(p_user uuid,p_milestone integer) RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ BEGIN RAISE EXCEPTION 'Use the Rewards page / Použite stránku Odmeny';END $$;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_046 CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_046 DO cfa_extensions BEGIN'; END $cfa_stage$;
 
 -- CRON_START
-CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_047 CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions'; END $cfa_stage$;
-
-CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_048 SELECT cron.schedule cfa reward mail retry SELECT public.cfa_reward_dispatch_pending'; END $cfa_stage$;
+-- Do not emit CREATE EXTENSION for an already installed extension: Supabase
+-- DDL event triggers run even for IF NOT EXISTS and can revoke cron grants.
+DO $cfa_extensions$ BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname='pg_cron') THEN
+  CREATE EXTENSION pg_cron WITH SCHEMA pg_catalog;
+ END IF;
+ IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname='pg_net') THEN
+  CREATE EXTENSION pg_net WITH SCHEMA extensions;
+ END IF;
+END $cfa_extensions$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_047 SELECT cron.schedule cfa reward mail retry SELECT public.cfa_reward_dispatch_pending'; END $cfa_stage$;
 
 SELECT cron.schedule('cfa-reward-mail-retry','* * * * *','SELECT public.cfa_reward_dispatch_pending()');
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_049 UPDATE public.cfa_test_settings SET schema_version 3 WHERE id true'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_048 UPDATE public.cfa_test_settings SET schema_version 3 WHERE id true'; END $cfa_stage$;
 
 -- CRON_END
 UPDATE public.cfa_test_settings SET schema_version=3 WHERE id=true;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_050 NOTIFY pgrst reload schema'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_049 NOTIFY pgrst reload schema'; END $cfa_stage$;
 
 NOTIFY pgrst,'reload schema';
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_051 COMMIT'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_050 COMMIT'; END $cfa_stage$;
 
 COMMIT;`;
 export const INSTALL_SQL=String.raw`DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S56_001 BEGIN'; END $cfa_stage$;
@@ -1116,23 +1122,29 @@ DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_045 CREATE OR REPLACE FUNCTION 
 
 CREATE OR REPLACE FUNCTION public.cfa_loyalty_redeem_reward(p_user uuid,p_milestone integer) RETURNS void
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ BEGIN RAISE EXCEPTION 'Use the Rewards page / Použite stránku Odmeny';END $$;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_046 CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_046 DO cfa_extensions BEGIN'; END $cfa_stage$;
 
 -- CRON_START
-CREATE EXTENSION IF NOT EXISTS pg_cron WITH SCHEMA pg_catalog;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_047 CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions'; END $cfa_stage$;
-
-CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_048 SELECT cron.schedule cfa reward mail retry SELECT public.cfa_reward_dispatch_pending'; END $cfa_stage$;
+-- Do not emit CREATE EXTENSION for an already installed extension: Supabase
+-- DDL event triggers run even for IF NOT EXISTS and can revoke cron grants.
+DO $cfa_extensions$ BEGIN
+ IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname='pg_cron') THEN
+  CREATE EXTENSION pg_cron WITH SCHEMA pg_catalog;
+ END IF;
+ IF NOT EXISTS (SELECT 1 FROM pg_catalog.pg_extension WHERE extname='pg_net') THEN
+  CREATE EXTENSION pg_net WITH SCHEMA extensions;
+ END IF;
+END $cfa_extensions$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_047 SELECT cron.schedule cfa reward mail retry SELECT public.cfa_reward_dispatch_pending'; END $cfa_stage$;
 
 SELECT cron.schedule('cfa-reward-mail-retry','* * * * *','SELECT public.cfa_reward_dispatch_pending()');
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_049 UPDATE public.cfa_test_settings SET schema_version 3 WHERE id true'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_048 UPDATE public.cfa_test_settings SET schema_version 3 WHERE id true'; END $cfa_stage$;
 
 -- CRON_END
 UPDATE public.cfa_test_settings SET schema_version=3 WHERE id=true;
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_050 NOTIFY pgrst reload schema'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_049 NOTIFY pgrst reload schema'; END $cfa_stage$;
 
 NOTIFY pgrst,'reload schema';
-DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_051 COMMIT'; END $cfa_stage$;
+DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_050 COMMIT'; END $cfa_stage$;
 
 COMMIT;`;
