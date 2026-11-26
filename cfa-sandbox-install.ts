@@ -397,16 +397,32 @@ DECLARE r public.cfa_reward_claims;dc public.discount_codes;hold public.cfa_rewa
 END $$;
 REVOKE ALL ON FUNCTION public.apply_discount_code(bigint,text) FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION public.apply_discount_code(bigint,text) TO authenticated;
--- Snapshot the coupon identity before a payment link is created, so removal from
--- a later cart cannot hide which paid checkout consumed the code.
-DO $$ DECLARE src text;BEGIN
- SELECT pg_get_functiondef('public.cfa_prepare_test_checkout(bigint,text)'::regprocedure) INTO src;
- IF position('''reward_coupon_id''' IN src)=0 THEN
-  src:=replace(src,'''total'',b.total_amount,''currency'',''GBP''','''total'',b.total_amount,''currency'',''GBP'',''reward_coupon_id'',b.discount_code_id');
-  IF position('''reward_coupon_id''' IN src)=0 THEN RAISE EXCEPTION 'checkout_snapshot_patch_missing';END IF;
-  EXECUTE src;
+-- Preserve the complete existing checkout validation regardless of its formatting.
+-- Add immutable coupon metadata through a wrapper, not SQL source substitution.
+DO $$ BEGIN
+ IF to_regprocedure('public.cfa_prepare_test_checkout_before_rewards(bigint,text)') IS NULL THEN
+  ALTER FUNCTION public.cfa_prepare_test_checkout(bigint,text) RENAME TO cfa_prepare_test_checkout_before_rewards;
  END IF;
 END $$;
+REVOKE ALL ON FUNCTION public.cfa_prepare_test_checkout_before_rewards(bigint,text) FROM PUBLIC,anon,authenticated;
+CREATE OR REPLACE FUNCTION public.cfa_prepare_test_checkout(p_booking_id bigint,p_language text DEFAULT 'sk')
+RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE result jsonb;checkout public.cfa_test_checkouts;coupon bigint;BEGIN
+ IF NOT public.cfa_test_is_member() THEN RAISE EXCEPTION 'test_access_required';END IF;
+ result:=public.cfa_prepare_test_checkout_before_rewards(p_booking_id,p_language);
+ SELECT * INTO checkout FROM public.cfa_test_checkouts WHERE id=(result->>'id')::uuid FOR UPDATE;
+ IF NOT FOUND OR checkout.user_id IS DISTINCT FROM auth.uid() OR checkout.booking_id IS DISTINCT FROM p_booking_id THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+ SELECT discount_code_id INTO coupon FROM public.bookings WHERE id=p_booking_id AND user_id=auth.uid();
+ IF (checkout.snapshot->>'reward_coupon_id')::bigint IS DISTINCT FROM coupon THEN
+  IF checkout.square_link_id IS NOT NULL OR checkout.status NOT IN('creating','awaiting_payment') THEN RAISE EXCEPTION 'cart_total_invalid';END IF;
+ END IF;
+ IF checkout.square_link_id IS NULL AND checkout.status IN('creating','awaiting_payment') THEN
+  UPDATE public.cfa_test_checkouts SET snapshot=snapshot||jsonb_build_object('reward_coupon_id',coupon) WHERE id=checkout.id;
+ END IF;
+ RETURN result;
+END $$;
+REVOKE ALL ON FUNCTION public.cfa_prepare_test_checkout(bigint,text) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.cfa_prepare_test_checkout(bigint,text) TO authenticated;
 CREATE OR REPLACE FUNCTION public.cfa_reward_coupon_payment() RETURNS trigger
 LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE code_id bigint;r public.cfa_reward_claims;prior public.cfa_reward_coupon_uses;BEGIN
