@@ -39,6 +39,8 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
+    private String pendingNativeNotification;
+    private boolean notificationPageReady = false;
 
     private static final int FILE_REQUEST = 1001;
 
@@ -151,6 +153,18 @@ public class MainActivity extends Activity {
         }
 
         webView.setWebViewClient(new WebViewClient() {
+            @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap icon) {
+                notificationPageReady = false;
+                super.onPageStarted(view, url, icon);
+            }
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                notificationPageReady = isTrustedUrl(Uri.parse(url));
+                deliverNativeNotification();
+            }
+
 
             @Override
             public boolean shouldOverrideUrlLoading(
@@ -211,7 +225,65 @@ public class MainActivity extends Activity {
                     );
         }
 
-        webView.loadUrl(APP_URL);
+        pendingNativeNotification = savedInstanceState == null ? null : savedInstanceState.getString("cfa_pending_notification");
+        String initialNotification = savedInstanceState == null ? notificationPayload(getIntent()) : null;
+        if (pendingNativeNotification == null) pendingNativeNotification = initialNotification;
+        String startUrl = pendingNativeNotification == null ? APP_URL : APP_URL + "#cfa_notice=" + Uri.encode(pendingNativeNotification);
+        // The page consumes the cold-start hash after authentication is restored.
+        pendingNativeNotification = null;
+        webView.loadUrl(startUrl);
+    }
+
+    private String notificationPayload(Intent intent) {
+        if (intent == null) return null;
+        try {
+            String raw = intent.getStringExtra("cfa_notification_payload");
+            JSONObject source = raw != null && raw.length() <= 8192 ? new JSONObject(raw) : new JSONObject();
+            JSONObject safe = new JSONObject();
+            String[] fields = {"type", "notification_type", "source_table", "source_id", "message_id", "messageId", "conversation_id", "conversationId", "sender_id", "senderId", "actor_id", "recipient_id", "recipientId", "event_id", "eventId", "booking_id", "url", "link"};
+            for (String key : fields) {
+                String value = source.has(key) ? source.optString(key, "") : intent.getStringExtra(key);
+                if (value != null && !value.isEmpty() && value.length() <= 2048) safe.put(key, value);
+            }
+            if (safe.length() == 0) {
+                if (raw == null && !intent.hasExtra("google.message_id") && !"CFA_OPEN_NOTIFICATION".equals(intent.getAction())) return null;
+                safe.put("type", "notifications");
+            }
+            return safe.toString();
+        } catch (Exception ignored) { return null; }
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String payload = notificationPayload(intent);
+        if (payload != null) {
+            pendingNativeNotification = payload;
+            deliverNativeNotification();
+        }
+    }
+
+    private void deliverNativeNotification() {
+        if (!notificationPageReady || pendingNativeNotification == null || webView == null) return;
+        if (!isTrustedUrl(Uri.parse(webView.getUrl() == null ? "" : webView.getUrl()))) return;
+        final String payload = pendingNativeNotification;
+        pendingNativeNotification = null;
+        String script = "(function(){if(window.CFANotificationRouter){window.CFANotificationRouter.open(JSON.parse("
+                + JSONObject.quote(payload) + "));return true;}return false;})()";
+        webView.evaluateJavascript(script, result -> {
+            if (!"true".equals(result)) {
+                notificationPageReady = false;
+                webView.loadUrl(APP_URL + "?cfa_notice_reload=" + System.currentTimeMillis()
+                        + "#cfa_notice=" + Uri.encode(payload));
+            }
+        });
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle state) {
+        state.putString("cfa_pending_notification", pendingNativeNotification);
+        super.onSaveInstanceState(state);
     }
 
     private void sendFirebaseToken(

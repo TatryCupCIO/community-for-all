@@ -6,6 +6,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.os.Build;
+import android.net.Uri;
+import org.json.JSONObject;
+import java.util.UUID;
 import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
@@ -72,6 +75,18 @@ public class MyFirebaseMessagingService
 
         Intent intent =
                 new Intent(this, MainActivity.class);
+
+        JSONObject payload = new JSONObject();
+        String[] fields = {"type", "notification_type", "source_table", "source_id", "message_id", "messageId", "conversation_id", "conversationId", "sender_id", "senderId", "actor_id", "recipient_id", "recipientId", "event_id", "eventId", "booking_id", "url", "link"};
+        for (String key : fields) {
+            String value = message.getData().get(key);
+            if (value != null && value.length() <= 2048) {
+                try { payload.put(key, value); } catch (Exception ignored) { }
+            }
+        }
+        intent.putExtra("cfa_notification_payload", payload.toString());
+        intent.setAction("CFA_OPEN_NOTIFICATION");
+        intent.setData(Uri.parse("cfa://notification/" + UUID.randomUUID()));
 
         intent.setFlags(
                 Intent.FLAG_ACTIVITY_CLEAR_TOP |
