@@ -10,6 +10,17 @@ const style=node('style');style.textContent=`
 .cfa-sandbox-mode input{width:22px;height:22px}.cfa-sandbox-tag{display:block;color:#005d61;font-size:11px;font-weight:700}
 #cfaSandboxDialog{box-sizing:border-box;width:min(620px,94vw);max-height:90dvh;overflow:auto;background:#fff;color:#143d46;border:1px solid #b8d5cf;border-radius:16px;padding:20px}
 #cfaSandboxDialog::backdrop{background:#092f38aa}#cfaSandboxDialog:not([open]){display:none}
+#cfaSandboxDialog .message{box-sizing:border-box;width:100%;padding:16px!important;margin:14px 0!important;border:0!important;border-left:5px solid #17627b!important;border-radius:10px!important;background:#edf6fc!important;color:#123d52!important;font-size:17px!important;font-weight:650!important;line-height:1.55!important;text-align:left!important;white-space:pre-wrap;overflow-wrap:anywhere;opacity:1!important}
+#cfaSandboxDialog .message.success{background:#edf8f0!important;color:#143d27!important;border-left-color:#17603b!important}
+#cfaSandboxDialog .message.error{background:#fff1f2!important;color:#721c24!important;border-left-color:#a12730!important}
+#cfaSandboxDialog .cfa-sandbox-controls{flex-direction:column;align-items:stretch;gap:14px}
+#cfaSandboxDialog .cfa-sandbox-controls>*{box-sizing:border-box;min-width:0;flex:none;width:100%}
+#cfaSandboxDialog a.primary-btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:14px 18px!important;border:2px solid #005b60!important;border-radius:10px;background:#006b6f!important;color:#fff!important;font-size:18px!important;font-weight:750!important;line-height:1.4!important;text-align:center;text-decoration:none!important}
+#cfaSandboxDialog a.primary-btn:focus-visible{outline:3px solid #173445;outline-offset:3px}
+#cfaSandboxDialog button.secondary-btn{min-height:44px;padding:10px 14px!important;background:#e6f5ef!important;color:#07575b!important;border:1px solid #bfd8d2!important;border-radius:9px;font-size:16px!important;line-height:1.4!important}
+#cfaSandboxDialog .cfa-sandbox-order{background:#fff!important;color:#143d46!important;padding:16px;margin:0;font-size:16px!important;line-height:1.5!important}
+#cfaSandboxDialog .cfa-sandbox-order h4{color:#143d46!important;font-size:17px!important;line-height:1.4!important;margin:0 0 12px}
+#cfaSandboxDialog .cfa-sandbox-order p{color:#143d46!important;font-size:16px!important;line-height:1.5!important}
 .cfa-sandbox-order{border:1px solid #b8d5cf;border-radius:12px;padding:12px;margin:10px 0;overflow-wrap:anywhere}
 .cfa-sandbox-label{display:block;margin:12px 0}.cfa-sandbox-label input,.cfa-sandbox-label select{display:block;width:100%;box-sizing:border-box;min-height:44px;margin-top:6px}
 `;document.head.append(style);
