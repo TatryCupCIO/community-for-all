@@ -2,7 +2,7 @@
 import nodemailer from 'npm:nodemailer@9.1.1';
 import { Buffer } from 'node:buffer';
 import postgres from 'npm:postgres@3.4.7';
-import { createTestTicket, createTestEmail } from './cfa-sandbox-ticket.ts';
+import { createTestTicket, createTestEmail, prepareBilling } from './cfa-sandbox-ticket.ts';
 import { INSTALL_SQL, SUPABASE_CA } from './cfa-sandbox-install.ts';
 
 const SITE='https://tatrycupcio.uk';
@@ -275,6 +275,14 @@ export function makeSandboxHandler(options:Options){
         if(new Date(s.expires_at).getTime()<=Date.now())fail('checkout_expired');
         await assets();await smtpReady();
         if(s.checkout_url)return reply(200,{ok:true,id:s.id,status:s.status,url:s.checkout_url});
+        // Preserve a reconciled display breakdown at checkout creation. It never
+        // changes the authorised amount, cart items, payment state or points.
+        if(!s.snapshot.billing_lines){
+          const options=await db('event_options','GET',{event_id:'eq.'+s.snapshot.event.id,select:'*'});
+          const snapshot={...s.snapshot,billing_lines:prepareBilling(s.snapshot,options)};
+          await db('cfa_test_checkouts','PATCH',{id:'eq.'+s.id,square_link_id:'is.null'},{snapshot});
+          s.snapshot=snapshot;
+        }
         const loc=env('SQUARE_SANDBOX_LOCATION_ID')?.trim();if(!loc||!ID.test(loc))fail('setup_required');
         const created=await square('/v2/online-checkout/payment-links','POST',{
           idempotency_key:s.id,order:{location_id:loc,reference_id:s.id,
