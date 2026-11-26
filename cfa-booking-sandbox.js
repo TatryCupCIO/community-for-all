@@ -81,7 +81,7 @@ function tag(){
  }else label?.remove();
 }
 function mode(value){enabled=!!value&&current();if(user)try{sessionStorage.setItem('cfa-test-mode:'+user,enabled?'1':'0')}catch{}
- tag();decorateCart();window.CFALoyaltyTreasure?.refresh();render();}
+ tag();decorateCart();window.CFALoyaltyTreasure?.refresh();window.CFARewards?.refresh();render();}
 function render(){
  panel.hidden=!current();if(panel.hidden)return;panel.replaceChildren();
  panel.append(node('h3',tr('Kompletná skúšobná rezervácia','Complete test booking')),
@@ -99,7 +99,6 @@ function render(){
    try{const r=await supabaseClient.rpc('cfa_allow_test_account',{p_email:input.value.trim()});if(r.error){const err=new Error();err.code=r.error.message;throw err}
     if(gen!==generation||user!==id)return;message=tr('Skúšobný účet je povolený.','The test account is enabled.');messageType='success';emailDraft='';input.value='';}
    catch(e){if(gen===generation){message=explanation(e);messageType='error'}}finally{if(gen===generation){running=false;render()}}};panel.append(form);
-  for(const a of alerts)panel.append(node('p',tr('Skúšobný nárok na odmenu: ','Test reward earned: ')+a.name+' · '+a.points+tr(' bodov',' points'),'cfa-test-notice'));
  }
  if(testEvents.length){panel.append(node('h4',tr('Skryté podujatia na skúšku','Hidden events for testing')));
   for(const event of testEvents){
@@ -146,7 +145,7 @@ async function saveStyle(event,theme,file){
   const saved=await supabaseClient.from('events').update({display_settings:settings}).eq('id',event.id).filter('display_settings','eq',JSON.stringify(original)).select('id').single();
   if(saved.error)throw saved.error;event.display_settings=settings;styleDrafts.delete(event.id);message=tr('Vzhľad vstupenky je uložený.','The ticket style has been saved.');messageType='success';
  }catch{if(gen===generation){message=tr('Vzhľad sa nepodarilo uložiť. Použite PNG/JPG do 2 MB a skúste Obnoviť.','Could not save the style. Use a PNG/JPG up to 2 MB and try Refresh.');messageType='error'}}
- finally{if(gen===generation){running=false;render()}}
+ finally{if(gen===generation){running=false;render();window.CFARewards?.refresh()}}
 }
 async function loadOrders(){
  const id=user,gen=generation;if(!current())return;
@@ -163,12 +162,11 @@ async function refresh(){
  }catch(e){if(gen!==generation)return;ready=false;message=explanation(e);messageType='error'}
  if(gen!==generation||user!==id)return;render();decorateCart();if(ready)window.CFALoyaltyTreasure?.refresh();await loadOrders();
  try{const e=await supabaseClient.from('events').select('id,title,display_settings,status,reservations_open').eq('status','hidden').order('start_date');if(gen===generation&&user===id&&!e.error){testEvents=e.data||[];render()}}catch{}
- if(isOwner&&ready){try{const r=await api({action:'owner_summary'});if(gen===generation&&user===id){alerts=r.members||[];render()}}catch{}}
 }
 async function setupAll(){
  if(running||!isOwner||!current())return;const gen=generation;running=true;message=tr('Pripravujem platobné potvrdenie, PDF a e-mailový server…','Preparing payment confirmation, PDF and email server…');messageType='info';render();
  try{await api({action:'setup'});if(gen!==generation)return;await refresh()}
- catch(e){if(gen===generation){message=explanation(e);messageType='error'}}finally{if(gen===generation){running=false;render()}}
+ catch(e){if(gen===generation){message=explanation(e);messageType='error'}}finally{if(gen===generation){running=false;render();window.CFARewards?.refresh()}}
 }
 function showDialog(){close.textContent=tr('Zavrieť','Close');dialogTitle.textContent=tr('Skúšobná rezervácia','Test booking');if(!dialog.open)dialog.showModal();}
 function testCard(){
