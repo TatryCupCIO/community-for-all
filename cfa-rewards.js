@@ -37,6 +37,13 @@ const textItems=r=>(r.items||[]).map(i=>(currentLanguage==='en'?i.en:i.sk)+' / '
 function errorMessage(error){return /reward_changed/.test(String(error?.message||error))?tr('Záznam už bol zmenený. Obnovujem prehľad.','This entry has changed. Refreshing the list.'):tr('Úpravu sa nepodarilo dokončiť. Obnovte prehľad; ak problém pretrváva, pošlite nám túto obrazovku.','Could not complete the change. Refresh the list; if it persists, send us this screen.');}
 async function rpc(name,args){const r=await supabaseClient.rpc(name,args);if(r.error)throw r.error;return r.data;}
 function badges(){const n=list.filter(r=>r.eligible&&!archived(r)).length;const s=tr('Odmeny','Rewards')+(environment==='sandbox'?tr(' · SKÚŠKA',' · TEST'):'')+' · '+n;account.textContent=header.textContent=s;account.hidden=header.hidden=!owner||!currentUser;}
+async function openReceiptMessage(r,asOwner){
+ const peer=asOwner?r.user_id:(r.closed_by||r.assigned_by);
+ if(!currentUser||!peer||!r.conversation_id||typeof window.openPrivateChatConversation!=='function')return;
+ if(asOwner&&!owner)return;if(!asOwner&&r.user_id!==currentUser.id)return;
+ if(dialog.open)dialog.close();const chest=$('cfaTreasureDialog');if(chest?.open)chest.close();
+ await window.openPrivateChatConversation(Number(r.conversation_id),{user_id:peer,display_name:asOwner?r.display_name:(r.closed_by_name||tr('Tím Tatry Cup CIO','Tatry Cup CIO team'))});
+}
 function receipt(r){const card=el('article');card.className='cfa-reward-card';card.append(el('p',(r.display_name||'')+' · '+(r.email||'')),el('h4',tr('Odmena za ','Reward for ')+r.required_points+tr(' bodov',' points')),el('p',state(r)));
  const items=el('p',textItems(r)||tr('Obsah odmeny doplní náš tím.','Our team will specify your reward.'));items.className='cfa-reward-info';card.append(items);
  if(!r.eligible&&!archived(r))card.append(el('p',tr('Nárok je pozastavený po zmene úhrady.','Entitlement paused following a payment change.')));
@@ -44,6 +51,7 @@ function receipt(r){const card=el('article');card.className='cfa-reward-card';ca
  if(r.coupon_code){card.append(el('p',tr('Jednorazový kupón pre váš účet: ','Single-use coupon for your account: ')+r.coupon_code),el('p',r.coupon_percent+'% · '+tr('Platnosť do: ','Valid until: ')+date(r.coupon_expires)),el('p',r.coupon_used?tr('Kupón bol využitý.','Coupon used.'):tr('Kupón zatiaľ nebol využitý.','Coupon not yet used.')));}
  if(r.coupon_checkout_url){try{const u=new URL(r.coupon_checkout_url);if(u.protocol==='https:'&&['sandbox.square.link','square.link','sandbox.checkout.square.site','checkout.square.site','checkout.squareupsandbox.com'].includes(u.hostname)){const a=el('a',tr('Pokračovať v skúšobnej platbe s kupónom','Resume test checkout with this coupon'));a.href=u.href;card.append(a)}}catch{}}
  if(r.closed_at)card.append(el('p',tr('Vybavené: ','Completed: ')+date(r.closed_at)+(r.closed_by_name?' · '+r.closed_by_name:'')));
+ if(r.conversation_id)card.append(button(tr('Zobraziť súkromnú správu','View private message'),()=>openReceiptMessage(r,false)));
  card.append(el('p',tr('Číslo nároku: ','Reward ID: ')+r.id));return card;
 }
 function personalDraw(host,data){host.replaceChildren();host.append(el('h3',tr('Aktívne odmeny','Active rewards')));
@@ -75,6 +83,7 @@ function overview(){
    if(r.state==='assigned'&&r.eligible)card.append(button(tr('Odovzdané osobne','Handed over in person'),()=>act(r,'deliver')));
    if(archived(r))card.append(button(tr('Odstrániť z môjho prehľadu','Remove from my overview'),()=>{if(confirm(tr('Odstrániť z vášho prehľadu? História príjemcu a evidencia vybavenia zostanú zachované.','Remove from your overview? The recipient history and completion record will remain.')))act(r,'hide')}));
   }
+  if(r.conversation_id)card.append(button(tr('Zobraziť súkromnú správu','View private message'),()=>openReceiptMessage(r,true)));
   card.append(el('p',tr('Číslo nároku: ','Reward ID: ')+r.id));cards.append(card);
  }if(!cards.children.length)cards.append(el('p',tr('V tomto zozname nie sú odmeny.','No rewards in this list.')));}
  drawCards();for(const n of body.querySelectorAll('button,input,select,textarea'))n.disabled=busy;close.disabled=busy;

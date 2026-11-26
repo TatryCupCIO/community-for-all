@@ -3,7 +3,7 @@ import nodemailer from 'npm:nodemailer@9.1.1';
 import { Buffer } from 'node:buffer';
 import postgres from 'npm:postgres@3.4.7';
 import { createTestTicket, createTestEmail, prepareBilling } from './cfa-sandbox-ticket.ts';
-import { INSTALL_SQL, SUPABASE_CA } from './cfa-sandbox-install.ts';
+import { INSTALL_SQL, UPGRADE_SQL, SUPABASE_CA } from './cfa-sandbox-install.ts';
 
 const SITE='https://tatrycupcio.uk';
 const SQUARE='https://connect.squareupsandbox.com';
@@ -16,10 +16,17 @@ const SAFE=new Set(['invalid_request','sign_in_required','test_access_required',
  'square_unavailable','smtp_configuration','smtp_unavailable','pdf_assets_unavailable','mail_pending',
  'verified_account_not_found','webhook_setup_failed','webhook_gateway_blocked','installation_failed','not_found']);
 type Options={env:(name:string)=>string|undefined;fetch?:typeof fetch;
-  pdf?:typeof createTestTicket;transport?:()=>any;install?:()=>Promise<void>};
+  pdf?:typeof createTestTicket;transport?:()=>any;install?:(schemaVersion:number)=>Promise<void>};
 const fail=(code:string):never=>{throw new Error(code)};
 export function safeInstallDiagnostic(e:any):string{
   const code=typeof e?.code==='string'?e.code:'';
+  if(code==='2BP01'){
+    // Dependency errors describe schema objects/privilege grants, not row values.
+    // Never include a SQL query, connection string, stack, or transport details.
+    const metadata=[e?.message,e?.detail].filter(v=>typeof v==='string').join(' | ')
+      .replace(/postgres(?:ql)?:\/\/\S+/gi,'[redacted]').replace(/[\r\n]/g,' ');
+    return 'SQLSTATE 2BP01 - '+metadata.slice(0,270);
+  }
   if(/^[0-9A-Z]{5}$/.test(code)){
     const message=typeof e?.message==='string'?e.message.replace(/[\r\n]/g,' '):'';
     const safe=/^(permission denied|must be (owner|superuser)|cannot change (name|return type)|function .+ does not exist|column .+ does not exist|relation .+ does not exist|schema .+ does not exist|extension .+ is not available|syntax error at or near|reservation_functions_missing|event_guard_changed|checkout_snapshot_patch_missing)/i;
@@ -184,24 +191,28 @@ export function makeSandboxHandler(options:Options){
     return ownOrder(s.id);
   }
   async function setup(){
-    let installed=false;try{installed=(await settings()).schema_version>=2}catch{}
-    if(!installed&&options.install){try{await options.install()}catch(e){installFail(safeInstallDiagnostic(e))}}
+    let schemaVersion=0;try{schemaVersion=Number((await settings()).schema_version)||0}catch{}
+    const installed=schemaVersion>=3;
+    if(!installed&&options.install){try{await options.install(schemaVersion)}catch(e){installFail(safeInstallDiagnostic(e))}}
     else if(!installed){
       const url=env('SUPABASE_DB_URL')||'';if(!url)installFail('DATABASE_URL_MISSING');
-      let connection:ReturnType<typeof postgres>|null=null;
+      let connection:ReturnType<typeof postgres>|null=null,stage='DATABASE_CONNECTION';
       try{
         const parsed=new URL(url);
         if(!['postgres:','postgresql:'].includes(parsed.protocol))installFail('DATABASE_URL_FORMAT');
         parsed.searchParams.delete('sslmode');
         connection=postgres(parsed.href,{ssl:{rejectUnauthorized:true,ca:SUPABASE_CA,minVersion:'TLSv1.2'},
-          max:1,prepare:false,connect_timeout:10,idle_timeout:5});
-        await connection.unsafe(INSTALL_SQL);
-      }catch(e){if(e instanceof Error&&(e as any).installationHint)throw e;installFail(safeInstallDiagnostic(e))}
+          max:1,prepare:false,connect_timeout:10,idle_timeout:5,
+          onnotice:notice=>{const value=String(notice.message||'');if(/^CFA_STAGE:S(?:56|57)_[0-9]{3} /.test(value))stage=value.slice(10,125)}});
+        // Version1 already has the validated payment/cart baseline. Upgrade only
+        // the new reward schema; do not replay old policy/permission changes.
+        await connection.unsafe(schemaVersion>=1?UPGRADE_SQL:INSTALL_SQL);
+      }catch(e){if(e instanceof Error&&(e as any).installationHint)throw e;installFail(stage+' | '+safeInstallDiagnostic(e))}
       finally{if(connection)await connection.end({timeout:2}).catch(()=>{})}
     }
     let config:any=null;
     for(let attempt=0;attempt<8;attempt++){
-      try{const value=await settings();if(value.schema_version>=2){config=value;break}}catch{}
+      try{const value=await settings();if(value.schema_version>=3){config=value;break}}catch{}
       await new Promise(resolve=>setTimeout(resolve,250));
     }
     if(!config)installFail('SCHEMA_VERSION_NOT_UPDATED');
@@ -280,7 +291,7 @@ export function makeSandboxHandler(options:Options){
         if(await rpc('cfa_is_owner',{},token)!==true)fail('owner_required');return reply(200,await setup());
       }
       if(body.action==='info'){
-        let ready=false;try{ready=!!(await settings()).configured_at&&(await settings()).schema_version>=2}catch{/* Owner setup installs the remaining schema. */}
+        let ready=false;try{ready=!!(await settings()).configured_at&&(await settings()).schema_version>=3}catch{/* Owner setup installs the remaining schema. */}
         return reply(200,{ok:true,environment:'sandbox',ready});
       }
       if(body.action==='owner_summary'){
