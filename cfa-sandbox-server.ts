@@ -2,7 +2,7 @@
 import nodemailer from 'npm:nodemailer@9.1.1';
 import { Buffer } from 'node:buffer';
 import postgres from 'npm:postgres@3.4.7';
-import { createTestTicket } from './cfa-sandbox-ticket.ts';
+import { createTestTicket, createTestEmail } from './cfa-sandbox-ticket.ts';
 import { INSTALL_SQL, SUPABASE_CA } from './cfa-sandbox-install.ts';
 
 const SITE='https://tatrycupcio.uk';
@@ -125,28 +125,18 @@ export function makeSandboxHandler(options:Options){
   async function deliver(id:string):Promise<string>{
     const claim=await rpc('cfa_test_claim_mail',{p_checkout_id:id});
     if(!claim)return (await db('cfa_test_mail','GET',{checkout_id:'eq.'+id,select:'status'}))?.[0]?.status||'pending';
-    const s=claim.checkout,sk=s.language==='sk',tr=(a:string,b:string)=>sk?a:b;
+    const s=claim.checkout;
     let bytes:Uint8Array;
     try{bytes=await document(s)}catch{
       await rpc('cfa_test_finish_mail',{p_checkout_id:id,p_lock_token:claim.lock_token,p_success:false,p_error:'pdf_failed'});return 'failed';
     }
     try{
       const fresh=await ownOrder(id);if(fresh.status!=='paid')return 'void';
-      const e=s.snapshot.event;
-      const eventTitle=sk?e.title:(e.display_settings?.title_en||e.title);
-      const lines=s.snapshot.items.map((i:any)=>`${i.quantity} × ${sk?i.name_sk:i.name_en}: GBP ${Number(i.line_total).toFixed(2)}`).join('\n');
-      const body=tr('Dobrý deň,\n\nvaša skúšobná rezervácia bola potvrdená.','Hello,\n\nyour test booking has been confirmed.')+
-        '\n\n'+eventTitle+'\n'+e.start_date+' - '+e.end_date+'\n'+[e.venue_name,e.address,e.postcode].filter(Boolean).join(', ')+
-        '\n\n'+tr('Kód skúšobnej vstupenky: ','Test ticket code: ')+s.ticket_code+'\n'+lines+
-        '\n\n'+tr('Skúšobne uhradené: GBP ','Test amount paid: GBP ')+Number(s.snapshot.total).toFixed(2)+
-        '\n'+tr('Skúšobné body za túto rezerváciu: ','Test points for this booking: ')+ticketPoints(s.snapshot)+
-        '\n\n'+tr('Kompletnú skúšobnú PDF vstupenku nájdete v prílohe. Žiadne skutočné peniaze neboli stiahnuté. Toto je skúšobná rezervácia; doklad nie je platný na vstup ani na ubytovanie.',
-        'Your complete test PDF ticket is attached. No real money was charged. This is a test booking; the document is not valid for admission or accommodation.')+
-        '\n\nTatry Cup Community Organisation CIO\nCommunity For All\napp@tatrycupcio.uk';
+      const email=createTestEmail(s,ticketPoints(s.snapshot));
       const sent=await mailTransport().sendMail({
         from:env('CFA_MAIL_FROM'),to:s.recipient,replyTo:'app@tatrycupcio.uk',
-        subject:tr('Skúšobná rezervácia potvrdená: ','Test booking confirmed: ')+String(eventTitle).replace(/[\r\n]/g,' ').slice(0,120),
-        text:body,messageId:'<cfa-test-'+s.id+'@tatrycupcio.uk>',
+        subject:email.subject,
+        text:email.text,messageId:'<cfa-test-'+s.id+'@tatrycupcio.uk>',
         disableFileAccess:true,disableUrlAccess:true,
         attachments:[{filename:s.ticket_code+'.pdf',content:Buffer.from(bytes),contentType:'application/pdf'}]});
       if(!sent.accepted?.length)throw new Error('not_accepted');
