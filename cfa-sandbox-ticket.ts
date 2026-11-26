@@ -19,25 +19,65 @@ export function testItemDetails(i:any):string[]{
     rows.push('NIGHTS / NOCI: '+n(i.number_of_nights));
   }
   if(n(i.adult_count))rows.push('ADULTS / DOSPELÍ: '+n(i.adult_count));
-  if(n(i.paid_child_count))rows.push('PAID CHILDREN / PLATIACE DETI: '+n(i.paid_child_count)+age(i.paid_child_ages));
-  if(n(i.free_child_count))rows.push('FREE CHILDREN / DETI ZDARMA: '+n(i.free_child_count)+age(i.free_child_ages));
+  if(n(i.paid_child_count))rows.push((i.is_accommodation?'CHILDREN WITH OWN BED / DETI NA LÔŽKU: ':'PAID CHILDREN / PLATIACE DETI: ')+n(i.paid_child_count)+age(i.paid_child_ages));
+  if(n(i.free_child_count))rows.push((i.is_accommodation?(i.option_code==='small_tent'||i.option_code==='large_tent'||i.option_code==='caravan_motorhome'?'CHILDREN STAYING / UBYTOVANÉ DETI: ':'CHILDREN WITHOUT OWN BED / DETI BEZ VLASTNÉHO LÔŽKA: '):'REGISTERED CHILDREN / REGISTROVANÉ DETI: ')+n(i.free_child_count)+age(i.free_child_ages));
   if(!n(i.paid_child_count)&&!n(i.free_child_count)&&i.child_ages?.length)rows.push('CHILD AGES / VEK DETÍ: '+i.child_ages.join(', '));
   if(n(i.bed_adult_count)||n(i.bed_child_count))rows.push('OWN BED / VLASTNÉ LÔŽKO: '+n(i.bed_adult_count)+' adults / dospelí, '+n(i.bed_child_count)+' children / deti'+age(i.bed_child_ages));
   if(n(i.no_bed_adult_count)||n(i.no_bed_child_count))rows.push('NO OWN BED / BEZ LÔŽKA: '+n(i.no_bed_adult_count)+' adults / dospelí, '+n(i.no_bed_child_count)+' children / deti'+age(i.no_bed_child_ages));
   // State breakfast only when the purchased option explicitly includes it.
-  if(/with breakfast|breakfast included|s raňajkami|vrátane raňajok/i.test(names(i).join(' ')))rows.unshift('BREAKFAST INCLUDED / RAŇAJKY ZAHRNUTÉ');
+  if(/with breakfast|breakfast included|s raňajkami|vrátane raňajok/i.test(names(i).join(' ')))rows.unshift('BREAKFAST INCLUDED FOR PAID WEEKEND ADMISSION / RAŇAJKY K PLATENÉMU VÍKENDOVÉMU VSTUPNÉMU');
   return rows;
 }
+export type BillingRow={en:string;sk:string;quantity:number;unit:number;total:number};
+const pennies=(v:any)=>Math.round(Number(v||0)*100);
+const amount=(v:any)=>'GBP '+Number(v||0).toFixed(2);
+export function itemBilling(i:any,stored?:BillingRow[]):BillingRow[]{
+  const gross=pennies(i.original_line_total??i.line_total),qty=n(i.quantity)||1;
+  if(stored?.length&&stored.every(r=>Number.isFinite(r.total)&&r.total>=0&&Number.isFinite(r.unit)&&r.unit>=0&&r.quantity>0&&pennies(r.quantity*r.unit)===pennies(r.total))&&stored.reduce((a,r)=>a+pennies(r.total),0)===gross)return stored;
+  const [en,sk]=names(i),unit=pennies(i.unit_price);
+  if(unit*qty===gross)return [{en,sk,quantity:qty,unit:unit/100,total:gross/100}];
+  // Historical snapshots carry the unit room price. A remainder is labelled as
+  // included mattress admission, never as another charge for accommodation.
+  if(i.is_accommodation&&['private_lodge_4','private_room_2'].includes(i.option_code)&&unit*qty<=gross&&unit>0){
+    const extra=gross-unit*qty,adults=n(i.no_bed_adult_count),ages=i.no_bed_child_ages?.length?i.no_bed_child_ages:(i.free_child_ages||[]),paid=ages.filter((v:number)=>v>=5).length;
+    if(extra!==adults*3500+paid*1500)return [{en:en+' - package total',sk:sk+' - cena balíka',quantity:1,unit:gross/100,total:gross/100}];
+    const rows:BillingRow[]=[{en:'Room package - fixed price',sk:'Balík izby - pevná cena',quantity:qty,unit:unit/100,total:unit*qty/100}];
+    if(extra){const q=adults&&!paid?adults:paid&&!adults?paid:1;rows.push({en:adults&&!paid?'Weekend admission - mattress adults 18+':paid&&!adults?'Weekend admission - mattress children 5-17':'Mattress guest admission - total',sk:adults&&!paid?'Víkendové vstupné - dospelí na matraci 18+':paid&&!adults?'Víkendové vstupné - deti na matraci 5-17':'Vstupné osôb na matraci - spolu',quantity:q,unit:extra/100/q,total:extra/100})}
+    return rows;
+  }
+  return [{en:en+' - package total',sk:sk+' - cena balíka',quantity:1,unit:gross/100,total:gross/100}];
+}
+export function prepareBilling(snapshot:any,options:any[]):BillingRow[][]{
+  return snapshot.items.map((i:any)=>{
+    const cfg=options.find(o=>String(o.id)===String(i.event_option_id));
+    if(!i.is_accommodation||!cfg||!['private_lodge_4','private_room_2'].includes(i.option_code))return itemBilling(i);
+    const q=n(i.quantity),nights=['per_room_per_night','per_night'].includes(cfg.pricing_unit)?n(i.number_of_nights):1;
+    if(!q||!nights)return itemBilling(i);
+    const base=pennies(i.unit_price)*q*nights;
+    const rows:BillingRow[]=[{en:'Room package - fixed price'+(nights>1?' per night':''),sk:'Balík izby - pevná cena'+(nights>1?' za noc':''),quantity:q*nights,unit:pennies(i.unit_price)/100,total:base/100}];
+    const ages=i.no_bed_child_ages?.length?i.no_bed_child_ages:(i.free_child_ages||[]);
+    const guests=[{q:n(i.no_bed_adult_count),id:cfg.adult_ticket_option_id,en:'Weekend admission - mattress adults 18+',sk:'Víkendové vstupné - dospelí na matraci 18+'},
+      {q:ages.filter((a:number)=>a>=5).length,id:cfg.child_ticket_option_id,en:'Weekend admission - mattress children 5-17',sk:'Víkendové vstupné - deti na matraci 5-17'},
+      {q:ages.filter((a:number)=>a<5).length,id:cfg.free_child_ticket_option_id,en:'Admission - children aged 0-4',sk:'Vstupné - deti 0-4 roky'}];
+    for(const g of guests){if(!g.q)continue;const t=options.find(o=>String(o.id)===String(g.id));if(!t||t.is_accommodation||t.admission_type!=='weekend'||!Number.isFinite(Number(t.price)))return itemBilling(i);
+      rows.push({en:g.en,sk:g.sk,quantity:g.q,unit:pennies(t.price)/100,total:g.q*pennies(t.price)/100});}
+    return itemBilling(i,rows);
+  });
+}
+export function billingText(i:any,stored?:BillingRow[]):string[]{
+  return itemBilling(i,stored).map(r=>r.en+' / '+r.sk+': '+r.quantity+' × '+amount(r.unit)+' = '+amount(r.total));
+}
+export const childPolicy='AGES 0-4: admission free, no included breakfast or competition entry; accompanied by a parent. / DETI 0-4: vstup zdarma, bez raňajok a súťaží, v sprievode rodiča.';
 export function createTestEmail(s:any,points:number):{subject:string;text:string}{
   const snap=s.snapshot,e=snap.event,titles=testEventNames(e);
-  const items=snap.items.map((i:any)=>{const [en,sk]=names(i);return `${i.quantity} × ${en}\n${sk}\n${testItemDetails(i).join('\n')}\nGBP ${Number(i.line_total||0).toFixed(2)}`}).join('\n\n');
+  const items=snap.items.map((i:any,index:number)=>{const [en,sk]=names(i);return `${i.quantity} × ${en}\n${sk}\n${testItemDetails(i).join('\n')}\n${billingText(i,snap.billing_lines?.[index]).join('\n')}`}).join('\n\n');
   const text=[
     'TEST BOOKING CONFIRMED / SKÚŠOBNÁ REZERVÁCIA POTVRDENÁ',
     'Hello, your test booking has been confirmed.\nDobrý deň, vaša skúšobná rezervácia bola potvrdená.',
     titles.join(' / '),date(e.start_date)+' - '+date(e.end_date),[e.venue_name,e.address,e.postcode].filter(Boolean).join(', '),
     'BOOKING HOLDER / DRŽITEĽ REZERVÁCIE: '+[snap.customer.name,snap.customer.email].filter(Boolean).join(' | '),
     'TEST PAYMENT COMPLETE / SKÚŠOBNE ZAPLATENÉ',
-    'TICKET CODE / KÓD VSTUPENKY: '+s.ticket_code,items,
+    'TICKET CODE / KÓD VSTUPENKY: '+s.ticket_code,items,childPolicy,
     'SUBTOTAL / MEDZISÚČET: GBP '+Number(snap.subtotal||0).toFixed(2)+'\nDISCOUNT / ZĽAVA: GBP '+Number(snap.discount||0).toFixed(2)+'\nTEST AMOUNT PAID / SKÚŠOBNE UHRADENÉ: GBP '+Number(snap.total).toFixed(2),
     'TEST POINTS / SKÚŠOBNÉ BODY: '+points,
     'Your bilingual test PDF ticket is attached. No real money was charged. This test document is not valid for admission or accommodation.\nDvojjazyčná skúšobná PDF vstupenka je v prílohe. Žiadne skutočné peniaze neboli stiahnuté. Skúšobný doklad neplatí na vstup ani na ubytovanie.',
@@ -63,7 +103,7 @@ export async function createTestTicket(order:any,assets:TicketAssets):Promise<Ui
   let page:any,y=0;
   const text=(v:any,x:number,yy:number,size=12,font=regular,c=navy)=>page.drawText(clean(v),{x,y:yy,size,font,color:c});
   const image=(im:any,x:number,yy:number,w:number,h:number)=>{const scale=Math.min(w/im.width,h/im.height);page.drawImage(im,{x:x+(w-im.width*scale)/2,y:yy+(h-im.height*scale)/2,width:im.width*scale,height:im.height*scale})};
-  function newPage(){
+  function newPage(details=false){
     page=doc.addPage([1050,470]);page.drawRectangle({x:0,y:0,width:1050,height:470,color:white});
     // Faceted decoration stays in the stub, away from registration information.
     page.drawRectangle({x:844,y:0,width:206,height:470,color:navy});
@@ -85,9 +125,11 @@ export async function createTestTicket(order:any,assets:TicketAssets):Promise<Ui
     text(date(e.start_date)+(e.end_date!==e.start_date?' - '+date(e.end_date):''),28,370,16,bold);
     let vy=353;for(const l of wrap([e.venue_name,e.address,e.postcode].filter(Boolean).join(', '),regular,10.5,790)){text(l,28,vy,10.5,regular,muted);vy-=13}
     y=Math.min(330,vy-12);
+    if(details){text('Booking holder / Držiteľ: '+(s.customer.name||s.customer.email),28,y,12,bold);y-=22}else{
     text('BOOKING HOLDER / DRŽITEĽ REZERVÁCIE',28,y,9,bold,blue);y-=24;
     for(const l of wrap(s.customer.name||s.customer.email,bold,21,790)){text(l,28,y,21,bold);y-=25}
     text([s.customer.email,s.customer.phone].filter(Boolean).join(' | '),28,y+4,10,regular,muted);y-=16;
+    }
     text('TEST TICKET',861,432,19,bold,white);text('SKÚŠOBNÁ VSTUPENKA',861,414,10,bold,white);
     page.drawRectangle({x:858,y:338,width:178,height:54,color:gold});
     text('TEST PAYMENT',869,372,12,bold);text('COMPLETE',869,354,16,bold);
@@ -125,10 +167,10 @@ export async function createTestTicket(order:any,assets:TicketAssets):Promise<Ui
       if(i.option_date||i.service_date)details.push('Valid / Platí: '+date(i.option_date||i.service_date));
       if(i.is_accommodation)details.push((i.night_start_date?'From / Od: '+date(i.night_start_date)+' | ':'')+'Nights / Noci: '+n(i.number_of_nights));
       if(n(i.adult_count))details.push('Adults / Dospelí: '+n(i.adult_count));
-      if(n(i.paid_child_count))details.push('Paid children / Platiace deti: '+n(i.paid_child_count)+' | Age / Vek: '+(i.paid_child_ages||[]).join(', '));
-      if(n(i.free_child_count))details.push('Free children / Deti zdarma: '+n(i.free_child_count)+' | Age / Vek: '+(i.free_child_ages||[]).join(', '));
+      if(n(i.paid_child_count))details.push((i.is_accommodation?'Children with bed / Deti na lôžku: ':'Paid children / Platiace deti: ')+n(i.paid_child_count)+' | Age / Vek: '+(i.paid_child_ages||[]).join(', '));
+      if(n(i.free_child_count))details.push((i.is_accommodation&&['small_tent','large_tent','caravan_motorhome'].includes(i.option_code)?'Children staying / Ubytované deti: ':'Children without bed / Deti bez lôžka: ')+n(i.free_child_count)+' | Age / Vek: '+(i.free_child_ages||[]).join(', '));
       if(!n(i.paid_child_count)&&!n(i.free_child_count)&&i.child_ages?.length)details.push('Child ages / Vek detí: '+i.child_ages.join(', '));
-      if(testItemDetails(i).some(d=>d.startsWith('BREAKFAST')))details.unshift('BREAKFAST / RAŇAJKY: INCLUDED / V CENE');
+      if(testItemDetails(i).some(d=>d.startsWith('BREAKFAST')))details.unshift('BREAKFAST / RAŇAJKY: PAID WEEKEND / PLATENÝ VÍKEND');
       for(const d of details)wrap(d,bold,10.5,375).forEach(v=>rows.push({v,size:10.5,font:bold,c:blue}));
       const h=rows.reduce((a:number,r:any)=>a+r.size+2,0)+7;
       if(cy-h<43&&h<top-66){nextColumnPage();text(col?'ACCOMMODATION / UBYTOVANIE':'ADMISSION / VSTUP',x,cy,10,bold,blue);cy-=23}
@@ -140,19 +182,21 @@ export async function createTestTicket(order:any,assets:TicketAssets):Promise<Ui
   });
   // Full wording, bed allocation and financial detail stay available, without
   // reducing the size of the information checked at the gate.
-  newPage();text('FULL BOOKING DETAILS / ÚPLNÉ PODROBNOSTI REZERVÁCIE',28,y,12,bold,blue);y-=23;
-  for(const i of s.items){
+  newPage(true);text('FULL BOOKING DETAILS / ÚPLNÉ PODROBNOSTI REZERVÁCIE',28,y,12,bold,blue);y-=23;
+  for(const [index,i] of s.items.entries()){
     const [en,sk]=names(i),rows:any[]=[];
-    wrap(`${i.quantity} × ${en} | ${money(i.line_total)}`,bold,13,780).forEach(v=>rows.push({v,size:13,font:bold,c:navy}));
+    wrap(`${i.quantity} × ${en}`,bold,12,780).forEach(v=>rows.push({v,size:12,font:bold,c:navy}));
     if(sk!==en)wrap(sk,regular,10,780).forEach(v=>rows.push({v,size:10,font:regular,c:muted}));
     for(const d of testItemDetails(i).filter(d=>d.startsWith('OWN BED')||d.startsWith('NO OWN BED')))wrap(d,bold,9,780).forEach(v=>rows.push({v,size:9,font:bold,c:blue}));
+    for(const b of billingText(i,s.billing_lines?.[index]))wrap(b,bold,10,780).forEach(v=>rows.push({v,size:10,font:bold,c:navy}));
     const h=rows.reduce((a:number,r:any)=>a+r.size+3,0)+10;
-    if(y-h<44&&h<215)newPage();
-    for(const r of rows){if(y-r.size<44)newPage();text(r.v,28,y,r.size,r.font,r.c);y-=r.size+3}y-=10;
+    if(y-h<44&&h<250)newPage(true);
+    for(const r of rows){if(y-r.size<44)newPage(true);text(r.v,28,y,r.size,r.font,r.c);y-=r.size+3}y-=10;
   }
+  for(const line of wrap(childPolicy,regular,8,790)){if(y<45)newPage(true);text(line,28,y,8,regular,muted);y-=11}
   // Financial details are subordinate and remain available on the final page.
   const financial='Subtotal / Medzisúčet: '+money(s.subtotal)+'    Discount / Zľava: '+money(s.discount)+'    Total / Celkom: '+money(s.total);
-  if(y<42)newPage();text(financial,28,y,9,regular,muted);
+  if(y<42)newPage(true);text(financial,28,y,9,regular,muted);
   const pages=doc.getPages();pages.forEach((p:any,i:number)=>{page=p;
     text('TEST ONLY. Not valid for entry or accommodation. / SKÚŠKA. Neplatí na vstup ani ubytovanie.',28,24,8,bold);
     text('Tatry Cup Community Organisation CIO | Charity 1216952 | app@tatrycupcio.uk',28,10,7,regular,muted);
