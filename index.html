@@ -9231,6 +9231,9 @@ function cfaAttachCartDiscount(box, bookingId) {
   row.append(input,apply);if(!remove.hidden)row.appendChild(remove);form.append(label,row,feedback);box.appendChild(form);
   let pending = false;
   const errors = [
+    ['reward_coupon_not_for_account','Tento kupón je určený inému účtu alebo nárok momentálne nie je platný.','This coupon belongs to another account or the entitlement is currently invalid.'],
+    ['reward_coupon_used','Tento jednorazový kupón už bol využitý.','This single-use coupon has already been used.'],
+    ['reward_coupon_in_another_cart','Kupón je rezervovaný v inom košíku. V truhličke otvorte pôvodnú platbu.','This coupon is reserved in another cart. Open the original checkout from your treasure chest.'],
     ['Invalid or expired discount code','Kód je neplatný, vypnutý alebo mu skončila platnosť.','This code is invalid, disabled or expired.'],
     ['Discount code usage limit reached','Kód už dosiahol povolený počet použití.','This code has reached its usage limit.'],
     ['Discount code already used','Tento kód si už použil/a.','You have already used this code.'],
@@ -9356,11 +9359,12 @@ function cfaValidateChildAgeFields(row) {
 <script src="notification-target.js?v=20261121-six-12"></script>
 <script src="navigation-notifications.js?v=20261121-six-12"></script>
 <script src="header-accessibility.js?v=20261121-header-10"></script>
-<script src="loyalty-treasure.js?v=20261126-sandbox-1"></script>
+<script src="cfa-rewards.js?v=20261126-rewards-1"></script>
+<script src="loyalty-treasure.js?v=20261126-rewards-1"></script>
 <script src="legal-documents.js?v=20261126-public-1"></script>
 <script src="legal-registration.js?v=20261122-legal-2"></script>
 <script src="quick-chat.js?v=20261122-messenger-1"></script>
 <script src="square-check.js?v=20261126-check-1"></script>
-<script src="cfa-booking-sandbox.js?v=20261126-plain-billing-3"></script>
+<script src="cfa-booking-sandbox.js?v=20261126-rewards-4"></script>
 </body>
   </html>
