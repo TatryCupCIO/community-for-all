@@ -173,7 +173,7 @@ export function makeSandboxHandler(options:Options){
     return ownOrder(s.id);
   }
   async function setup(){
-    let installed=false;try{installed=(await settings()).schema_version===1}catch{}
+    let installed=false;try{installed=(await settings()).schema_version>=2}catch{}
     if(!installed&&options.install)await options.install();
     else if(!installed){
       const url=env('SUPABASE_DB_URL')||'';if(!url)fail('installation_failed');
@@ -190,7 +190,7 @@ export function makeSandboxHandler(options:Options){
     }
     let config:any=null;
     for(let attempt=0;attempt<8;attempt++){
-      try{const value=await settings();if(value.schema_version===1){config=value;break}}catch{}
+      try{const value=await settings();if(value.schema_version>=2){config=value;break}}catch{}
       await new Promise(resolve=>setTimeout(resolve,250));
     }
     if(!config)fail('installation_failed');
@@ -232,6 +232,25 @@ export function makeSandboxHandler(options:Options){
       if(!base||!service||!anon)fail('setup_required');
       const webhook=isWebhook;
       const raw=new TextDecoder().decode(await limited(req,webhook?256*1024:4096));
+      if(new URL(req.url).searchParams.get('reward-mail')==='1'){
+        let job:any;try{job=JSON.parse(raw)}catch{return reply(400,{error:'invalid_request'})}
+        if(!UUID.test(job?.id||'')||!UUID.test(job?.token||''))return reply(400,{error:'invalid_request'});
+        const claimed=await rpc('cfa_reward_claim_mail',{p_id:job.id,p_secret:job.token});
+        if(!claimed)return reply(200,{ok:true});
+        try{
+          const sent=await mailTransport().sendMail({from:env('CFA_MAIL_FROM'),to:claimed.recipient,
+            replyTo:'app@tatrycupcio.uk',subject:claimed.subject,text:claimed.body,
+            messageId:'<cfa-reward-'+claimed.id+'@tatrycupcio.uk>',disableFileAccess:true,disableUrlAccess:true});
+          if(!sent.accepted?.length)throw Error('not_accepted');
+        }catch{
+          transport?.close?.();transport=null;
+          await rpc('cfa_reward_finish_mail',{p_id:job.id,p_lock_token:claimed.lock_token,p_success:false});
+          return reply(503,{error:'mail_pending'});
+        }
+        // Preserve the lease if SMTP accepted but acknowledgement fails.
+        const done=await rpc('cfa_reward_finish_mail',{p_id:job.id,p_lock_token:claimed.lock_token,p_success:true});
+        return reply(done?200:503,{ok:done});
+      }
       if(webhook){
         const config=await settings();
         if(config.notification_url!==webhookURL||!await validSignature(config.webhook_key,webhookURL,raw,req.headers.get('x-square-hmacsha256-signature')||''))return reply(403,{error:'signature_invalid'});
@@ -250,7 +269,7 @@ export function makeSandboxHandler(options:Options){
         if(await rpc('cfa_is_owner',{},token)!==true)fail('owner_required');return reply(200,await setup());
       }
       if(body.action==='info'){
-        let ready=false;try{ready=!!(await settings()).configured_at}catch{/* Owner setup installs the remaining schema. */}
+        let ready=false;try{ready=!!(await settings()).configured_at&&(await settings()).schema_version>=2}catch{/* Owner setup installs the remaining schema. */}
         return reply(200,{ok:true,environment:'sandbox',ready});
       }
       if(body.action==='owner_summary'){
