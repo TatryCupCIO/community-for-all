@@ -4,32 +4,33 @@ const $=id=>document.getElementById(id),tr=(sk,en)=>currentLanguage==='en'?en:sk
 const node=(tag,text,cls)=>{const n=document.createElement(tag);if(text!=null)n.textContent=text;if(cls)n.className=cls;return n;};
 const btn=(text,fn)=>{const b=node('button',text,'secondary-btn');b.type='button';b.onclick=fn;return b;};
 const style=node('style');style.textContent=`
-#cfaSandboxPanel{border-top:1px solid #c5dcd9;margin-top:24px;padding-top:18px}
+#cfaSandboxPanel{border-top:1px solid #c9d0dc;margin-top:24px;padding-top:18px}
 #cfaSandboxPanel[hidden]{display:none!important}.cfa-sandbox-controls{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
 .cfa-sandbox-controls button{flex:1 1 170px;min-height:44px}.cfa-sandbox-mode{display:flex;gap:10px;align-items:center}
-.cfa-sandbox-mode input{width:22px;height:22px}.cfa-sandbox-tag{display:block;color:#005d61;font-size:11px;font-weight:700}
-#cfaSandboxDialog{box-sizing:border-box;width:min(620px,94vw);max-height:90dvh;overflow:auto;background:#fff;color:#143d46;border:1px solid #b8d5cf;border-radius:16px;padding:20px}
-#cfaSandboxDialog::backdrop{background:#092f38aa}#cfaSandboxDialog:not([open]){display:none}
-#cfaSandboxDialog .message{box-sizing:border-box;width:100%;padding:16px!important;margin:14px 0!important;border:0!important;border-left:5px solid #17627b!important;border-radius:10px!important;background:#edf6fc!important;color:#123d52!important;font-size:17px!important;font-weight:650!important;line-height:1.55!important;text-align:left!important;white-space:pre-wrap;overflow-wrap:anywhere;opacity:1!important}
-#cfaSandboxDialog .message.success{background:#edf8f0!important;color:#143d27!important;border-left-color:#17603b!important}
-#cfaSandboxDialog .message.error{background:#fff1f2!important;color:#721c24!important;border-left-color:#a12730!important}
-#cfaSandboxDialog .cfa-sandbox-controls{flex-direction:column;align-items:stretch;gap:14px}
+.cfa-sandbox-mode input{width:22px;height:22px}.cfa-sandbox-tag{display:block;color:#263c61;font-size:11px;font-weight:700}
+#cfaSandboxDialog{box-sizing:border-box;width:min(900px,94vw);max-height:90dvh;overflow:auto;background:#fff!important;color:#17243d!important;border:1px solid #c9d0dc!important;border-radius:14px;padding:24px}
+#cfaSandboxDialog::backdrop{background:#16233899}#cfaSandboxDialog:not([open]){display:none}
+#cfaSandboxDialog .cfa-test-notice,#cfaSandboxPanel .cfa-test-notice{display:block!important;box-sizing:border-box;width:100%;padding:0!important;margin:18px 0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#17243d!important;font-size:20px!important;font-weight:600!important;line-height:1.6!important;text-align:left!important;white-space:pre-wrap;overflow-wrap:anywhere;opacity:1!important;box-shadow:none!important}
+#cfaSandboxDialog .cfa-sandbox-controls{display:flex;flex-direction:column;align-items:stretch;gap:16px}
 #cfaSandboxDialog .cfa-sandbox-controls>*{box-sizing:border-box;min-width:0;flex:none;width:100%}
-#cfaSandboxDialog a.primary-btn{display:flex;align-items:center;justify-content:center;min-height:52px;padding:14px 18px!important;border:2px solid #005b60!important;border-radius:10px;background:#006b6f!important;color:#fff!important;font-size:18px!important;font-weight:750!important;line-height:1.4!important;text-align:center;text-decoration:none!important}
-#cfaSandboxDialog a.primary-btn:focus-visible{outline:3px solid #173445;outline-offset:3px}
-#cfaSandboxDialog button.secondary-btn{min-height:44px;padding:10px 14px!important;background:#e6f5ef!important;color:#07575b!important;border:1px solid #bfd8d2!important;border-radius:9px;font-size:16px!important;line-height:1.4!important}
-#cfaSandboxDialog .cfa-sandbox-order{background:#fff!important;color:#143d46!important;padding:16px;margin:0;font-size:16px!important;line-height:1.5!important}
+#cfaSandboxDialog a.cfa-test-pay{display:flex!important;align-items:center;justify-content:center;min-height:58px;padding:16px 20px!important;border:0!important;border-radius:9px;background:#192b49!important;color:#fff!important;font-size:22px!important;font-weight:750!important;line-height:1.4!important;text-align:center;text-decoration:none!important}
+#cfaSandboxDialog a.cfa-test-pay:focus-visible{outline:3px solid #ec711c;outline-offset:3px}
+#cfaSandboxDialog button,#cfaSandboxPanel button{min-height:46px;padding:12px 16px!important;background:#eef1f6!important;color:#17243d!important;border:1px solid #c9d0dc!important;border-radius:9px;font-size:18px!important;line-height:1.4!important}
+#cfaSandboxDialog h2{color:#17243d!important;font-size:26px!important;line-height:1.35!important}
+#cfaSandboxDialog .cfa-sandbox-order{background:#fff!important;color:#17243d!important;border:1px solid #c9d0dc!important;padding:18px;margin:0;font-size:18px!important;line-height:1.6!important}
+#cfaSandboxDialog .cfa-sandbox-order h4,#cfaSandboxDialog .cfa-sandbox-order p{color:#17243d!important;font-size:18px!important;line-height:1.6!important}
+.cfa-sandbox-order{background:#fff!important;color:#143d46!important;padding:16px;margin:0;font-size:16px!important;line-height:1.5!important}
 #cfaSandboxDialog .cfa-sandbox-order h4{color:#143d46!important;font-size:17px!important;line-height:1.4!important;margin:0 0 12px}
 #cfaSandboxDialog .cfa-sandbox-order p{color:#143d46!important;font-size:16px!important;line-height:1.5!important}
-.cfa-sandbox-order{border:1px solid #b8d5cf;border-radius:12px;padding:12px;margin:10px 0;overflow-wrap:anywhere}
+.cfa-sandbox-order{border:1px solid #c9d0dc;border-radius:12px;padding:12px;margin:10px 0;overflow-wrap:anywhere}
 .cfa-sandbox-label{display:block;margin:12px 0}.cfa-sandbox-label input,.cfa-sandbox-label select{display:block;width:100%;box-sizing:border-box;min-height:44px;margin-top:6px}
 `;document.head.append(style);
 const panel=node('section');panel.id='cfaSandboxPanel';panel.hidden=true;
 const host=$('accountPage')?.querySelector('.card');if(!host)return;host.append(panel);
 const dialog=node('dialog');dialog.id='cfaSandboxDialog';dialog.setAttribute('aria-label',tr('Skúšobná rezervácia','Test booking'));
 const close=btn('',()=>{pollRevision++;clearTimeout(timer);dialog.close();});
-const dialogTitle=node('h2'),dialogMessage=node('div',null,'message info'),dialogActions=node('div',null,'cfa-sandbox-controls');
-dialogMessage.setAttribute('role','status');dialog.append(close,dialogTitle,dialogMessage,dialogActions);document.body.append(dialog);
+const dialogTitle=node('h2'),dialogMessage=node('div',null,'cfa-test-notice'),dialogActions=node('div',null,'cfa-sandbox-controls');
+dialogMessage.setAttribute('role','status');dialogMessage.style.cssText='display:block!important;background:transparent!important;color:#17243d!important;border:0!important;box-shadow:none!important;padding:0!important;line-height:1.6!important';dialog.append(close,dialogTitle,dialogMessage,dialogActions);document.body.append(dialog);
 dialog.addEventListener('cancel',()=>{pollRevision++;clearTimeout(timer)});
 let user=null,isOwner=false,ready=false,enabled=false,generation=0,pollRevision=0,timer=null,running=false,message='',messageType='info',orders=[],alerts=[],testEvents=[];
 let emailDraft='';const styleDrafts=new Map();
@@ -90,7 +91,7 @@ function render(){
  const controls=node('div',null,'cfa-sandbox-controls');
  if(isOwner){const setup=btn(tr('Pripraviť celú skúšku','Prepare complete test'),setupAll);setup.disabled=running;controls.append(setup)}
  controls.append(btn(tr('Obnoviť stav','Refresh status'),refresh),btn(tr('Otvoriť podujatia a rezerváciu','Open events and booking'),()=>{mode(true);showEvents()}));panel.append(controls);
- if(message){const m=node('p',message,'message '+messageType);m.setAttribute('role',messageType==='error'?'alert':'status');panel.append(m)}
+ if(message){const m=node('p',message,'cfa-test-notice cfa-test-'+messageType);m.setAttribute('role',messageType==='error'?'alert':'status');panel.append(m)}
  if(isOwner){
   const form=node('form');const l=node('label',tr('E-mail ďalšieho skúšobného účtu','Email of another test account'),'cfa-sandbox-label'),input=node('input');input.type='email';input.required=true;input.maxLength=254;input.autocomplete='off';input.value=emailDraft;input.oninput=()=>emailDraft=input.value;l.append(input);
   const add=node('button',tr('Povoliť skúšku tomuto účtu','Enable testing for this account'),'secondary-btn');add.type='submit';add.disabled=running;
@@ -98,7 +99,7 @@ function render(){
    try{const r=await supabaseClient.rpc('cfa_allow_test_account',{p_email:input.value.trim()});if(r.error){const err=new Error();err.code=r.error.message;throw err}
     if(gen!==generation||user!==id)return;message=tr('Skúšobný účet je povolený.','The test account is enabled.');messageType='success';emailDraft='';input.value='';}
    catch(e){if(gen===generation){message=explanation(e);messageType='error'}}finally{if(gen===generation){running=false;render()}}};panel.append(form);
-  for(const a of alerts)panel.append(node('p',tr('Skúšobný nárok na odmenu: ','Test reward earned: ')+a.name+' · '+a.points+tr(' bodov',' points'),'message success'));
+  for(const a of alerts)panel.append(node('p',tr('Skúšobný nárok na odmenu: ','Test reward earned: ')+a.name+' · '+a.points+tr(' bodov',' points'),'cfa-test-notice'));
  }
  if(testEvents.length){panel.append(node('h4',tr('Skryté podujatia na skúšku','Hidden events for testing')));
   for(const event of testEvents){
@@ -178,16 +179,16 @@ function testCard(){
 }
 async function begin(){
  if(running||!current()||!enabled||!ready||!activeCart?.id)return;
- const gen=generation,id=user,booking=activeCart.id;running=true;showDialog();dialogActions.replaceChildren();dialogMessage.className='message info';dialogMessage.textContent=tr('Pripravujem celú skúšobnú platbu…','Preparing the complete test checkout…');
+ const gen=generation,id=user,booking=activeCart.id;running=true;showDialog();dialogActions.replaceChildren();dialogMessage.className='cfa-test-notice';dialogMessage.textContent=tr('Pripravujem celú skúšobnú platbu…','Preparing the complete test checkout…');
  try{
   const r=await api({action:'begin',booking_id:String(booking),language:currentLanguage});if(gen!==generation||user!==id)return;
   activeId=r.id;try{sessionStorage.setItem('cfa-test-active:'+id,r.id)}catch{}
   if(r.status==='paid'){await openStatus(r.id);return}
   const u=new URL(r.url);if(u.protocol!=='https:')throw Error('invalid_checkout');
   dialogMessage.textContent=tr('Otvorí sa skúšobný Square. Použite iba testovaciu kartu. Po zaplatení sa vráťte sem; systém odošle e-mail s PDF a pripočíta skúšobné body.','Square Sandbox will open. Use only a test card. Return here after payment; the system will email the PDF and add test points.');
-  const a=node('a',tr('Otvoriť skúšobnú platbu Square','Open Square test payment'),'primary-btn');a.href=u.href;dialogActions.append(a);
+  const a=node('a',tr('Otvoriť skúšobnú platbu Square','Open Square test payment'),'cfa-test-pay');a.href=u.href;dialogActions.append(a);
   dialogActions.append(testCard());
- }catch(e){if(gen===generation){dialogMessage.className='message error';dialogMessage.textContent=explanation(e)}}
+ }catch(e){if(gen===generation){dialogMessage.className='cfa-test-notice';dialogMessage.textContent=explanation(e)}}
  finally{if(gen===generation)running=false}
 }
 async function download(id){
@@ -198,7 +199,7 @@ async function download(id){
    apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:'Bearer '+data.session.access_token,'Content-Type':'application/json'},body:JSON.stringify({action:'pdf',id})});
   if(!r.ok)throw Error('pdf_failed');const blob=await r.blob();if(!blob.type.includes('application/pdf'))throw Error('pdf_failed');
   if(gen!==generation||uid!==user)return;const url=URL.createObjectURL(blob),a=node('a');a.href=url;a.download='TEST-'+id+'.pdf';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
- }catch{if(gen===generation){dialogMessage.className='message error';dialogMessage.textContent=tr('PDF sa nepodarilo stiahnuť. Nájdete ho aj v potvrdzujúcom e-maile.','Could not download the PDF. It is also attached to the confirmation email.')}}
+ }catch{if(gen===generation){dialogMessage.className='cfa-test-notice';dialogMessage.textContent=tr('PDF sa nepodarilo stiahnuť. Nájdete ho aj v potvrdzujúcom e-maile.','Could not download the PDF. It is also attached to the confirmation email.')}}
 }
 async function openStatus(id){
  if(!current())return;activeId=id;const seq=++pollRevision,gen=generation,uid=user;clearTimeout(timer);showDialog();dialogActions.replaceChildren();
@@ -206,11 +207,11 @@ async function openStatus(id){
  let attempts=0;
  async function poll(){
   if(seq!==pollRevision||gen!==generation||uid!==user)return;retry.disabled=true;
-  dialogMessage.className='message info';dialogMessage.textContent=tr('Overujem platbu, e-mail a PDF…','Checking payment, email and PDF…');
+  dialogMessage.className='cfa-test-notice';dialogMessage.textContent=tr('Overujem platbu, e-mail a PDF…','Checking payment, email and PDF…');
   try{
    const r=await api({action:'status',id});if(seq!==pollRevision||gen!==generation||uid!==user)return;
    if(r.status==='paid'){
-    dialogMessage.className='message '+(r.mail_status==='sent'?'success':'info');
+    dialogMessage.className='cfa-test-notice';
     dialogMessage.textContent=tr('Skúšobná rezervácia je zaplatená. Body za túto rezerváciu: ','The test booking is paid. Points for this booking: ')+r.points+'. '+
      (r.mail_status==='sent'?tr('Potvrdenie s PDF bolo odoslané na ','The confirmation and PDF were sent to ')+r.recipient+'.':tr('Odosielanie potvrdenia s PDF ešte čaká.','The confirmation email and PDF are still pending.'));
     if(!dialogActions.querySelector('[data-cfa-test-pdf]')){const b=btn(tr('Stiahnuť skúšobnú PDF vstupenku','Download test PDF ticket'),()=>download(id));b.dataset.cfaTestPdf='1';dialogActions.append(b)}
@@ -219,7 +220,7 @@ async function openStatus(id){
     if(r.mail_status==='sent')return;
    }else{dialogMessage.textContent=statusName(r.status);if(['refunded','partially_refunded','review'].includes(r.status)){window.CFALoyaltyTreasure?.refresh();return}}
    if(++attempts<24&&dialog.open)timer=setTimeout(poll,5000);
-  }catch(e){if(seq===pollRevision&&gen===generation){dialogMessage.className='message error';dialogMessage.textContent=explanation(e)}}
+  }catch(e){if(seq===pollRevision&&gen===generation){dialogMessage.className='cfa-test-notice';dialogMessage.textContent=explanation(e)}}
   finally{if(seq===pollRevision)retry.disabled=false}
  }
  await poll();
