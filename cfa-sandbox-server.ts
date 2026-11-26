@@ -18,6 +18,17 @@ const SAFE=new Set(['invalid_request','sign_in_required','test_access_required',
 type Options={env:(name:string)=>string|undefined;fetch?:typeof fetch;
   pdf?:typeof createTestTicket;transport?:()=>any;install?:()=>Promise<void>};
 const fail=(code:string):never=>{throw new Error(code)};
+export function safeInstallDiagnostic(e:any):string{
+  const code=typeof e?.code==='string'?e.code:'';
+  if(/^[0-9A-Z]{5}$/.test(code)){
+    const message=typeof e?.message==='string'?e.message.replace(/[\r\n]/g,' '):'';
+    const safe=/^(permission denied|must be (owner|superuser)|cannot change (name|return type)|function .+ does not exist|column .+ does not exist|relation .+ does not exist|schema .+ does not exist|extension .+ is not available|syntax error at or near|reservation_functions_missing|event_guard_changed|checkout_snapshot_patch_missing)/i;
+    return 'SQLSTATE '+code+(safe.test(message)?' - '+message.slice(0,180):'');
+  }
+  const known=['ETIMEDOUT','ECONNREFUSED','ENOTFOUND','CONNECTION_CLOSED','CONNECTION_ENDED','CONNECT_TIMEOUT','CERT_HAS_EXPIRED','UNABLE_TO_VERIFY_LEAF_SIGNATURE','SELF_SIGNED_CERT_IN_CHAIN'];
+  return known.includes(code)?'DATABASE_CONNECTION: '+code:'DATABASE_CONNECTION_OR_INSTALL_FAILED';
+}
+function installFail(hint:string):never{const error=new Error('installation_failed');(error as any).installationHint=hint;throw error}
 async function limited(input:Request|Response,max:number):Promise<Uint8Array>{
   const reader=input.body?.getReader();if(!reader)return new Uint8Array();
   const chunks:Uint8Array[]=[];let length=0;
@@ -174,18 +185,18 @@ export function makeSandboxHandler(options:Options){
   }
   async function setup(){
     let installed=false;try{installed=(await settings()).schema_version>=2}catch{}
-    if(!installed&&options.install)await options.install();
+    if(!installed&&options.install){try{await options.install()}catch(e){installFail(safeInstallDiagnostic(e))}}
     else if(!installed){
-      const url=env('SUPABASE_DB_URL')||'';if(!url)fail('installation_failed');
+      const url=env('SUPABASE_DB_URL')||'';if(!url)installFail('DATABASE_URL_MISSING');
       let connection:ReturnType<typeof postgres>|null=null;
       try{
         const parsed=new URL(url);
-        if(!['postgres:','postgresql:'].includes(parsed.protocol))fail('installation_failed');
+        if(!['postgres:','postgresql:'].includes(parsed.protocol))installFail('DATABASE_URL_FORMAT');
         parsed.searchParams.delete('sslmode');
         connection=postgres(parsed.href,{ssl:{rejectUnauthorized:true,ca:SUPABASE_CA,minVersion:'TLSv1.2'},
           max:1,prepare:false,connect_timeout:10,idle_timeout:5});
         await connection.unsafe(INSTALL_SQL);
-      }catch{fail('installation_failed')}
+      }catch(e){if(e instanceof Error&&(e as any).installationHint)throw e;installFail(safeInstallDiagnostic(e))}
       finally{if(connection)await connection.end({timeout:2}).catch(()=>{})}
     }
     let config:any=null;
@@ -193,7 +204,7 @@ export function makeSandboxHandler(options:Options){
       try{const value=await settings();if(value.schema_version>=2){config=value;break}}catch{}
       await new Promise(resolve=>setTimeout(resolve,250));
     }
-    if(!config)fail('installation_failed');
+    if(!config)installFail('SCHEMA_VERSION_NOT_UPDATED');
     await rpc('cfa_test_ticket_points',{p_user:'00000000-0000-0000-0000-000000000000'});
     const loc=env('SQUARE_SANDBOX_LOCATION_ID')?.trim();if(!loc||!ID.test(loc))fail('setup_required');
     const {location}=await square('/v2/locations/'+loc);
@@ -338,7 +349,7 @@ export function makeSandboxHandler(options:Options){
     }catch(e){
       const code=e instanceof Error&&SAFE.has(e.message)?e.message:'operation_failed';
       const status=['sign_in_required'].includes(code)?401:['test_access_required','owner_required'].includes(code)?403:code==='not_found'?404:400;
-      return reply(isWebhook?503:status,{error:code});
+      return reply(isWebhook?503:status,{error:code,...(code==='installation_failed'?{diagnostic:String((e as any)?.installationHint||'INSTALL_FAILED').slice(0,300)}:{})});
     }
   };
 }
