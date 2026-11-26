@@ -56,12 +56,12 @@ const errors={
  square_unavailable:['Skúšobný Square neodpovedal správne. Skúste obnoviť stav.','Square Sandbox did not respond correctly. Try refreshing.'],
  not_found:['Táto skúšobná rezervácia nepatrí prihlásenému účtu.','This test booking does not belong to the signed-in account.'],
  unknown:['Skúšobný server sa nepodarilo načítať. Po dokončení nahratia skúste Obnoviť.','Could not load the test server. Once deployment is complete, try Refresh.']};
-const explanation=e=>tr(...(errors[e?.code]||errors.unknown));
+const explanation=e=>e?.code==='installation_failed'&&e.installationHint?tr('Príprava databázy zlyhala. Pošlite nám tento kód: ','Database setup failed. Send us this code: ')+e.installationHint:tr(...(errors[e?.code]||errors.unknown));
 function current(){return !!user&&currentUser?.id===user;}
 async function api(body){
  const r=await supabaseClient.functions.invoke('cfa-booking-sandbox',{body});let data=r.data;
- if(r.error){try{data=await r.error.context?.json()}catch{}const e=new Error('test_failed');e.code=data?.error||'unknown';throw e}
- if(!data?.ok){const e=new Error('test_failed');e.code=data?.error||'unknown';throw e}return data;
+ if(r.error){try{data=await r.error.context?.json()}catch{}const e=new Error('test_failed');e.code=data?.error||'unknown';e.installationHint=String(data?.diagnostic||'').slice(0,300);throw e}
+ if(!data?.ok){const e=new Error('test_failed');e.code=data?.error||'unknown';e.installationHint=String(data?.diagnostic||'').slice(0,300);throw e}return data;
 }
 function statusName(value){return ({creating:tr('Pripravuje sa','Preparing'),awaiting_payment:tr('Čaká na skúšobnú platbu','Awaiting test payment'),
  paid:tr('Skúšobne zaplatené','Test paid'),refunded:tr('Skúšobne vrátené','Test refunded'),
