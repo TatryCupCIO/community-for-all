@@ -6767,9 +6767,12 @@ function addPasswordEye(
                 );
               }
 
-              await window.openPrivateChatWithUser(
-                user
-              );
+              const recentConversation = window.CFAQuickChat?.recent?.get(user.user_id)?.conversationId;
+              if (recentConversation && typeof window.openPrivateChatConversation === 'function') {
+                await window.openPrivateChatConversation(Number(recentConversation), user);
+              } else {
+                await window.openPrivateChatWithUser(user);
+              }
 
             } catch (error) {
               console.error(
