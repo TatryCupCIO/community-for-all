@@ -1108,6 +1108,7 @@ item.appendChild(senderHeader);
   }
 
 
+    window.CFASafety?.decorateMessage(item,{kind:'private',id:message.id,author:message.sender_id,name:message.sender_name,system:message.cfa_system_receipt});
     if (mine) {
     await updatePrivateChatReadReceipt(
       message
@@ -1124,6 +1125,7 @@ item.appendChild(senderHeader);
 async function sendPrivateChatText(
   text
 ) {
+  if(window.CFASafety&&!await window.CFASafety.ensure('private'))return false;
   const sendingConversation=privateChatConversationId;
   const sendingUser=currentUser;
 
@@ -1456,6 +1458,7 @@ async function compressPrivateChatPhoto(
 async function sendPrivateChatPhoto(
   file
 ) {
+  if(window.CFASafety&&!await window.CFASafety.ensure('private'))return false;
   const sendingConversation=privateChatConversationId;
   const sendingUser=currentUser;
 

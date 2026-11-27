@@ -322,6 +322,7 @@ function renderCommunityChatMessage(message) {
     item.appendChild(deleteButton);
   }
 
+  if (window.CFASafety && !window.CFASafety.decorateMessage(item,{kind:'community',id:message.id,author:message.user_id,name:message.user_name})) return;
   box.appendChild(item);
 }
 
@@ -376,6 +377,7 @@ async function sendCommunityChatText(text) {
 
 async function sendCommunityChatMessage() {
   if (!currentUser) return;
+  if (window.CFASafety && !await window.CFASafety.ensure('community')) return;
 
   const input = document.getElementById('chatMessageInput');
   const button = document.getElementById('chatSendBtn');

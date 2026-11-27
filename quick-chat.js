@@ -38,6 +38,7 @@
   function refresh(){clearTimeout(timer);timer=setTimeout(refreshNow,150);}
   function hide(){if(panel && active) drafts.set(String(active.conversation_id),panel.querySelector('textarea').value);generation++;panel?.remove();panel=null;active=null;}
   async function incoming(message) {
+    if(window.CFASafety?.unavailable(message.sender_id)&&!message.cfa_system_receipt)return;
     if(!uid() || message.sender_id===uid()) return;
     if(owner!==uid()) reset();
     if(seen.has(String(message.id))) return;
@@ -73,16 +74,16 @@
       if(user===uid()) refreshPrivateMessageNotifications();
     };
     async function load() {
-      const {data,error}=await supabaseClient.from('private_messages').select('id,sender_id,message_text,image_url,created_at').eq('conversation_id',message.conversation_id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(30);
+      const {data,error}=await supabaseClient.from('private_messages').select('id,sender_id,message_text,image_url,created_at,cfa_system_receipt').eq('conversation_id',message.conversation_id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(30);
       if(token!==generation || user!==uid() || !panel) return;
       const box=panel.querySelector('.cfa-quick-messages');box.replaceChildren();
       if(error){box.textContent=tr('Rozhovor sa nepodarilo načítať.','Could not load the conversation.');return;}
       displayed=data||[];
-      for(const m of [...displayed].reverse()) {const row=document.createElement('div');row.className=m.sender_id===user?'cfa-quick-own':'';row.textContent=m.message_text||(m.image_url?tr('Fotografia · otvorte celý rozhovor','Photo · open full conversation'):'');box.append(row);}
+      for(const m of [...displayed].reverse()) {const row=document.createElement('div');row.className=m.sender_id===user?'cfa-quick-own':'';row.textContent=m.message_text||(m.image_url?tr('Fotografia · otvorte celý rozhovor','Photo · open full conversation'):'');if(!window.CFASafety||window.CFASafety.decorateMessage(row,{kind:'private',id:m.id,author:m.sender_id,system:m.cfa_system_receipt}))box.append(row);}
       box.scrollTop=box.scrollHeight;
     }
     panel.querySelector('form').onsubmit=async event=>{
-      event.preventDefault();const text=input.value.trim();if(!text || user!==uid()) return;
+      event.preventDefault();if(window.CFASafety&&!await window.CFASafety.ensure('private'))return;const text=input.value.trim();if(!text || user!==uid()) return;
       const button=panel.querySelector('form button');button.disabled=true;input.disabled=true;
       const {error}=await supabaseClient.from('private_messages').insert({conversation_id:message.conversation_id,sender_id:user,receiver_id:null,message_text:text,image_url:null});
       if(token!==generation || user!==uid() || !panel) return;

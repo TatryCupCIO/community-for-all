@@ -1,0 +1,327 @@
+export const SUPABASE_CA=String.raw`-----BEGIN CERTIFICATE-----
+MIIDxDCCAqygAwIBAgIUbLxMod62P2ktCiAkxnKJwtE9VPYwDQYJKoZIhvcNAQEL
+BQAwazELMAkGA1UEBhMCVVMxEDAOBgNVBAgMB0RlbHdhcmUxEzARBgNVBAcMCk5l
+dyBDYXN0bGUxFTATBgNVBAoMDFN1cGFiYXNlIEluYzEeMBwGA1UEAwwVU3VwYWJh
+c2UgUm9vdCAyMDIxIENBMB4XDTIxMDQyODEwNTY1M1oXDTMxMDQyNjEwNTY1M1ow
+azELMAkGA1UEBhMCVVMxEDAOBgNVBAgMB0RlbHdhcmUxEzARBgNVBAcMCk5ldyBD
+YXN0bGUxFTATBgNVBAoMDFN1cGFiYXNlIEluYzEeMBwGA1UEAwwVU3VwYWJhc2Ug
+Um9vdCAyMDIxIENBMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqQXW
+QyHOB+qR2GJobCq/CBmQ40G0oDmCC3mzVnn8sv4XNeWtE5XcEL0uVih7Jo4Dkx1Q
+DmGHBH1zDfgs2qXiLb6xpw/CKQPypZW1JssOTMIfQppNQ87K75Ya0p25Y3ePS2t2
+GtvHxNjUV6kjOZjEn2yWEcBdpOVCUYBVFBNMB4YBHkNRDa/+S4uywAoaTWnCJLUi
+cvTlHmMw6xSQQn1UfRQHk50DMCEJ7Cy1RxrZJrkXXRP3LqQL2ijJ6F4yMfh+Gyb4
+O4XajoVj/+R4GwywKYrrS8PrSNtwxr5StlQO8zIQUSMiq26wM8mgELFlS/32Uclt
+NaQ1xBRizkzpZct9DwIDAQABo2AwXjALBgNVHQ8EBAMCAQYwHQYDVR0OBBYEFKjX
+uXY32CztkhImng4yJNUtaUYsMB8GA1UdIwQYMBaAFKjXuXY32CztkhImng4yJNUt
+aUYsMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAB8spzNn+4VU
+tVxbdMaX+39Z50sc7uATmus16jmmHjhIHz+l/9GlJ5KqAMOx26mPZgfzG7oneL2b
+VW+WgYUkTT3XEPFWnTp2RJwQao8/tYPXWEJDc0WVQHrpmnWOFKU/d3MqBgBm5y+6
+jB81TU/RG2rVerPDWP+1MMcNNy0491CTL5XQZ7JfDJJ9CCmXSdtTl4uUQnSuv/Qx
+Cea13BX2ZgJc7Au30vihLhub52De4P/4gonKsNHYdbWjg7OWKwNv/zitGDVDB9Y2
+CMTyZKG3XEu5Ghl1LEnI3QmEKsqaCLv12BnVjbkSeZsMnevJPs1Ye6TjjJwdik5P
+o/bKiIz+Fq8=
+-----END CERTIFICATE-----
+`;
+export const SAFETY_SQL=String.raw`BEGIN;
+SELECT pg_advisory_xact_lock(hashtextextended('cfa-account-safety-58',0));
+CREATE TABLE IF NOT EXISTS public.cfa_safety_settings(id boolean PRIMARY KEY DEFAULT true CHECK(id),version text NOT NULL);
+INSERT INTO public.cfa_safety_settings VALUES(true,'2026-11-27.1') ON CONFLICT(id) DO UPDATE SET version=EXCLUDED.version;
+CREATE TABLE IF NOT EXISTS public.cfa_safety_acceptances(user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,version text NOT NULL,language text NOT NULL CHECK(language IN('sk','en')),accepted_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS public.cfa_user_blocks(user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,blocked_user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,created_at timestamptz NOT NULL DEFAULT now(),PRIMARY KEY(user_id,blocked_user_id),CHECK(user_id<>blocked_user_id));
+CREATE INDEX IF NOT EXISTS cfa_blocks_other ON public.cfa_user_blocks(blocked_user_id,user_id);
+CREATE TABLE IF NOT EXISTS public.cfa_content_reports(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),reporter_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,reported_user_id uuid,kind text NOT NULL CHECK(kind IN('community','private','user')),source_id bigint,reason text NOT NULL CHECK(reason IN('harassment','hate','sexual','child_safety','privacy','spam','other')),note text NOT NULL DEFAULT '' CHECK(length(note)<=2000),snapshot jsonb NOT NULL DEFAULT '{}',state text NOT NULL DEFAULT 'new' CHECK(state IN('new','review','resolved','dismissed')),created_at timestamptz NOT NULL DEFAULT now(),handled_at timestamptz,handled_by uuid,action_note text,revision integer NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX IF NOT EXISTS cfa_reports_unique_message ON public.cfa_content_reports(reporter_id,kind,source_id) WHERE source_id IS NOT NULL AND state IN('new','review');
+CREATE UNIQUE INDEX IF NOT EXISTS cfa_reports_unique_user ON public.cfa_content_reports(reporter_id,reported_user_id) WHERE kind='user' AND state IN('new','review');
+CREATE TABLE IF NOT EXISTS public.cfa_hidden_content(kind text NOT NULL CHECK(kind IN('community','private')),source_id bigint NOT NULL,author_id uuid,report_id uuid,hidden_at timestamptz NOT NULL DEFAULT now(),hidden_by uuid NOT NULL,PRIMARY KEY(kind,source_id));
+CREATE TABLE IF NOT EXISTS public.cfa_communication_restrictions(user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,scope text NOT NULL CHECK(scope IN('community','private','all')),until_at timestamptz NOT NULL,reason text NOT NULL CHECK(length(reason) BETWEEN 1 AND 2000),created_at timestamptz NOT NULL DEFAULT now(),created_by uuid NOT NULL);
+-- This is a REQUEST ledger. It never asserts that submitting a request deletes an account.
+-- No FK: an owner must still see and finish a request after the Auth identity is removed.
+CREATE TABLE IF NOT EXISTS public.cfa_account_deletion_requests(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),user_id uuid NOT NULL,display_name text NOT NULL,email text NOT NULL,state text NOT NULL DEFAULT 'requested' CHECK(state IN('requested','processing','completed','cancelled')),requested_at timestamptz NOT NULL DEFAULT now(),updated_at timestamptz NOT NULL DEFAULT now(),completed_at timestamptz,handled_by uuid,retention_note text NOT NULL DEFAULT '',revision integer NOT NULL DEFAULT 0);
+CREATE UNIQUE INDEX IF NOT EXISTS cfa_deletion_one_open ON public.cfa_account_deletion_requests(user_id) WHERE state IN('requested','processing');
+CREATE TABLE IF NOT EXISTS public.cfa_safety_audit(id bigint GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,actor_id uuid,action text NOT NULL,object_id text NOT NULL,created_at timestamptz NOT NULL DEFAULT now());
+DO $$DECLARE t text;BEGIN FOREACH t IN ARRAY ARRAY['cfa_safety_settings','cfa_safety_acceptances','cfa_user_blocks','cfa_content_reports','cfa_hidden_content','cfa_communication_restrictions','cfa_account_deletion_requests','cfa_safety_audit'] LOOP
+ EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY',t);
+ EXECUTE format('REVOKE ALL ON public.%I FROM PUBLIC,anon,authenticated',t);
+END LOOP;END $$;
+
+CREATE OR REPLACE FUNCTION public.cfa_safety_pair_blocked(p_first uuid,p_second uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+ SELECT p_first IS NOT NULL AND p_second IS NOT NULL AND p_first<>p_second AND EXISTS(SELECT 1 FROM public.cfa_user_blocks WHERE (user_id=p_first AND blocked_user_id=p_second) OR (user_id=p_second AND blocked_user_id=p_first));
+$$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_post_allowed(p_user uuid,p_scope text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+ SELECT p_user IS NOT NULL AND p_user=auth.uid() AND EXISTS(SELECT 1 FROM public.cfa_safety_acceptances a JOIN public.cfa_safety_settings s ON s.id WHERE a.user_id=p_user AND a.version=s.version)
+ AND NOT EXISTS(SELECT 1 FROM public.cfa_communication_restrictions r WHERE r.user_id=p_user AND r.until_at>now() AND r.scope IN(p_scope,'all'));
+$$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_message_visible(p_kind text,p_id bigint,p_author uuid,p_system boolean DEFAULT false) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+ SELECT auth.uid() IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.cfa_hidden_content h WHERE h.kind=p_kind AND h.source_id=p_id)
+ AND (p_system OR NOT public.cfa_safety_pair_blocked(auth.uid(),p_author));
+$$;
+-- A restrictive policy cannot widen the existing conversation/membership policies.
+DROP POLICY IF EXISTS cfa_safety_community_read ON public.chat_messages;
+CREATE POLICY cfa_safety_community_read ON public.chat_messages AS RESTRICTIVE FOR SELECT TO authenticated USING(public.cfa_safety_message_visible('community',id,user_id));
+ALTER TABLE public.private_messages ADD COLUMN IF NOT EXISTS cfa_system_receipt boolean NOT NULL DEFAULT false;
+DROP POLICY IF EXISTS cfa_safety_private_read ON public.private_messages;
+CREATE POLICY cfa_safety_private_read ON public.private_messages AS RESTRICTIVE FOR SELECT TO authenticated USING(public.cfa_safety_message_visible('private',id,sender_id,cfa_system_receipt));
+
+CREATE OR REPLACE FUNCTION public.cfa_safety_guard_post() RETURNS trigger
+LANGUAGE plpgsql SET search_path='' AS $$
+DECLARE actor uuid;scope text;privileged boolean:=current_user IN('postgres','supabase_admin','service_role');
+BEGIN
+ IF TG_TABLE_NAME='private_messages' THEN
+  IF TG_OP='UPDATE' AND NEW.sender_id IS NOT DISTINCT FROM OLD.sender_id AND NEW.receiver_id IS NOT DISTINCT FROM OLD.receiver_id AND NEW.conversation_id IS NOT DISTINCT FROM OLD.conversation_id AND NEW.message_text IS NOT DISTINCT FROM OLD.message_text AND NEW.image_url IS NOT DISTINCT FROM OLD.image_url AND NEW.cfa_system_receipt IS NOT DISTINCT FROM OLD.cfa_system_receipt THEN RETURN NEW;END IF;
+  IF NEW.cfa_system_receipt THEN
+   IF NOT privileged THEN RAISE EXCEPTION 'system_receipt_forbidden';END IF;
+   RETURN NEW;
+  END IF;
+  actor:=NEW.sender_id;scope:='private';
+  IF COALESCE(length(NEW.message_text),0)>10000 OR (NULLIF(btrim(COALESCE(NEW.message_text,'')),'') IS NULL AND NEW.image_url IS NULL) THEN RAISE EXCEPTION 'invalid_message';END IF;
+  IF NEW.conversation_id IS NOT NULL AND NEW.receiver_id IS NOT NULL AND NOT COALESCE(public.was_private_conversation_member(NEW.conversation_id,NEW.receiver_id,now()),false) THEN RAISE EXCEPTION 'invalid_receiver';END IF;
+  IF NEW.image_url IS NOT NULL AND (NEW.conversation_id IS NULL OR NEW.image_url NOT LIKE actor::text||'/'||NEW.conversation_id::text||'/%') THEN RAISE EXCEPTION 'invalid_media_path';END IF;
+ ELSE actor:=NEW.user_id;scope:='community';IF COALESCE(length(NEW.message),0)>1500 OR (NULLIF(btrim(COALESCE(NEW.message,'')),'') IS NULL AND NEW.media_url IS NULL) THEN RAISE EXCEPTION 'invalid_message';END IF;IF NEW.media_url IS NOT NULL AND NEW.media_url NOT LIKE actor::text||'/%' THEN RAISE EXCEPTION 'invalid_media_path';END IF;END IF;
+ IF NOT privileged AND actor IS DISTINCT FROM auth.uid() THEN RAISE EXCEPTION 'sender_mismatch';END IF;
+ IF NOT public.cfa_safety_post_allowed(actor,scope) THEN RAISE EXCEPTION 'communication_not_allowed';END IF;
+ IF scope='private' THEN IF public.cfa_safety_private_blocked(actor,NEW.conversation_id,NEW.receiver_id) THEN RAISE EXCEPTION 'contact_blocked';END IF;END IF;
+ RETURN NEW;
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_private_blocked(p_sender uuid,p_conversation bigint,p_receiver uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+ SELECT p_sender=auth.uid() AND ((p_conversation IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.private_conversation_memberships mine WHERE mine.conversation_id=p_conversation AND mine.user_id=auth.uid() AND mine.left_at IS NULL)) OR public.cfa_safety_pair_blocked(p_sender,p_receiver) OR EXISTS(SELECT 1 FROM public.private_conversation_memberships m WHERE m.conversation_id=p_conversation AND m.left_at IS NULL AND public.cfa_safety_pair_blocked(p_sender,m.user_id)));
+$$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_guard_membership() RETURNS trigger
+LANGUAGE plpgsql SET search_path='' AS $$BEGIN
+ IF TG_OP='UPDATE' AND NEW.conversation_id IS NOT DISTINCT FROM OLD.conversation_id AND NEW.user_id IS NOT DISTINCT FROM OLD.user_id AND NEW.left_at IS NOT NULL THEN RETURN NEW;END IF;
+ IF NEW.left_at IS NOT NULL THEN RETURN NEW;END IF;
+ -- Only the internal owner-only reward writer may create a transactional receipt
+ -- conversation across a personal block. Its local marker is never a client RPC.
+ IF current_user IN('postgres','supabase_admin','service_role') AND public.cfa_is_owner() AND nullif(current_setting('cfa.safety.reward_recipient',true),'') IS NOT NULL AND NEW.user_id IN(auth.uid(),nullif(current_setting('cfa.safety.reward_recipient',true),'')::uuid) THEN RETURN NEW;END IF;
+ IF public.cfa_safety_membership_blocked(NEW.conversation_id,NEW.user_id) THEN RAISE EXCEPTION 'contact_blocked';END IF;
+ RETURN NEW;
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_membership_blocked(p_conversation bigint,p_new uuid) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$SELECT auth.uid() IS NOT NULL AND ((NOT EXISTS(SELECT 1 FROM public.private_conversations c WHERE c.id=p_conversation AND c.created_by=auth.uid()) AND NOT EXISTS(SELECT 1 FROM public.private_conversation_memberships mine WHERE mine.conversation_id=p_conversation AND mine.user_id=auth.uid() AND mine.left_at IS NULL)) OR public.cfa_safety_pair_blocked(auth.uid(),p_new) OR EXISTS(SELECT 1 FROM public.private_conversation_memberships m WHERE m.conversation_id=p_conversation AND m.left_at IS NULL AND public.cfa_safety_pair_blocked(p_new,m.user_id)));$$;
+DROP TRIGGER IF EXISTS cfa_safety_membership_guard ON public.private_conversation_memberships;
+CREATE TRIGGER cfa_safety_membership_guard BEFORE INSERT OR UPDATE ON public.private_conversation_memberships FOR EACH ROW EXECUTE FUNCTION public.cfa_safety_guard_membership();
+DROP TRIGGER IF EXISTS cfa_safety_post_guard ON public.chat_messages;
+CREATE TRIGGER cfa_safety_post_guard BEFORE INSERT OR UPDATE ON public.chat_messages FOR EACH ROW EXECUTE FUNCTION public.cfa_safety_guard_post();
+DROP TRIGGER IF EXISTS cfa_safety_post_guard ON public.private_messages;
+CREATE TRIGGER cfa_safety_post_guard BEFORE INSERT OR UPDATE ON public.private_messages FOR EACH ROW EXECUTE FUNCTION public.cfa_safety_guard_post();
+
+CREATE OR REPLACE FUNCTION public.cfa_safety_accept(p_version text,p_language text,p_accepted boolean) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;
+ IF p_accepted IS DISTINCT FROM true OR p_language NOT IN('sk','en') OR NOT EXISTS(SELECT 1 FROM public.cfa_safety_settings WHERE version=p_version) THEN RAISE EXCEPTION 'current_rules_required';END IF;
+ INSERT INTO public.cfa_safety_acceptances(user_id,version,language) VALUES(auth.uid(),p_version,p_language) ON CONFLICT(user_id) DO UPDATE SET version=EXCLUDED.version,language=EXCLUDED.language,accepted_at=now();
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_block(p_user uuid,p_block boolean) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;
+ IF p_block IS NULL OR p_user IS NULL OR p_user=auth.uid() OR NOT EXISTS(SELECT 1 FROM public.user_profiles WHERE user_id=p_user) THEN RAISE EXCEPTION 'invalid_user';END IF;
+ IF p_block THEN INSERT INTO public.cfa_user_blocks VALUES(auth.uid(),p_user,now()) ON CONFLICT DO NOTHING;
+ ELSE DELETE FROM public.cfa_user_blocks WHERE user_id=auth.uid() AND blocked_user_id=p_user;END IF;
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_report(p_kind text,p_source bigint,p_user uuid,p_reason text,p_note text DEFAULT '') RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE u uuid:=auth.uid();author uuid;data jsonb;rid uuid;m public.private_messages;cm public.chat_messages;BEGIN
+ IF u IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;
+ IF p_reason NOT IN('harassment','hate','sexual','child_safety','privacy','spam','other') OR p_reason IS NULL OR length(COALESCE(p_note,''))>2000 THEN RAISE EXCEPTION 'invalid_report';END IF;
+ IF p_kind='community' THEN
+  SELECT * INTO cm FROM public.chat_messages WHERE id=p_source;
+  IF NOT FOUND OR NOT public.cfa_safety_message_visible('community',cm.id,cm.user_id) THEN RAISE EXCEPTION 'content_unavailable';END IF;
+  author:=cm.user_id;data:=jsonb_build_object('text',cm.message,'image',cm.media_url,'created_at',cm.created_at);
+ ELSIF p_kind='private' THEN
+  SELECT * INTO m FROM public.private_messages WHERE id=p_source;
+  IF NOT FOUND OR (m.sender_id=u OR m.receiver_id=u OR COALESCE(public.was_private_conversation_member(m.conversation_id,u,m.created_at),false)) IS NOT TRUE OR NOT public.cfa_safety_message_visible('private',m.id,m.sender_id,m.cfa_system_receipt) THEN RAISE EXCEPTION 'content_unavailable';END IF;
+  author:=m.sender_id;data:=jsonb_build_object('text',m.message_text,'image',m.image_url,'conversation_id',m.conversation_id,'created_at',m.created_at);
+ ELSIF p_kind='user' THEN
+  IF p_source IS NOT NULL THEN RAISE EXCEPTION 'invalid_report';END IF;
+  SELECT user_id INTO author FROM public.user_profiles WHERE user_id=p_user;
+  IF author IS NULL THEN RAISE EXCEPTION 'invalid_user';END IF;data:='{}';
+ ELSE RAISE EXCEPTION 'invalid_report';END IF;
+ IF author=u THEN RAISE EXCEPTION 'cannot_report_self';END IF;
+ PERFORM pg_advisory_xact_lock(hashtextextended('cfa-report:'||u::text,0));
+ SELECT id INTO rid FROM public.cfa_content_reports WHERE reporter_id=u AND kind=p_kind AND state IN('new','review') AND ((p_kind='user' AND reported_user_id=author) OR (p_kind<>'user' AND source_id=p_source));
+ IF rid IS NOT NULL THEN RETURN rid;END IF;
+ IF (SELECT count(*) FROM public.cfa_content_reports WHERE reporter_id=u AND created_at>now()-interval '1 day')>=20 THEN RAISE EXCEPTION 'report_limit';END IF;
+ INSERT INTO public.cfa_content_reports(reporter_id,reported_user_id,kind,source_id,reason,note,snapshot) VALUES(u,author,p_kind,p_source,p_reason,COALESCE(p_note,''),data) RETURNING id INTO rid;
+ RETURN rid;
+END $$;
+
+CREATE OR REPLACE FUNCTION public.cfa_safety_request_deletion(p_confirm boolean) RETURNS uuid
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE rid uuid;u uuid:=auth.uid();v_email text;v_name text;BEGIN
+ IF u IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;
+ IF p_confirm IS DISTINCT FROM true THEN RAISE EXCEPTION 'confirmation_required';END IF;
+ IF EXISTS(SELECT 1 FROM public.admin_users WHERE user_id=u) THEN RAISE EXCEPTION 'admin_transfer_required';END IF;
+ SELECT email INTO v_email FROM auth.users WHERE id=u;
+ SELECT display_name INTO v_name FROM public.user_profiles WHERE user_id=u;
+ INSERT INTO public.cfa_account_deletion_requests(user_id,email,display_name) VALUES(u,v_email,COALESCE(v_name,v_email)) ON CONFLICT(user_id) WHERE state IN('requested','processing') DO UPDATE SET user_id=EXCLUDED.user_id RETURNING id INTO rid;
+ RETURN rid;
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_cancel_deletion(p_id uuid) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;
+ UPDATE public.cfa_account_deletion_requests SET state='cancelled',updated_at=now(),revision=revision+1 WHERE id=p_id AND user_id=auth.uid() AND state='requested';
+ IF NOT FOUND THEN RAISE EXCEPTION 'request_unavailable';END IF;
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_state() RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE u uuid:=auth.uid();a boolean;BEGIN
+ IF u IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;a:=public.cfa_is_owner();
+ RETURN jsonb_build_object('version',(SELECT version FROM public.cfa_safety_settings),'accepted',EXISTS(SELECT 1 FROM public.cfa_safety_acceptances x JOIN public.cfa_safety_settings s ON s.id WHERE x.user_id=u AND x.version=s.version),
+ 'blocked',COALESCE((SELECT jsonb_agg(jsonb_build_object('user_id',b.blocked_user_id,'display_name',COALESCE(p.display_name,'User / Používateľ'))) FROM public.cfa_user_blocks b LEFT JOIN public.user_profiles p ON p.user_id=b.blocked_user_id WHERE b.user_id=u),'[]'),
+ 'unavailable_authors',COALESCE((SELECT jsonb_agg(x.peer) FROM (SELECT blocked_user_id peer FROM public.cfa_user_blocks WHERE user_id=u UNION SELECT user_id peer FROM public.cfa_user_blocks WHERE blocked_user_id=u)x),'[]'),
+ 'hidden',COALESCE((SELECT jsonb_agg(to_jsonb(x)) FROM(SELECT h.kind,h.source_id FROM public.cfa_hidden_content h WHERE h.kind='community' OR h.author_id=u OR EXISTS(SELECT 1 FROM public.private_messages m WHERE h.kind='private' AND m.id=h.source_id AND (m.sender_id=u OR m.receiver_id=u OR COALESCE(public.was_private_conversation_member(m.conversation_id,u,m.created_at),false))) ORDER BY h.hidden_at DESC LIMIT 2000)x),'[]'),
+ 'restriction',(SELECT to_jsonb(x) FROM public.cfa_communication_restrictions x WHERE x.user_id=u AND until_at>now()),
+ 'deletion',(SELECT to_jsonb(x) FROM public.cfa_account_deletion_requests x WHERE x.user_id=u ORDER BY requested_at DESC LIMIT 1),'can_manage',a,
+ 'pending',CASE WHEN a THEN (SELECT count(*) FROM public.cfa_content_reports WHERE state IN('new','review'))+(SELECT count(*) FROM public.cfa_account_deletion_requests WHERE state IN('requested','processing')) ELSE 0 END);
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_owner_list(p_kind text DEFAULT 'reports',p_closed boolean DEFAULT false,p_offset integer DEFAULT 0) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE data jsonb;total bigint;BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ IF p_offset<0 OR p_offset>100000 THEN RAISE EXCEPTION 'invalid_offset';END IF;
+ IF p_kind='reports' THEN
+  SELECT count(*) INTO total FROM public.cfa_content_reports WHERE (state IN('resolved','dismissed'))=p_closed;
+  SELECT COALESCE(jsonb_agg(to_jsonb(x)),'[]') INTO data FROM(SELECT r.*,EXISTS(SELECT 1 FROM public.cfa_hidden_content h WHERE h.kind=r.kind AND h.source_id=r.source_id) content_hidden,COALESCE(p.display_name,'Deleted user / Vymazaný používateľ') reported_name FROM public.cfa_content_reports r LEFT JOIN public.user_profiles p ON p.user_id=r.reported_user_id WHERE (r.state IN('resolved','dismissed'))=p_closed ORDER BY r.created_at DESC LIMIT 50 OFFSET p_offset)x;
+ ELSIF p_kind='deletions' THEN
+  SELECT count(*) INTO total FROM public.cfa_account_deletion_requests WHERE (state IN('completed','cancelled'))=p_closed;
+  SELECT COALESCE(jsonb_agg(to_jsonb(x)),'[]') INTO data FROM(SELECT * FROM public.cfa_account_deletion_requests WHERE (state IN('completed','cancelled'))=p_closed ORDER BY requested_at DESC LIMIT 50 OFFSET p_offset)x;
+ ELSIF p_kind='restrictions' THEN
+  SELECT count(*) INTO total FROM public.cfa_communication_restrictions WHERE (until_at<=now())=p_closed;
+  SELECT COALESCE(jsonb_agg(to_jsonb(x)),'[]') INTO data FROM(SELECT r.*,p.display_name FROM public.cfa_communication_restrictions r LEFT JOIN public.user_profiles p ON p.user_id=r.user_id WHERE (r.until_at<=now())=p_closed ORDER BY created_at DESC LIMIT 50 OFFSET p_offset)x;
+ ELSE RAISE EXCEPTION 'invalid_kind';END IF;
+ RETURN jsonb_build_object('items',data,'total',total,'offset',p_offset);
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_owner_report(p_id uuid,p_action text,p_note text,p_revision integer) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE r public.cfa_content_reports;BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ IF length(COALESCE(p_note,''))>2000 THEN RAISE EXCEPTION 'invalid_note';END IF;
+ SELECT * INTO r FROM public.cfa_content_reports WHERE id=p_id FOR UPDATE;
+ IF NOT FOUND OR r.revision<>p_revision THEN RAISE EXCEPTION 'record_changed';END IF;
+ IF r.state IN('resolved','dismissed') AND p_action IS DISTINCT FROM 'restore' THEN RAISE EXCEPTION 'already_closed';END IF;
+ IF p_action='restore' THEN
+  DELETE FROM public.cfa_hidden_content WHERE kind=r.kind AND source_id=r.source_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'content_unavailable';END IF;
+ ELSIF p_action='hide' THEN
+  IF r.kind='user' THEN RAISE EXCEPTION 'select_message_report';END IF;
+  INSERT INTO public.cfa_hidden_content(kind,source_id,author_id,report_id,hidden_by) VALUES(r.kind,r.source_id,r.reported_user_id,r.id,auth.uid()) ON CONFLICT DO NOTHING;
+ ELSIF p_action IS NULL OR p_action NOT IN('review','resolve','dismiss') THEN RAISE EXCEPTION 'invalid_action';END IF;
+ UPDATE public.cfa_content_reports SET state=CASE WHEN p_action='review' THEN 'review' WHEN p_action='dismiss' THEN 'dismissed' ELSE 'resolved' END,handled_at=now(),handled_by=auth.uid(),action_note=COALESCE(p_note,''),revision=revision+1 WHERE id=p_id;
+ INSERT INTO public.cfa_safety_audit(actor_id,action,object_id) VALUES(auth.uid(),'report_'||p_action,p_id::text);
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_owner_restrict(p_user uuid,p_scope text,p_days integer,p_reason text) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ IF p_user IS NULL OR p_user=auth.uid() OR NOT EXISTS(SELECT 1 FROM auth.users WHERE id=p_user) THEN RAISE EXCEPTION 'invalid_user';END IF;
+ IF p_scope='none' THEN DELETE FROM public.cfa_communication_restrictions WHERE user_id=p_user;
+ ELSE
+ IF p_scope NOT IN('community','private','all') OR p_days IS NULL OR p_days<1 OR p_days>3650 OR length(btrim(COALESCE(p_reason,''))) NOT BETWEEN 1 AND 2000 THEN RAISE EXCEPTION 'invalid_restriction';END IF;
+ INSERT INTO public.cfa_communication_restrictions(user_id,scope,until_at,reason,created_by) VALUES(p_user,p_scope,now()+p_days*interval '1 day',p_reason,auth.uid()) ON CONFLICT(user_id) DO UPDATE SET scope=EXCLUDED.scope,until_at=EXCLUDED.until_at,reason=EXCLUDED.reason,created_at=now(),created_by=auth.uid();
+ END IF;
+ INSERT INTO public.cfa_safety_audit(actor_id,action,object_id) VALUES(auth.uid(),'restriction_'||p_scope,p_user::text);
+END $$;
+-- An owner records completion only AFTER the real identity and media have been removed.
+-- Financial records/other participants must be reviewed before manual deletion in Supabase.
+CREATE OR REPLACE FUNCTION public.cfa_safety_owner_deletion(p_id uuid,p_action text,p_note text,p_revision integer) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE r public.cfa_account_deletion_requests;remaining boolean;BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ IF length(COALESCE(p_note,''))>4000 THEN RAISE EXCEPTION 'invalid_note';END IF;
+ SELECT * INTO r FROM public.cfa_account_deletion_requests WHERE id=p_id FOR UPDATE;
+ IF NOT FOUND OR r.revision<>p_revision THEN RAISE EXCEPTION 'record_changed';END IF;
+ IF r.state NOT IN('requested','processing') THEN RAISE EXCEPTION 'already_closed';END IF;
+ IF p_action='complete' THEN
+ IF length(btrim(COALESCE(p_note,'')))<10 THEN RAISE EXCEPTION 'retention_note_required';END IF;
+ SELECT EXISTS(SELECT 1 FROM auth.users WHERE id=r.user_id) OR EXISTS(SELECT 1 FROM public.user_profiles WHERE user_id=r.user_id) OR EXISTS(SELECT 1 FROM public.push_tokens WHERE user_id=r.user_id) OR EXISTS(SELECT 1 FROM public.chat_messages WHERE user_id=r.user_id) OR EXISTS(SELECT 1 FROM public.private_messages WHERE sender_id=r.user_id OR receiver_id=r.user_id) OR EXISTS(SELECT 1 FROM storage.objects o WHERE (o.bucket_id IN('chat-media','private-chat-media','profile-avatars') AND o.name LIKE r.user_id::text||'/%') OR to_jsonb(o)->>'owner_id'=r.user_id::text OR to_jsonb(o)->>'owner'=r.user_id::text) INTO remaining;
+ IF remaining THEN RAISE EXCEPTION 'account_or_media_still_present';END IF;
+ ELSIF p_action<>'process' THEN RAISE EXCEPTION 'invalid_action';END IF;
+ UPDATE public.cfa_account_deletion_requests SET state=CASE WHEN p_action='complete' THEN 'completed' ELSE 'processing' END,updated_at=now(),completed_at=CASE WHEN p_action='complete' THEN now() END,handled_by=auth.uid(),retention_note=COALESCE(p_note,''),revision=revision+1 WHERE id=p_id;
+ INSERT INTO public.cfa_safety_audit(actor_id,action,object_id) VALUES(auth.uid(),'deletion_'||p_action,p_id::text);
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_deletion_preview(p_id uuid) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$DECLARE r public.cfa_account_deletion_requests;BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ SELECT * INTO r FROM public.cfa_account_deletion_requests WHERE id=p_id;IF NOT FOUND THEN RAISE EXCEPTION 'request_unavailable';END IF;
+ RETURN jsonb_build_object('auth_exists',EXISTS(SELECT 1 FROM auth.users WHERE id=r.user_id),'profile_exists',EXISTS(SELECT 1 FROM public.user_profiles WHERE user_id=r.user_id),
+ 'created_conversations',(SELECT count(*) FROM public.private_conversations WHERE created_by=r.user_id),
+ 'other_members',(SELECT count(DISTINCT m.user_id) FROM public.private_conversations c JOIN public.private_conversation_memberships m ON m.conversation_id=c.id WHERE c.created_by=r.user_id AND m.user_id<>r.user_id),
+ 'private_messages',(SELECT count(*) FROM public.private_messages WHERE sender_id=r.user_id OR receiver_id=r.user_id),
+ 'community_messages',(SELECT count(*) FROM public.chat_messages WHERE user_id=r.user_id),
+ 'device_tokens',(SELECT count(*) FROM public.push_tokens WHERE user_id=r.user_id),
+ 'storage_objects',(SELECT count(*) FROM storage.objects o WHERE (o.bucket_id IN('chat-media','private-chat-media','profile-avatars') AND o.name LIKE r.user_id::text||'/%') OR to_jsonb(o)->>'owner_id'=r.user_id::text OR to_jsonb(o)->>'owner'=r.user_id::text));
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_owner_cleanup() RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ DELETE FROM public.cfa_content_reports WHERE state IN('resolved','dismissed') AND handled_at<now()-interval '90 days';
+ DELETE FROM public.cfa_account_deletion_requests WHERE state IN('completed','cancelled') AND updated_at<now()-interval '90 days';
+ DELETE FROM public.cfa_safety_audit WHERE created_at<now()-interval '180 days';
+END $$;
+
+CREATE OR REPLACE FUNCTION public.cfa_safety_media_visible(p_bucket text,p_name text) RETURNS boolean
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$DECLARE u uuid:=auth.uid();BEGIN
+ IF p_bucket NOT IN('chat-media','private-chat-media') THEN RETURN true;END IF;
+ IF u IS NULL THEN RETURN false;END IF;
+ IF public.cfa_safety_report_media(p_bucket,p_name) THEN RETURN true;END IF;
+ IF split_part(p_name,'/',1)=u::text AND NOT EXISTS(SELECT 1 FROM public.chat_messages WHERE media_url=p_name) AND NOT EXISTS(SELECT 1 FROM public.private_messages WHERE image_url=p_name) THEN RETURN true;END IF;
+ IF p_bucket='chat-media' THEN RETURN EXISTS(SELECT 1 FROM public.chat_messages m WHERE m.media_url=p_name AND public.cfa_safety_message_visible('community',m.id,m.user_id));END IF;
+ RETURN EXISTS(SELECT 1 FROM public.private_messages m WHERE m.image_url=p_name AND public.cfa_safety_message_visible('private',m.id,m.sender_id,m.cfa_system_receipt) AND (m.sender_id=u OR m.receiver_id=u OR COALESCE(public.was_private_conversation_member(m.conversation_id,u,m.created_at),false)));
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_media_upload(p_bucket text,p_name text) RETURNS boolean
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$DECLARE c text;BEGIN
+ IF p_bucket NOT IN('chat-media','private-chat-media') THEN RETURN true;END IF;
+ IF auth.uid() IS NULL OR split_part(p_name,'/',1)<>auth.uid()::text OR NOT public.cfa_safety_post_allowed(auth.uid(),CASE WHEN p_bucket='chat-media' THEN 'community' ELSE 'private' END) THEN RETURN false;END IF;
+ IF p_bucket='private-chat-media' THEN
+  c:=split_part(p_name,'/',2);IF c !~ '^[1-9][0-9]{0,15}$' THEN RETURN false;END IF;
+  IF NOT EXISTS(SELECT 1 FROM public.private_conversation_memberships WHERE conversation_id=c::bigint AND user_id=auth.uid() AND left_at IS NULL) OR public.cfa_safety_private_blocked(auth.uid(),c::bigint,NULL) THEN RETURN false;END IF;
+ END IF;RETURN true;
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_report_media(p_bucket text,p_name text) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$SELECT public.cfa_is_owner() AND EXISTS(SELECT 1 FROM public.cfa_content_reports WHERE snapshot->>'image'=p_name AND p_name LIKE reported_user_id::text||'/%' AND (kind<>'private' OR split_part(p_name,'/',2)=snapshot->>'conversation_id') AND kind=CASE WHEN p_bucket='chat-media' THEN 'community' WHEN p_bucket='private-chat-media' THEN 'private' ELSE '' END);$$;
+DROP POLICY IF EXISTS cfa_safety_reported_media ON storage.objects;
+CREATE POLICY cfa_safety_reported_media ON storage.objects FOR SELECT TO authenticated USING(public.cfa_safety_report_media(bucket_id,name));
+DROP POLICY IF EXISTS cfa_safety_media_read ON storage.objects;
+CREATE POLICY cfa_safety_media_read ON storage.objects AS RESTRICTIVE FOR SELECT TO authenticated USING(public.cfa_safety_media_visible(bucket_id,name));
+DROP POLICY IF EXISTS cfa_safety_media_insert ON storage.objects;
+CREATE POLICY cfa_safety_media_insert ON storage.objects AS RESTRICTIVE FOR INSERT TO authenticated WITH CHECK(public.cfa_safety_media_upload(bucket_id,name));
+
+-- Suppress new push queue entries for hidden/blocked authors. Already delivered notifications cannot be recalled.
+CREATE OR REPLACE FUNCTION public.cfa_safety_push_guard() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE sender uuid;receipt boolean;BEGIN
+ IF NEW.source_table='private_messages' THEN
+  SELECT sender_id,cfa_system_receipt INTO sender,receipt FROM public.private_messages WHERE id::text=NEW.source_id;
+  IF sender IS NULL OR NOT public.cfa_safety_visible_to(NEW.user_id,'private',NEW.source_id::bigint,sender,receipt) THEN RETURN NULL;END IF;
+ ELSIF NEW.source_table='chat_messages' THEN
+  SELECT user_id INTO sender FROM public.chat_messages WHERE id::text=NEW.source_id;
+  IF sender IS NULL OR NOT public.cfa_safety_visible_to(NEW.user_id,'community',NEW.source_id::bigint,sender,false) THEN RETURN NULL;END IF;
+ END IF;RETURN NEW;
+END $$;
+CREATE OR REPLACE FUNCTION public.cfa_safety_visible_to(p_viewer uuid,p_kind text,p_id bigint,p_author uuid,p_system boolean) RETURNS boolean
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$SELECT p_viewer IS NOT NULL AND NOT EXISTS(SELECT 1 FROM public.cfa_hidden_content WHERE kind=p_kind AND source_id=p_id) AND (p_system OR NOT public.cfa_safety_pair_blocked(p_viewer,p_author));$$;
+DROP TRIGGER IF EXISTS cfa_safety_push_guard ON public.push_notification_queue;
+CREATE TRIGGER cfa_safety_push_guard BEFORE INSERT ON public.push_notification_queue FOR EACH ROW EXECUTE FUNCTION public.cfa_safety_push_guard();
+-- Grant only explicit RPCs and boolean predicates required by RLS/invoker guards.
+DO $$DECLARE f record;BEGIN FOR f IN SELECT oid::regprocedure sig FROM pg_proc WHERE pronamespace='public'::regnamespace AND (proname LIKE 'cfa_safety_%') LOOP EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated',f.sig);END LOOP;END $$;
+GRANT EXECUTE ON FUNCTION public.cfa_safety_deletion_preview(uuid),public.cfa_safety_membership_blocked(bigint,uuid),public.cfa_safety_report_media(text,text),public.cfa_safety_message_visible(text,bigint,uuid,boolean),public.cfa_safety_post_allowed(uuid,text),public.cfa_safety_private_blocked(uuid,bigint,uuid),public.cfa_safety_media_visible(text,text),public.cfa_safety_media_upload(text,text),public.cfa_safety_state(),public.cfa_safety_accept(text,text,boolean),public.cfa_safety_block(uuid,boolean),public.cfa_safety_report(text,bigint,uuid,text,text),public.cfa_safety_request_deletion(boolean),public.cfa_safety_cancel_deletion(uuid),public.cfa_safety_owner_list(text,boolean,integer),public.cfa_safety_owner_report(uuid,text,text,integer),public.cfa_safety_owner_restrict(uuid,text,integer,text),public.cfa_safety_owner_deletion(uuid,text,text,integer),public.cfa_safety_owner_cleanup() TO authenticated;
+-- Internal reward receipt writer is patched below, preserving its existing ACL.
+
+CREATE OR REPLACE FUNCTION public.cfa_reward_dm(p_recipient uuid,p_body text) RETURNS bigint
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$ DECLARE convo bigint;mid bigint;previous_marker text:=current_setting('cfa.safety.reward_recipient',true);BEGIN
+ IF NOT public.cfa_is_owner() THEN RAISE EXCEPTION 'owner_required';END IF;
+ PERFORM set_config('cfa.safety.reward_recipient',p_recipient::text,true);
+ IF p_recipient=auth.uid() THEN
+  SELECT c.id INTO convo FROM public.private_conversations c WHERE c.created_by=auth.uid() AND c.name='My reward receipts / Moje potvrdenia odmien' AND NOT c.is_group ORDER BY c.id LIMIT 1;
+  IF convo IS NULL THEN
+   INSERT INTO public.private_conversations(created_by,name,is_group) VALUES(auth.uid(),'My reward receipts / Moje potvrdenia odmien',false) RETURNING id INTO convo;
+   INSERT INTO public.private_conversation_members(conversation_id,user_id) VALUES(convo,auth.uid());
+   INSERT INTO public.private_conversation_memberships(conversation_id,user_id,added_by) VALUES(convo,auth.uid(),auth.uid());
+  END IF;
+ ELSE
+  PERFORM set_config('search_path','pg_catalog,public,pg_temp',true);
+  convo:=public.create_private_conversation(p_recipient);
+  PERFORM set_config('search_path','',true);
+ END IF;
+ INSERT INTO public.private_messages(sender_id,receiver_id,conversation_id,message_text,cfa_system_receipt) VALUES(auth.uid(),p_recipient,convo,p_body,true) RETURNING id INTO mid;PERFORM set_config('cfa.safety.reward_recipient',COALESCE(previous_marker,''),true);RETURN mid;
+END $$;
+
+COMMIT;
+SELECT true AS ochrana_uctov_a_komunikacie_pripravena;
+`;

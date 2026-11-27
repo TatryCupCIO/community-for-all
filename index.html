@@ -5804,7 +5804,7 @@ supabaseClient.auth
 </script>
 
 <script src="extensions.js?v=20261121-booking-dates-1"></script>
-<script src="chat.js?v=20261121-chat-5"></script>
+<script src="chat.js?v=20261127-safety-1"></script>
 
 <script>
 /* ===== PASSWORD SHOW / HIDE ===== */
@@ -6781,6 +6781,7 @@ function addPasswordEye(
         list.appendChild(
           row
         );
+        window.CFASafety?.decorateUser(list,user);
       }
     );
   }
@@ -8187,7 +8188,7 @@ function addPasswordEye(
 })();
 </script>
 
-<script src="private-chat.js?v=20261122-messenger-1"></script>
+<script src="private-chat.js?v=20261127-safety-1"></script>
 
 <script>
 /* ===== APP NAVIGATION ===== */
@@ -9363,8 +9364,10 @@ function cfaValidateChildAgeFields(row) {
 <script src="loyalty-treasure.js?v=20261126-rewards-1"></script>
 <script src="legal-documents.js?v=20261126-public-1"></script>
 <script src="legal-registration.js?v=20261122-legal-2"></script>
-<script src="quick-chat.js?v=20261122-messenger-1"></script>
+<script src="quick-chat.js?v=20261127-safety-1"></script>
 <script src="square-check.js?v=20261126-check-1"></script>
 <script src="cfa-booking-sandbox.js?v=20261126-rewards-debug-5"></script>
+<script src="cfa-safety-policy.js?v=20261127-safety-1"></script>
+<script src="cfa-safety.js?v=20261127-safety-1"></script>
 </body>
   </html>
