@@ -2,28 +2,33 @@
 (() => {
   'use strict';
   const recent = new Map(), drafts = new Map(), seen = new Set();
-  let owner = null, panel = null, active = null, generation = 0, timer, running = false;
+  let owner = null, panel = null, active = null, generation = 0, sessionEpoch = 0, timer, running = null;
   const tr = (sk,en) => currentLanguage === 'en' ? en : sk;
   const uid = () => typeof currentUser !== 'undefined' && currentUser?.id;
-  function reset() { generation++; panel?.remove(); panel=null; active=null; recent.clear(); drafts.clear(); seen.clear(); owner=uid(); }
-  async function refreshNow() {
-    if (running || !uid()) return;
+  function reset() { generation++; sessionEpoch++; panel?.remove(); panel=null; active=null; recent.clear(); drafts.clear(); seen.clear(); owner=uid(); }
+  function refreshNow() {
+    if (running) return running;
+    if (!uid()) return Promise.resolve();
+    running=loadRecent().finally(()=>{running=null;});return running;
+  }
+  async function loadRecent() {
     if(owner !== uid()) reset();
-    const user=uid(); running=true;
+    const user=uid(), version=sessionEpoch;
     try {
       const {data:mine,error} = await supabaseClient.from('private_conversation_memberships').select('conversation_id').eq('user_id',user).is('left_at',null);
-      if(error || !mine?.length) return;
+      if(error||user!==uid()||version!==sessionEpoch)return;
+      if(!mine?.length){recent.clear();if(typeof renderPrivateUsers==='function')renderPrivateUsers();return;}
       const ids=mine.map(m=>m.conversation_id);
       const {data:members,error:me} = await supabaseClient.from('private_conversation_memberships').select('conversation_id,user_id').in('conversation_id',ids).is('left_at',null);
       if(me) return;
       const latest=new Map();
       for(let start=0;;start+=1000) {
         const {data,error:e}=await supabaseClient.from('private_messages').select('conversation_id,sender_id,created_at').in('conversation_id',ids).order('created_at',{ascending:false}).order('id',{ascending:false}).range(start,start+999);
-        if(e || user!==uid()) return;
+        if(e || user!==uid() || version!==sessionEpoch) return;
         for(const m of data||[]) if(!latest.has(String(m.conversation_id))) latest.set(String(m.conversation_id),m);
         if((data||[]).length<1000 || latest.size===ids.length) break;
       }
-      if(user!==uid()) return;
+      if(user!==uid() || version!==sessionEpoch) return;
       recent.clear();
       for(const m of members||[]) {
         const last=latest.get(String(m.conversation_id));
@@ -33,11 +38,12 @@
       }
       if(typeof renderPrivateUsers==='function') renderPrivateUsers();
     } catch(e) { console.warn('Private conversation order:',e); }
-    finally { running=false; }
+
   }
   function refresh(){clearTimeout(timer);timer=setTimeout(refreshNow,150);}
   function hide(){if(panel && active) drafts.set(String(active.conversation_id),panel.querySelector('textarea').value);generation++;panel?.remove();panel=null;active=null;}
   async function incoming(message) {
+    refresh();
     if(window.CFASafety?.unavailable(message.sender_id)&&!message.cfa_system_receipt)return;
     if(!uid() || message.sender_id===uid()) return;
     if(owner!==uid()) reset();
@@ -95,7 +101,9 @@
   }
   const style=document.createElement('style');style.textContent=`.cfa-quick-chat{position:fixed;right:12px;bottom:calc(90px * var(--cfa-nav-scale,1));z-index:100050;width:min(440px,92vw);max-height:65dvh;background:#fff;color:#123a40;border:2px solid #148886;border-radius:16px;box-shadow:0 8px 36px #0005;padding:12px;font:16px/1.4 sans-serif;box-sizing:border-box}.cfa-quick-chat header{display:flex;align-items:center;justify-content:space-between;gap:10px}.cfa-quick-chat button{min-height:44px;border:1px solid #acd4d0;border-radius:8px;background:#e7f5f1;color:#123a40;padding:8px;cursor:pointer}.cfa-quick-chat textarea{width:100%;box-sizing:border-box;font:inherit;padding:10px;border:1px solid #88aaa7;border-radius:8px}.cfa-quick-chat form{display:flex;gap:8px;margin:10px 0}.cfa-quick-messages{max-height:28dvh;overflow:auto;overscroll-behavior:contain}.cfa-quick-messages>div{white-space:pre-wrap;overflow-wrap:anywhere;margin:6px 24px 6px 0;background:#eef5f5;padding:8px;border-radius:10px}.cfa-quick-messages>.cfa-quick-own{margin:6px 0 6px 24px;background:#d9f1e8}.cfa-quick-full{width:100%}.cfa-quick-more{display:flex;flex-wrap:wrap;gap:4px}.cfa-quick-error{color:#a32626}@media(pointer:coarse){.cfa-quick-chat{width:92vw;font-size:calc(16px * var(--cfa-nav-scale,1));right:4vw;max-height:65dvh}.cfa-quick-chat button{font:inherit;min-height:calc(44px * var(--cfa-nav-scale,1))}}`;
   document.head.append(style);
-  window.CFAQuickChat={recent,refresh,incoming};
+  window.CFAQuickChat={recent,refresh,refreshNow,incoming};
   setInterval(()=>{if(owner!==uid())reset();},1000);
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});refresh();
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+  setInterval(()=>{const page=document.getElementById('privateUsersPage');if(uid()&&!document.hidden&&page&&page.style.display!=='none'&&getComputedStyle(page).display!=='none')refresh();},20000);
+  supabaseClient.auth.onAuthStateChange(()=>{reset();refresh();});refresh();
 })();

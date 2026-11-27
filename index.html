@@ -6372,6 +6372,8 @@ function addPasswordEye(
       0
     );
 
+    privateUsersLimit=30;
+    await window.CFAQuickChat?.refreshNow();
     await loadPrivateUsers();
   }
 
@@ -6487,6 +6489,7 @@ function addPasswordEye(
         .subscribe();
   }
 
+  let privateUsersLimit = 30, privateUsersLastQuery = "";
   function renderPrivateUsers() {
 
     const list =
@@ -6507,6 +6510,8 @@ function addPasswordEye(
       )
         .trim()
         .toLowerCase();
+
+    if (query !== privateUsersLastQuery) { privateUsersLimit=30;privateUsersLastQuery=query; }
 
     const priority = {
       online: 0,
@@ -6592,7 +6597,7 @@ function addPasswordEye(
       return;
     }
 
-    users.forEach(
+    users.slice(0,privateUsersLimit).forEach(
       user => {
 
         const row =
@@ -6781,10 +6786,18 @@ function addPasswordEye(
         list.appendChild(
           row
         );
-        window.CFASafety?.decorateUser(list,user);
+        window.CFASafety?.decorateUser(row,user);
       }
     );
+    if(users.length>privateUsersLimit){
+      const more=document.createElement('button');more.type='button';more.id='privateUsersMore';more.className='back-btn';
+      more.textContent=(currentLanguage==='en'?'Show more contacts':'Zobraziť ďalšie kontakty')+' ('+Math.min(privateUsersLimit,users.length)+' / '+users.length+')';
+      more.onclick=()=>{const focusIndex=privateUsersLimit;privateUsersLimit+=30;renderPrivateUsers();const rows=list.querySelectorAll('.cfa-contact-row>button:first-child');rows[focusIndex]?.focus({preventScroll:true});};list.append(more);
+    }
+
   }
+
+  window.renderPrivateUsers = renderPrivateUsers;
 
   const privateMessagesOriginalLanguage =
     window.setLanguage;
@@ -9364,10 +9377,10 @@ function cfaValidateChildAgeFields(row) {
 <script src="loyalty-treasure.js?v=20261126-rewards-1"></script>
 <script src="legal-documents.js?v=20261126-public-1"></script>
 <script src="legal-registration.js?v=20261122-legal-2"></script>
-<script src="quick-chat.js?v=20261127-safety-1"></script>
+<script src="quick-chat.js?v=20261127-compact-chat"></script>
 <script src="square-check.js?v=20261126-check-1"></script>
 <script src="cfa-booking-sandbox.js?v=20261126-rewards-debug-5"></script>
 <script src="cfa-safety-policy.js?v=20261127-safety-1"></script>
-<script src="cfa-safety.js?v=20261127-safety-1"></script>
+<script src="cfa-safety.js?v=20261127-compact-chat"></script>
 </body>
   </html>
