@@ -4776,6 +4776,9 @@ async function showBookings() {
 
     el('bookingsContent')
       .appendChild(c);
+    if (b.payment_status === 'paid' && ['confirmed','completed'].includes(b.status) && Number(b.total_amount) === 0) {
+      window.CFALiveDocuments?.attach(c, b.id);
+    }
   }
 }
 
@@ -9388,5 +9391,6 @@ function cfaValidateChildAgeFields(row) {
 <script src="cfa-safety.js?v=20261127-checkout-1"></script>
 <script src="cfa-chat-groups.js?v=20261127-groups-2"></script>
 <script src="cfa-checkout-improvements.js?v=20261127-checkout-1"></script>
+<script src="cfa-live-documents.js?v=20261127-live-documents-1"></script>
 </body>
   </html>
