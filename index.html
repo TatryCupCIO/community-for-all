@@ -9017,7 +9017,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   function node(tag,value,cls) { const n=document.createElement(tag); if(value!=null)n.textContent=value;if(cls)n.className=cls;return n; }
   function statusLabel(s) { return ({hidden:text('Skryté','Hidden'),published:text('Zverejnené','Published'),archived:text('Archivované','Archived')})[s] || s; }
   function message(value,error=false) { $('cfaAdminMessage').textContent=value; $('cfaAdminMessage').className=error?'cfa-error':'cfa-success'; }
-  function fail(error) { console.error('CFA admin:',error);message(text('Operácia sa nepodarila. Zmeny vo formulári zostali zachované.','The operation failed. Your form changes have been preserved.')+' '+(error.code?'('+error.code+')':''),true); }
+  function fail(error) { console.error('CFA admin:',error);const known={invalid_event_option:['Vybraná položka nepatrí k tomuto podujatiu. Obnov zoznam a vyber ju znova.','The selected item does not belong to this event. Refresh and select it again.'],invalid_validity_period:['Koniec platnosti musí byť neskôr než začiatok.','Validity must end after it starts.'],invalid_usage_limit:['Počet použití musí byť aspoň 1 alebo nechaj políčko prázdne.','Usage limits must be at least 1, or leave the field blank.'],invalid_discount_limits:['Skontroluj dátumy a limity použití.','Check the dates and usage limits.'],invalid_event_or_percentage:['Vyber podujatie a percento zľavy od 1 do 100.','Select an event and a discount percentage from 1 to 100.']};const label=known[error?.message];message(label?text(...label):text('Operácia sa nepodarila. Zmeny vo formulári zostali zachované.','The operation failed. Your form changes have been preserved.')+' '+(error.code?'('+error.code+')':''),true); }
   async function permission() {
     const {data:u,error:ue}=await supabaseClient.auth.getUser();
     if(ue||!u?.user)return null;
@@ -9150,9 +9150,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   }
   async function loadDiscounts(){
     await requireOwner();
-    discounts=await query(supabaseClient.from('discount_codes')
-      .select('id,code,description,event_id,event_option_id,discount_type,discount_value,scope,valid_from,valid_until,max_uses,max_uses_per_user,active')
-      .eq('event_id',selectedEvent.id).order('created_at',{ascending:false}));
+    discounts=await query(supabaseClient.rpc('cfa_list_discounts',{p_event:selectedEvent.id}))||[];
   }
   function readableDate(value){return value?new Date(value).toLocaleString(currentLanguage==='en'?'en-GB':'sk-SK'):text('Bez obmedzenia','Unlimited');}
   function showDiscounts(){
@@ -9162,12 +9160,16 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
     button(actions,'Vytvoriť zľavu','Create discount',async()=>{await requireOwner();await loadOptions();dirty=false;showDiscountForm();},true);
     content.appendChild(node('p',text('Zľavy spravuje iba vlastníčka. Jednorazový kód môže použiť ten, komu ho pošleš; zatiaľ nie je viazaný na konkrétny účet.','Only an owner manages discounts. A single-use code can be used by its recipient; it is not yet bound to a specific account.'),'cfa-muted'));
     if(!discounts.length)content.appendChild(node('p',text('Zatiaľ nie sú vytvorené žiadne zľavy.','No discounts have been created yet.')));
+    const hiddenList=node('details'),hiddenSummary=node('summary',text('Skryté zľavy','Hidden discounts')+' ('+discounts.filter(d=>d.hidden).length+')');hiddenList.append(hiddenSummary);
     for(const d of discounts){
       const card=node('section',null,'cfa-card');card.appendChild(node('h3',d.description||text('Zľavový kód','Discount code')));
       const code=node('input');code.value=d.code;code.readOnly=true;code.setAttribute('aria-label',text('Zľavový kód','Discount code'));card.appendChild(code);
       card.appendChild(node('p',`${d.discount_value}${d.discount_type==='percent'?' %':' GBP'} · ${d.active?text('Zapnutá','Enabled'):text('Vypnutá','Disabled')}`));
+      card.appendChild(node('p',text('Platí na: ','Applies to: ')+(d.event_option_id?(currentLanguage==='en'?d.target_en:d.target_sk)||('#'+d.event_option_id):text('Celé podujatie','Whole event'))+(d.target_date?' · '+d.target_date:'')));
+      const exhausted=(d.max_uses!=null&&Number(d.uses)>=Number(d.max_uses));
+      if(exhausted||(d.valid_until&&new Date(d.valid_until)<new Date()))card.appendChild(node('strong',exhausted?text('Počet použití vyčerpaný','Usage limit reached'):text('Platnosť skončila','Expired')));
       card.appendChild(node('p',text('Platnosť: ','Validity: ')+readableDate(d.valid_from)+' – '+readableDate(d.valid_until),'cfa-muted'));
-      card.appendChild(node('p',text('Celkový limit použití: ','Total usage limit: ')+(d.max_uses??text('Bez limitu','Unlimited'))+' · '+text('Na účet: ','Per account: ')+d.max_uses_per_user,'cfa-muted'));
+      card.appendChild(node('p',text('Celkový limit použití: ','Total usage limit: ')+(d.max_uses??text('Bez limitu','Unlimited'))+' · '+text('Na účet: ','Per account: ')+(d.max_uses_per_user??text('Bez limitu','Unlimited'))+' · '+text('Použité: ','Used: ')+Number(d.uses||0),'cfa-muted'));
       const bar=node('div',null,'cfa-bar');card.appendChild(bar);
       button(bar,'Kopírovať kód','Copy code',async()=>{
         try{await navigator.clipboard.writeText(d.code);message(text('Kód bol skopírovaný.','Code copied.'));}
@@ -9176,30 +9178,58 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
       button(bar,d.active?'Vypnúť':'Zapnúť',d.active?'Disable':'Enable',async()=>{
         await requireOwner();await query(supabaseClient.from('discount_codes').update({active:!d.active}).eq('id',d.id).select('id').single());
         await loadDiscounts();showDiscounts();message(text('Stav zľavy bol uložený.','Discount status saved.'));
-      });content.appendChild(card);
+      });
+      button(bar,'Upraviť limity a platnosť','Edit limits and validity',()=>{dirty=false;showDiscountLimits(d);});
+      button(bar,d.hidden?'Zobraziť':'Skryť',d.hidden?'Show':'Hide',async()=>{
+        await requireOwner();await query(supabaseClient.rpc('cfa_manage_discount',{p_discount:d.id,p_action:d.hidden?'show':'hide'}));
+        await loadDiscounts();showDiscounts();message(text('Zobrazenie zľavy je uložené. Platnosť kódu sa nezmenila.','Discount visibility saved. The code validity has not changed.'));
+      });
+      button(bar,'Odstrániť zľavu','Remove discount',async()=>{
+        if(!confirm(text('Odstrániť tento kód zo zoznamu a zakázať jeho ďalšie použitie? Existujúce rezervácie zostanú zachované.','Remove this code from the list and prevent further use? Existing bookings will be preserved.')))return;
+        await requireOwner();await query(supabaseClient.rpc('cfa_manage_discount',{p_discount:d.id,p_action:'remove'}));
+        await loadDiscounts();showDiscounts();message(text('Zľava bola odstránená.','Discount removed.'));
+      });
+      (d.hidden?hiddenList:content).appendChild(card);
     }
+    if(discounts.some(d=>d.hidden))content.appendChild(hiddenList);
+  }
+  function discountLimitFields(){return [
+    ['valid_from',tr('Platí od (prázdne = bez obmedzenia)','Valid from (blank = unrestricted)'),'datetime-local',false],
+    ['valid_until',tr('Platí do (prázdne = bez konca)','Valid until (blank = no expiry)'),'datetime-local',false],
+    ['max_uses',tr('Celkový počet použití (prázdne = bez limitu)','Total uses (blank = unlimited)'),'integer',false,null,1],
+    ['max_uses_per_user',tr('Počet použití na jeden účet (prázdne = bez limitu)','Uses per account (blank = unlimited)'),'integer',false,null,1],
+    ['description',tr('Popis zľavy pre zákazníka','Discount description for the customer'),'text']
+  ];}
+  function discountLocalDate(value){if(!value)return '';const d=new Date(value);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);}
+  function discountDates(data){for(const key of ['valid_from','valid_until'])data[key]=data[key]?new Date(data[key]).toISOString():null;return data;}
+  function showDiscountLimits(d){
+    reset('discountLimits');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zľavy','Discounts',showDiscounts);
+    content.appendChild(node('h3',text('Upraviť zľavu','Edit discount')));
+    content.appendChild(node('p',text('Prázdne limity umožnia opakované používanie aj tým istým účtom. Skrytie nezakazuje použitie kódu.','Blank limits allow repeated use, including by the same account. Hiding does not disable the code.')));
+    buildForm(discountLimitFields(),{...d,valid_from:discountLocalDate(d.valid_from),valid_until:discountLocalDate(d.valid_until)},async data=>{
+      await requireOwner();if(data.valid_from&&data.valid_until&&new Date(data.valid_until)<=new Date(data.valid_from)){message(text('Koniec platnosti musí byť neskôr než začiatok.','Validity must end after it starts.'),true);return;}
+      await query(supabaseClient.rpc('cfa_update_discount_limits',{p_discount:d.id,p_data:discountDates(data)}));
+      dirty=false;await loadDiscounts();showDiscounts();message(text('Limity a platnosť boli uložené.','Limits and validity saved.'));
+    });
   }
   function showDiscountForm(){
     reset('discountForm');const bar=node('div',null,'cfa-bar');content.appendChild(bar);back(bar,'Zľavy','Discounts',showDiscounts);
     content.appendChild(node('h3',text('Nová zľava: ','New discount: ')+cfaEventName(selectedEvent)));
-    content.appendChild(node('p',text('Limit 1 znamená jednorazový kód. Prázdny celkový limit umožní spoločnú akciu pre viac ľudí. Konkrétna noc, kategórie a príjemca ešte nie sú zapojené.','A limit of 1 means a single-use code. Leave the total limit blank for a shared promotion. Specific nights, categories and recipients are not connected yet.'),'cfa-muted'));
-    const choices=[['','Celá objednávka','Whole booking'],...options.map(o=>[String(o.id),o.name_sk||o.name,o.name_en||o.name_sk||o.name])];
+    content.appendChild(node('p',text('Limit 1 znamená jednorazový kód. Prázdne oba limity umožnia opakované používanie aj tým istým účtom. Vyber konkrétnu vstupenku alebo ubytovanie, prípadne celé podujatie.','A limit of 1 means a single-use code. Leave both limits blank for repeated use, including by the same account. Select a specific ticket or accommodation, or the whole event.'),'cfa-muted'));
+    const choices=[['','Celé podujatie','Whole event'],...options.map(o=>[String(o.id),(o.name_sk||o.name)+(o.option_date?' · '+o.option_date:'')+(o.enabled?'':' (vypnuté)')+' · #'+o.id,(o.name_en||o.name_sk||o.name)+(o.option_date?' · '+o.option_date:'')+(o.enabled?'':' (disabled)')+' · #'+o.id])];
     const fields=[
       ['percent',tr('Zľava (%)','Discount (%)'),'number',true,null,1,100],
       ['event_option_id',tr('Na čo platí','Applies to'),'select',false,choices],
-      ['valid_from',tr('Platí od','Valid from'),'datetime-local',true],
-      ['valid_until',tr('Platí do','Valid until'),'datetime-local',true],
-      ['max_uses',tr('Celkový počet použití (prázdne = bez limitu)','Total uses (blank = unlimited)'),'integer',false,null,1],
-      ['max_uses_per_user',tr('Počet použití na jeden účet','Uses per account'),'integer',true,null,1],
-      ['description',tr('Popis zľavy pre zákazníka','Discount description for the customer'),'text']
+      ...discountLimitFields()
     ];
     const localDate=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,16);};
     const now=new Date();
     const form=buildForm(fields,{percent:50,event_option_id:'',valid_from:localDate(now),valid_until:localDate(new Date(now.getTime()+7*86400000)),max_uses:1,max_uses_per_user:1},async data=>{
       await requireOwner();
-      if(new Date(data.valid_until)<=new Date(data.valid_from)){message(text('Koniec platnosti musí byť neskôr než začiatok.','Validity must end after it starts.'),true);return;}
+      if(data.valid_from&&data.valid_until&&new Date(data.valid_until)<=new Date(data.valid_from)){message(text('Koniec platnosti musí byť neskôr než začiatok.','Validity must end after it starts.'),true);return;}
       data.event_id=selectedEvent.id;
-      data.valid_from=new Date(data.valid_from).toISOString();data.valid_until=new Date(data.valid_until).toISOString();
+      data.event_option_id=data.event_option_id?Number(data.event_option_id):null;
+      discountDates(data);
       const result=await query(supabaseClient.rpc('cfa_create_discount',{p_data:data}));
       const created=Array.isArray(result)?result[0]:result;
       dirty=false;await loadDiscounts();showDiscounts();message(text('Kód bol vytvorený: ','Code created: ')+(created?.code||''));
@@ -9210,7 +9240,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
   const previousAccount=window.showAccount;
   window.showAccount=function(){const result=previousAccount.apply(this,arguments);setTimeout(refreshEntry,0);return result;};
   const previousLanguage=window.setLanguage;
-  window.setLanguage=function(){const result=previousLanguage.apply(this,arguments);labels();if(dialog.open&&!dirty&&!busy){if(view==='list')showList();else if(view==='event')showEventForm();else if(view==='options')showOptions();else if(view==='discounts')showDiscounts();else if(view==='discountForm')showDiscountForm();else showOptionForm();}return result;};
+  window.setLanguage=function(){const result=previousLanguage.apply(this,arguments);labels();if(dialog.open&&!dirty&&!busy&&view!=='discountLimits'){if(view==='list')showList();else if(view==='event')showEventForm();else if(view==='options')showOptions();else if(view==='discounts')showDiscounts();else if(view==='discountForm')showDiscountForm();else showOptionForm();}return result;};
   supabaseClient.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT'){generation++;allowedUser=null;entry.hidden=true;if(dialog.open)forceClose();}else setTimeout(refreshEntry,0);});
   refreshEntry();
 })();
