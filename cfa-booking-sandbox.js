@@ -83,7 +83,9 @@ function tag(){
   if(label)label.textContent=tr('SKÚŠKA','TEST');
  }else label?.remove();
 }
-function mode(value){enabled=!!value&&current();if(user)try{sessionStorage.setItem('cfa-test-mode:'+user,enabled?'1':'0')}catch{}
+function savedMode(id){const key='cfa-test-mode:'+id;let value=null;try{value=localStorage.getItem(key)}catch{}if(value!=='0'&&value!=='1')try{value=sessionStorage.getItem(key)}catch{}return value==='0'?'0':value==='1'?'1':null;}
+function mode(value){enabled=!!value&&current();let stored=false;if(user){const key='cfa-test-mode:'+user;try{localStorage.setItem(key,enabled?'1':'0');stored=true}catch{}try{sessionStorage.setItem(key,enabled?'1':'0')}catch{}}
+ message=stored?tr('Režim je uložený pre tento účet v tomto zariadení.','Mode saved for this account on this device.'):tr('Režim je zmenený, ale zariadenie nepovolilo trvalé uloženie.','Mode changed, but this device did not allow persistent storage.');messageType=stored?'success':'error';
  tag();decorateCart();window.CFALoyaltyTreasure?.refresh();window.CFARewards?.refresh();render();}
 function render(){
  panel.hidden=!current();if(panel.hidden)return;panel.replaceChildren();
@@ -91,10 +93,12 @@ function render(){
  node('p',tr('Skúšobná platba kartou, potvrdenie e-mailom, PDF vstupenka a skúšobné body. Skúšobné doklady nie sú platné na vstup.','Test card payment, confirmation email, PDF ticket and test points. Test documents are not valid for entry.')));
  const label=node('label',null,'cfa-sandbox-mode'),check=node('input');check.type='checkbox';check.checked=enabled;check.onchange=()=>mode(check.checked);
  label.append(check,node('span',tr('Skúšobný režim vrátane truhličky','Test mode including treasure chest')));panel.append(label);
+ panel.append(node('p',enabled?tr('Aktívny režim: SKÚŠOBNÝ','Active mode: TEST'):tr('Aktívny režim: OSTRÝ','Active mode: LIVE')));
+ panel.append(btn(tr('Uložiť režim','Save mode'),()=>mode(check.checked)));
  const controls=node('div',null,'cfa-sandbox-controls');
  if(isOwner){const setup=btn(tr('Pripraviť celú skúšku','Prepare complete test'),setupAll);setup.disabled=running;controls.append(setup);
  controls.append(btn(tr('Vyčistiť skúšobnú kapacitu','Clear test capacity'),async()=>{if(!confirm(tr('Uvoľniť kapacitu všetkých dokončených skúšobných rezervácií? Skutočné objednávky zostanú zachované.','Release capacity held by all completed test bookings? Real orders will be preserved.')))return;const id=user,gen=generation;const {error}=await supabaseClient.rpc('cfa_reset_test_capacity');if(gen!==generation||id!==user)return;message=error?tr('Kapacitu sa nepodarilo uvoľniť.','Could not release test capacity.'):tr('Skúšobná kapacita bola uvoľnená.','Test capacity was released.');messageType=error?'error':'success';render();}));} 
- controls.append(btn(tr('Obnoviť stav','Refresh status'),refresh),btn(tr('Otvoriť podujatia a rezerváciu','Open events and booking'),()=>{mode(true);showEvents()}));panel.append(controls);
+ controls.append(btn(tr('Obnoviť stav','Refresh status'),refresh),btn(tr('Otvoriť podujatia a rezerváciu','Open events and booking'),()=>{showEvents()}));panel.append(controls);
  if(message){const m=node('p',message,'cfa-test-notice cfa-test-'+messageType);m.setAttribute('role',messageType==='error'?'alert':'status');panel.append(m)}
  if(isOwner){
   const form=node('form');const l=node('label',tr('E-mail ďalšieho skúšobného účtu','Email of another test account'),'cfa-sandbox-label'),input=node('input');input.type='email';input.required=true;input.maxLength=254;input.autocomplete='off';input.value=emailDraft;input.oninput=()=>emailDraft=input.value;l.append(input);
@@ -234,7 +238,7 @@ async function refreshAuth(){
  try{
   const [member,owner]=await Promise.all([supabaseClient.rpc('cfa_test_is_member'),supabaseClient.rpc('cfa_is_owner')]);
   if(gen!==generation||currentUser?.id!==id||!((!member.error&&member.data===true)||(!owner.error&&owner.data===true)))return;
-  user=id;isOwner=!owner.error&&owner.data===true;let saved=null;try{saved=sessionStorage.getItem('cfa-test-mode:'+id)}catch{}
+  user=id;isOwner=!owner.error&&owner.data===true;const saved=savedMode(id);
   enabled=saved!=='0';render();tag();window.CFALoyaltyTreasure?.refresh();await refresh();
   if(gen!==generation||user!==id)return;
   if(pendingId&&/^[0-9a-f-]{36}$/i.test(pendingId)){
