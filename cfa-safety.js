@@ -25,13 +25,13 @@ async function actions(target,node){
  if(target.author!==user){
   if(target.id&&!target.system)box.append(button(tr('Nahlásiť správu alebo fotografiu','Report message or photo'),()=>report(target)));
   box.append(button(tr('Nahlásiť používateľa','Report user'),()=>report(target,'user')));
-  if(!state?.protected_admins?.includes(target.author))box.append(button(tr('Zablokovať používateľa','Block user'),()=>setBlock(target.author,true)));
+  if(!state?.protected_admins?.includes(target.author))box.append(button(isBlocked(target.author)?tr('Odblokovať používateľa','Unblock user'):tr('Zablokovať používateľa','Block user'),()=>setBlock(target.author,!isBlocked(target.author))));
  }
 }
 function bindHold(node,open){
  let timer=null,start=null,held=false;
  const cancel=()=>{clearTimeout(timer);timer=null;};
- node.addEventListener('pointerdown',event=>{if(event.button!==0||event.target.closest('a,input,textarea,select,.cfa-message-more,.cfa-contact-more,[data-label-sk]'))return;held=false;start={x:event.clientX,y:event.clientY};cancel();timer=setTimeout(()=>{held=true;open();},550);});
+ node.addEventListener('pointerdown',event=>{if(event.button!==0||event.target.closest('a,input,textarea,select,.cfa-message-more,.cfa-contact-more,.cfa-contact-badge,[data-label-sk]'))return;held=false;start={x:event.clientX,y:event.clientY};cancel();timer=setTimeout(()=>{held=true;open();},550);});
  node.addEventListener('pointermove',event=>{if(start&&Math.hypot(event.clientX-start.x,event.clientY-start.y)>10)cancel();});
  for(const type of ['pointerup','pointercancel','pointerleave','lostpointercapture'])node.addEventListener(type,cancel);
  node.addEventListener('click',event=>{if(held){held=false;event.preventDefault();event.stopImmediatePropagation();}},true);
@@ -45,7 +45,7 @@ function directActions(target,node,contact=false){
  if(!contact&&del&&!target.system&&target.author===uid())icon('🗑', 'Vymazať správu','Delete message',()=>del.click());
  if(target.author!==uid()){
   icon('⚑',contact?'Nahlásiť používateľa':'Nahlásiť správu',contact?'Report user':'Report message',()=>report(target,contact?'user':target.kind));
-  if(!state?.protected_admins?.includes(target.author)){const block=icon('⛔','Zablokovať používateľa','Block user',()=>setBlock(target.author,true));block.dataset.cfaBlock=target.author;}
+  if(!state?.protected_admins?.includes(target.author)){const blocked=isBlocked(target.author);const block=icon(blocked?'🔓':'⛔',blocked?'Odblokovať používateľa':'Zablokovať používateľa',blocked?'Unblock user':'Block user',()=>setBlock(target.author,!isBlocked(target.author)));block.dataset.cfaBlock=target.author;}
  }
  return strip;
 }
@@ -66,14 +66,25 @@ function decorateMessage(node,target){
  }
  return true;
 }
+function isBlocked(id){return !!state?.blocked?.some(b=>b.user_id===id);}
+function syncContactBadges(){
+ for(const wrap of document.querySelectorAll('.cfa-contact-row[data-cfa-contact]')){
+  const id=wrap.dataset.cfaContact,blocked=isBlocked(id);let badge=wrap.querySelector('.cfa-contact-badge');
+  if(blocked&&!badge){badge=button('⛔',()=>actions({kind:'user',author:id,name:wrap.dataset.cfaName}),'cfa-contact-badge');badge.setAttribute('aria-haspopup','dialog');wrap.append(badge);}
+  if(!blocked)badge?.remove();
+  if(badge&&blocked){badge.title=tr('Zablokovaný kontakt. Klikni pre odblokovanie: ','Blocked contact. Click to unblock: ')+wrap.dataset.cfaName;badge.setAttribute('aria-label',badge.title);}
+  wrap.classList.toggle('cfa-contact-blocked',blocked);
+  const action=wrap.querySelector('[data-cfa-block]');if(action){action.textContent=blocked?'🔓':'⛔';action.dataset.labelSk=blocked?'Odblokovať používateľa':'Zablokovať používateľa';action.dataset.labelEn=blocked?'Unblock user':'Block user';action.title=tr(action.dataset.labelSk,action.dataset.labelEn);action.setAttribute('aria-label',action.title);}
+ }
+}
 function decorateUser(row,user){
  if(user.user_id===uid()||row.dataset.cfaActionsReady)return;row.dataset.cfaActionsReady='true';
  const open=()=>actions({kind:'user',author:user.user_id,name:user.display_name,profile:user}).catch(err=>alert(explain(err)));
  // A separate sibling button avoids nesting buttons in the conversation link.
- const wrap=e('div',null,'cfa-contact-row');row.replaceWith(wrap);wrap.append(row);
+ const wrap=e('div',null,'cfa-contact-row');wrap.dataset.cfaContact=user.user_id;wrap.dataset.cfaName=user.display_name||tr('Používateľ','User');row.replaceWith(wrap);wrap.append(row);
  const more=button('⋯',open,'cfa-contact-more');more.setAttribute('aria-label',tr('Možnosti kontaktu: ','Contact options: ')+(user.display_name||tr('Používateľ','User')));more.title=more.getAttribute('aria-label');more.dataset.labelSk='Možnosti kontaktu: '+(user.display_name||'Používateľ');more.dataset.labelEn='Contact options: '+(user.display_name||'User');more.setAttribute('aria-haspopup','dialog');wrap.append(directActions({kind:'user',author:user.user_id,name:user.display_name,profile:user},null,true),more);
  const avatar=row.firstElementChild;if(avatar)avatar.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();open();});
- bindHold(wrap,open);
+ bindHold(wrap,open);syncContactBadges();
 }
 
 function account(){const box=modal(tr('Bezpečnosť a údaje účtu','Account safety and data'));box.append(link(tr('Ochrana súkromia','Privacy policy'),'/privacy.html'),e('p',tr('Blokované kontakty','Blocked contacts')));for(const b of state?.blocked||[]){const row=e('div',null,'cfa-safety-row');row.append(e('span',b.display_name),button(tr('Odblokovať','Unblock'),async()=>{await setBlock(b.user_id,false);account();}));box.append(row);}if(!state?.blocked?.length)box.append(e('p',tr('Nemáte blokované kontakty.','You have no blocked contacts.')));if(state?.restriction)box.append(e('p',tr('Obmedzenie komunikácie: ','Communication restriction: ')+state.restriction.reason));box.append(button(tr('Prečítať a prijať pravidlá','Read and accept rules'),()=>acceptance()),button(tr('Vymazať účet','Delete account'),()=>deletion()),link(tr('Vymazanie cez web alebo e-mail','Deletion via web or email'),'/account-deletion.html'));}
@@ -92,7 +103,7 @@ async function owner(){const box=modal(tr('Správa bezpečnosti a žiadostí','S
  if(offset>0)box.append(button(tr('Predchádzajúce','Previous'),()=>{offset=Math.max(0,offset-50);owner();}));if(offset+50<result.total)box.append(button(tr('Ďalšie','Next'),()=>{offset+=50;owner();}));}
 const setupEntry=button(tr('Pripraviť ochranu účtov a komunikácie','Prepare account and communication safety'),async user=>{const r=await supabaseClient.functions.invoke('cfa-account-safety',{body:{action:'setup'}});if(user!==uid())return;if(r.error||r.data?.ok!==true){let detail=r.data;try{if(!detail)detail=await r.error?.context?.json();}catch{}throw Error('setup_failed '+(/^[A-Z0-9]{5}$/.test(detail?.code||'')?detail.code:''));}await refresh();});setupEntry.id='cfaSafetySetup';
 const accountHost=$('accountPage')?.querySelector('.card')||$('accountPage');const entry=button('',async()=>{await refresh();account();});entry.id='cfaSafetyAccount';const deleteEntry=button(tr('Vymazať účet','Delete account'),async()=>{await refresh();deletion();});deleteEntry.id='cfaDeleteAccount';const adminEntry=button('',async()=>{await refresh();owner();});adminEntry.id='cfaSafetyAdmin';accountHost?.append(entry,deleteEntry,adminEntry,setupEntry);
-function renderEntry(){setupEntry.hidden=!uid()||!ownerKnown||Array.isArray(state?.protected_admins);entry.hidden=deleteEntry.hidden=!uid();adminEntry.hidden=!uid()||!state?.can_manage;entry.textContent=tr('Bezpečnosť a blokované kontakty','Safety and blocked contacts');deleteEntry.textContent=tr('Vymazať účet','Delete account');adminEntry.textContent=tr('Hlásenia a žiadosti','Reports and requests')+' · '+(state?.pending||0);}
+function renderEntry(){syncContactBadges();setupEntry.hidden=!uid()||!ownerKnown||Array.isArray(state?.protected_admins);entry.hidden=deleteEntry.hidden=!uid();adminEntry.hidden=!uid()||!state?.can_manage;entry.textContent=tr('Bezpečnosť a blokované kontakty','Safety and blocked contacts');deleteEntry.textContent=tr('Vymazať účet','Delete account');adminEntry.textContent=tr('Hlásenia a žiadosti','Reports and requests')+' · '+(state?.pending||0);}
 const style=e('style');style.textContent='.cfa-safety-dialog{width:min(780px,94vw);max-height:88dvh;overflow:auto;box-sizing:border-box;border:1px solid #aab4c5;border-radius:14px;padding:20px;background:#fff;color:#17243d;font:17px/1.5 system-ui,sans-serif}.cfa-safety-dialog::backdrop{background:#17243d99}.cfa-safety-top{display:flex;gap:14px;justify-content:space-between;align-items:start}.cfa-safety-dialog h2{font-size:25px;color:#17243d}.cfa-safety-dialog h3{font-size:20px;color:#17243d}.cfa-safety-dialog p{white-space:pre-wrap;overflow-wrap:anywhere}.cfa-safety-dialog button,.cfa-safety-contact,#cfaSafetyAccount,#cfaDeleteAccount,#cfaSafetyAdmin{min-height:44px;border:1px solid #aab4c5;border-radius:8px;background:#172b4c;color:white;padding:10px 14px;margin:5px;font:inherit;cursor:pointer}.cfa-safety-dialog button:disabled{opacity:.55;cursor:default}.cfa-safety-dialog select,.cfa-safety-dialog textarea,.cfa-safety-dialog input[type=number]{display:block;box-sizing:border-box;width:100%;padding:10px;margin:8px 0;border:1px solid #9daabd;border-radius:6px;background:white;color:#17243d;font:inherit}.cfa-safety-dialog textarea{min-height:90px}.cfa-safety-check{display:flex;gap:12px;margin:20px 0}.cfa-safety-check input{width:24px;height:24px;flex-shrink:0}.cfa-safety-card{border:1px solid #c5ccda;padding:14px;margin:16px 0;border-radius:10px}.cfa-safety-card img{max-width:100%;max-height:60dvh}.cfa-safety-tabs,.cfa-safety-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}.cfa-safety-inline{display:block;min-height:44px;margin-top:8px;border:1px solid #9daabd;border-radius:7px;background:#fff;color:#17243d;padding:6px 10px;font:14px/1.3 system-ui;cursor:pointer}.cfa-safety-contact{display:block;margin-top:-5px;font-size:14px;background:#fff;color:#17243d}.cfa-safety-dialog a{color:#204a8a}@media(pointer:coarse){.cfa-safety-dialog{font-size:calc(16px * var(--cfa-nav-scale,1));width:94vw}.cfa-safety-dialog h2{font-size:1.3em}.cfa-safety-dialog h3{font-size:1.1em}.cfa-safety-dialog button{min-height:2.7em}.cfa-safety-inline,.cfa-safety-contact{font-size:max(14px,calc(13px * var(--cfa-nav-scale,1)))}}';document.head.append(style);
 const menuStyle=e('style');menuStyle.textContent=`
 .cfa-chat-action-menu{width:min(360px,90vw);padding:14px;font-size:16px;max-height:80dvh}
@@ -110,6 +121,11 @@ const menuStyle=e('style');menuStyle.textContent=`
 .cfa-message-more{position:absolute;right:2px;top:2px;width:40px;min-height:40px;padding:0;border:0;border-radius:8px;background:transparent;color:inherit;font:700 24px/1 system-ui;cursor:pointer}
 .cfa-message-actions [role=button]{cursor:pointer}
 .cfa-message-more:focus-visible,.cfa-contact-more:focus-visible,.cfa-message-actions [role=button]:focus-visible{outline:2px solid #148886;outline-offset:2px}
+
+.cfa-contact-row{position:relative}
+.cfa-contact-row>button:first-child>div:first-child{width:calc(44px * var(--cfa-chat-ui-scale,1))!important;height:calc(44px * var(--cfa-chat-ui-scale,1))!important;min-width:calc(44px * var(--cfa-chat-ui-scale,1))!important}
+.cfa-contact-badge{position:absolute;left:12px;top:50%;transform:translateY(-50%);width:calc(44px * var(--cfa-chat-ui-scale,1));height:calc(44px * var(--cfa-chat-ui-scale,1));min-height:44px;padding:0;border:0;border-radius:50%;background:#ffffffb8;color:#ad263b;font-size:calc(30px * var(--cfa-chat-ui-scale,1));line-height:1;cursor:pointer}
+.cfa-contact-badge:focus-visible{outline:3px solid #148886;outline-offset:2px}
 `;document.head.append(menuStyle);
 function reset(){epoch++;state=null;ownerKnown=false;refreshing=null;dialog?.close();dialog?.remove();dialog=null;renderEntry();}
 async function bootstrap(){const user=uid();if(!user)return;try{ownerKnown=(await rpc('cfa_is_owner',{},user))===true;renderEntry();await refresh();}catch{renderEntry();}}
