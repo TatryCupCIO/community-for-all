@@ -10,7 +10,7 @@ function button(text,fn,cls=''){const b=e('button',text,cls);b.type='button';b.o
 function link(label,url){const a=e('a',label);a.href=url;return a;}
 function modal(title){dialog?.close();dialog?.remove();dialog=e('dialog',null,'cfa-safety-dialog');dialog.id='cfaSafetyDialog';const heading=e('h2',title);heading.id='cfaSafetyTitle';dialog.setAttribute('aria-labelledby',heading.id);const close=button(tr('Zavrieť','Close'),()=>dialog.close());const top=e('div',null,'cfa-safety-top');top.append(heading,close);status=e('p');status.setAttribute('role','status');body=e('div');dialog.append(top,status,body);document.body.append(dialog);dialog.showModal();return body;}
 function unavailable(id){return !!state?.unavailable_authors?.includes(id);}
-function applyVisibility(){for(const node of document.querySelectorAll('[data-cfa-author]')){if(!state?.can_manage&&node.dataset.cfaAuthor!==uid()&&state?.protected_admins?.includes(node.dataset.cfaAuthor))node.querySelectorAll('.private-delete-btn,.chat-delete-btn').forEach(b=>b.remove());const hidden=state?.hidden?.some(h=>h.kind===node.dataset.cfaKind&&String(h.source_id)===node.dataset.cfaSource);if(hidden||(!node.dataset.cfaSystem&&unavailable(node.dataset.cfaAuthor)))node.remove();}}
+function applyVisibility(){for(const block of document.querySelectorAll('[data-cfa-block]'))if(state?.protected_admins?.includes(block.dataset.cfaBlock))block.remove();for(const node of document.querySelectorAll('[data-cfa-author]')){if(!state?.can_manage&&node.dataset.cfaAuthor!==uid()&&state?.protected_admins?.includes(node.dataset.cfaAuthor))node.querySelectorAll('.private-delete-btn,.chat-delete-btn').forEach(b=>b.remove());const hidden=state?.hidden?.some(h=>h.kind===node.dataset.cfaKind&&String(h.source_id)===node.dataset.cfaSource);if(hidden||(!node.dataset.cfaSystem&&unavailable(node.dataset.cfaAuthor)))node.remove();}}
 async function refresh(){if(!uid()){state=null;renderEntry();return null;}if(refreshing)return refreshing;const user=uid(),gen=epoch;refreshing=(async()=>{try{const value=await rpc('cfa_safety_state',{},user);if(gen!==epoch||uid()!==user)return null;state=value;applyVisibility();renderEntry();return value;}finally{if(gen===epoch)refreshing=null;}})();return refreshing;}
 function acceptance(){const box=modal(tr('Pravidlá bezpečnej komunikácie','Safe communication rules'));box.append(e('p',tr('Pred posielaním správ alebo fotografií prijmite tieto pravidlá. Nejde o súhlas s reklamou.','Accept these rules before sending messages or photographs. This is not advertising consent.')));for(const p of window.CFASafetyPolicy.sections){const s=e('section');s.append(e('h3',currentLanguage==='en'?p.title_en:p.title_sk),e('p',currentLanguage==='en'?p.en:p.sk));box.append(s);}const check=e('input');check.type='checkbox';check.id='cfaSafetyAccepted';const label=e('label',null,'cfa-safety-check');label.append(check,e('span',tr('Prijímam pravidlá bezpečnej komunikácie a beriem na vedomie informácie o vybavovaní podnetov a žiadostí.','I accept the safe communication rules and acknowledge the information about handling reports and requests.')));const accept=button(tr('Prijať pravidlá','Accept rules'),async user=>{if(!check.checked)return;await rpc('cfa_safety_accept',{p_version:window.CFASafetyPolicy.version,p_language:currentLanguage==='en'?'en':'sk',p_accepted:true},user);await refresh();dialog.close();});accept.disabled=true;check.onchange=()=>accept.disabled=!check.checked;box.append(label,accept);}
 async function ensure(scope){try{const s=await refresh();if(!s)return false;if(!s.accepted){acceptance();return false;}if(s.restriction&&['all',scope].includes(s.restriction.scope)){alert(tr('Komunikácia je dočasne obmedzená: ','Communication is temporarily restricted: ')+s.restriction.reason);return false;}return true;}catch(err){alert(explain(err));return false;}}
@@ -31,12 +31,25 @@ async function actions(target,node){
 function bindHold(node,open){
  let timer=null,start=null,held=false;
  const cancel=()=>{clearTimeout(timer);timer=null;};
- node.addEventListener('pointerdown',event=>{if(event.button!==0||event.target.closest('a,input,textarea,select,.cfa-message-more,.cfa-contact-more'))return;held=false;start={x:event.clientX,y:event.clientY};cancel();timer=setTimeout(()=>{held=true;open();},550);});
+ node.addEventListener('pointerdown',event=>{if(event.button!==0||event.target.closest('a,input,textarea,select,.cfa-message-more,.cfa-contact-more,[data-label-sk]'))return;held=false;start={x:event.clientX,y:event.clientY};cancel();timer=setTimeout(()=>{held=true;open();},550);});
  node.addEventListener('pointermove',event=>{if(start&&Math.hypot(event.clientX-start.x,event.clientY-start.y)>10)cancel();});
  for(const type of ['pointerup','pointercancel','pointerleave','lostpointercapture'])node.addEventListener(type,cancel);
  node.addEventListener('click',event=>{if(held){held=false;event.preventDefault();event.stopImmediatePropagation();}},true);
  node.addEventListener('contextmenu',event=>{if(event.target.closest('a,input,textarea'))return;event.preventDefault();event.stopPropagation();cancel();if(!held)open();});
 }
+function directActions(target,node,contact=false){
+ const strip=e('div',null,'cfa-direct-actions');
+ const icon=(symbol,sk,en,fn)=>{const b=button(symbol,fn);b.dataset.labelSk=sk;b.dataset.labelEn=en;b.title=tr(sk,en);b.setAttribute('aria-label',b.title);strip.append(b);return b;};
+ if(contact&&target.profile)icon('✉','Napísať správu','Send a message',()=>window.openPrivateChatWithUser(target.profile));
+ const del=node?.querySelector('.private-delete-btn,.chat-delete-btn');
+ if(!contact&&del&&!target.system&&target.author===uid())icon('🗑', 'Vymazať správu','Delete message',()=>del.click());
+ if(target.author!==uid()){
+  icon('⚑',contact?'Nahlásiť používateľa':'Nahlásiť správu',contact?'Report user':'Report message',()=>report(target,contact?'user':target.kind));
+  if(!state?.protected_admins?.includes(target.author)){const block=icon('⛔','Zablokovať používateľa','Block user',()=>setBlock(target.author,true));block.dataset.cfaBlock=target.author;}
+ }
+ return strip;
+}
+function actionLabels(){for(const b of document.querySelectorAll('[data-label-sk]')){b.title=tr(b.dataset.labelSk,b.dataset.labelEn);b.setAttribute('aria-label',b.title);}}
 function decorateMessage(node,target){
  node.dataset.cfaAuthor=target.author;node.dataset.cfaKind=target.kind;node.dataset.cfaSource=String(target.id);
  if(!state?.can_manage&&target.author!==uid()&&state?.protected_admins?.includes(target.author))node.querySelectorAll('.private-delete-btn,.chat-delete-btn').forEach(b=>b.remove());
@@ -44,10 +57,10 @@ function decorateMessage(node,target){
  if(!target.system&&unavailable(target.author)){node.remove();return false;}
  if(node.dataset.cfaActionsReady)return true;node.dataset.cfaActionsReady='true';node.classList.add('cfa-message-actions');
  const open=()=>actions(target,node).catch(err=>alert(explain(err)));
- if(!target.system){const more=button('⋯',open,'cfa-message-more');more.setAttribute('aria-label',tr('Možnosti správy','Message options'));more.title=more.getAttribute('aria-label');more.setAttribute('aria-haspopup','dialog');node.append(more);bindHold(node,open);}
+ if(!target.system){const more=button('⋯',open,'cfa-message-more');more.setAttribute('aria-label',tr('Možnosti správy','Message options'));more.title=more.getAttribute('aria-label');more.dataset.labelSk='Možnosti správy';more.dataset.labelEn='Message options';more.setAttribute('aria-haspopup','dialog');node.append(more,directActions(target,node));bindHold(node,open);}
  const header=node.querySelector('.private-message-sender,.chat-message-name')?.parentElement;
  if(header&&target.author!==uid()){
-  header.setAttribute('role','button');header.tabIndex=0;header.setAttribute('aria-label',tr('Možnosti kontaktu: ','Contact options: ')+(target.name||tr('Používateľ','User')));header.setAttribute('aria-haspopup','dialog');
+  header.setAttribute('role','button');header.tabIndex=0;header.setAttribute('aria-label',tr('Možnosti kontaktu: ','Contact options: ')+(target.name||tr('Používateľ','User')));header.dataset.labelSk='Možnosti kontaktu: '+(target.name||'Používateľ');header.dataset.labelEn='Contact options: '+(target.name||'User');header.setAttribute('aria-haspopup','dialog');
   header.addEventListener('click',event=>{event.stopPropagation();actions({kind:'user',author:target.author,name:target.name}).catch(err=>alert(explain(err)));});
   header.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();header.click();}});
  }
@@ -58,7 +71,7 @@ function decorateUser(row,user){
  const open=()=>actions({kind:'user',author:user.user_id,name:user.display_name,profile:user}).catch(err=>alert(explain(err)));
  // A separate sibling button avoids nesting buttons in the conversation link.
  const wrap=e('div',null,'cfa-contact-row');row.replaceWith(wrap);wrap.append(row);
- const more=button('⋯',open,'cfa-contact-more');more.setAttribute('aria-label',tr('Možnosti kontaktu: ','Contact options: ')+(user.display_name||tr('Používateľ','User')));more.title=more.getAttribute('aria-label');more.setAttribute('aria-haspopup','dialog');wrap.append(more);
+ const more=button('⋯',open,'cfa-contact-more');more.setAttribute('aria-label',tr('Možnosti kontaktu: ','Contact options: ')+(user.display_name||tr('Používateľ','User')));more.title=more.getAttribute('aria-label');more.dataset.labelSk='Možnosti kontaktu: '+(user.display_name||'Používateľ');more.dataset.labelEn='Contact options: '+(user.display_name||'User');more.setAttribute('aria-haspopup','dialog');wrap.append(directActions({kind:'user',author:user.user_id,name:user.display_name,profile:user},null,true),more);
  const avatar=row.firstElementChild;if(avatar)avatar.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();open();});
  bindHold(wrap,open);
 }
@@ -101,6 +114,6 @@ const menuStyle=e('style');menuStyle.textContent=`
 function reset(){epoch++;state=null;ownerKnown=false;refreshing=null;dialog?.close();dialog?.remove();dialog=null;renderEntry();}
 async function bootstrap(){const user=uid();if(!user)return;try{ownerKnown=(await rpc('cfa_is_owner',{},user))===true;renderEntry();await refresh();}catch{renderEntry();}}
 supabaseClient.auth.onAuthStateChange(()=>{reset();setTimeout(bootstrap,0);});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh().catch(()=>{});});setInterval(()=>{if(uid()&&!document.hidden)refresh().catch(()=>{});},20000);
-const oldLanguage=window.setLanguage;if(typeof oldLanguage==='function')window.setLanguage=function(){const v=oldLanguage.apply(this,arguments);renderEntry();return v;};
+const oldLanguage=window.setLanguage;if(typeof oldLanguage==='function')window.setLanguage=function(){const v=oldLanguage.apply(this,arguments);renderEntry();actionLabels();return v;};
 window.CFASafety={refresh,ensure,decorateMessage,decorateUser,unavailable,report,account,owner,explain};renderEntry();bootstrap();
 })();

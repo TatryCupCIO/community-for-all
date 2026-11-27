@@ -2310,6 +2310,8 @@ async function renderPrivateConversationEvent(
       );
   }
 
+  if(document.getElementById('private-event-'+event.id))return;
+
   const box =
     document.getElementById(
       'privateChatMessages'
@@ -2340,29 +2342,10 @@ async function renderPrivateConversationEvent(
     white-space:pre-line;
   `;
 
-  const removedText =
-    names.length === 1
-      ? T(
-          'Z chatu bol odstránený: ',
-          'Removed from the chat: '
-        )
-      : T(
-          'Z chatu boli odstránení: ',
-          'Removed from the chat: '
-        );
-
-  item.textContent =
-    T(
-      '😄 Tak, dohodnuté! Ďakujeme za pokec, pááá 👋 Vidíme sa!',
-      '😄 All agreed! Thanks for the chat, byeee 👋 See you!'
-    ) +
-    (
-      names.length
-        ? '\n' +
-          removedText +
-          names.join(', ')
-        : ''
-    );
+  item.dataset.cfaRemovedNames=JSON.stringify(names);
+  item.className='cfa-member-farewell';
+  item.style.background='#e2f4ed';item.style.color='#164c48';
+  item.textContent=names.map(name=>T(name+', papá zatiaľ 😘😊👋 Pokračujeme súkromne, napíšeme si neskôr.',name+', bye for now 😘😊👋 We’ll carry on privately and catch up later.')).join('\n');
 
   box.appendChild(
     item

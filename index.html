@@ -6375,6 +6375,7 @@ function addPasswordEye(
     privateUsersLimit=30;
     await window.CFAQuickChat?.refreshNow();
     await loadPrivateUsers();
+    await window.CFAChatGroups?.notices();
   }
 
   window.openPrivateUsers =
@@ -8201,7 +8202,7 @@ function addPasswordEye(
 })();
 </script>
 
-<script src="private-chat.js?v=20261127-safety-1"></script>
+<script src="private-chat.js?v=20261127-groups-2"></script>
 
 <script>
 /* ===== APP NAVIGATION ===== */
@@ -9381,6 +9382,7 @@ function cfaValidateChildAgeFields(row) {
 <script src="square-check.js?v=20261126-check-1"></script>
 <script src="cfa-booking-sandbox.js?v=20261126-rewards-debug-5"></script>
 <script src="cfa-safety-policy.js?v=20261127-safety-1"></script>
-<script src="cfa-safety.js?v=20261127-compact-chat"></script>
+<script src="cfa-safety.js?v=20261127-groups-2"></script>
+<script src="cfa-chat-groups.js?v=20261127-groups-2"></script>
 </body>
   </html>
