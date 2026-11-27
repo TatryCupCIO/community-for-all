@@ -44,7 +44,7 @@ const errors={
  verified_account_not_found:['Účet s týmto e-mailom neexistuje alebo ešte nemá overený e-mail.','This account does not exist or its email has not been verified.'],
  cart_unavailable:['Košík už nie je dostupný. Vytvorte nový skúšobný košík.','This cart is no longer available. Create a new test cart.'],
  event_unavailable:['Podujatie má zatvorené rezervácie. V administrácii zapnite rezervácie; podujatie môže zostať skryté.','Bookings are closed. Enable reservations in administration; the event can remain hidden.'],
- cart_total_invalid:['Suma košíka sa zmenila alebo je nulová. Obnovte košík.','The cart total has changed or is zero. Refresh the cart.'],
+ cart_total_invalid:['Suma košíka sa zmenila. Obnovte košík.','The cart total has changed. Refresh the cart.'],
  cart_items_invalid:['Skontrolujte dostupnosť položiek a vybrané dátumy.','Check the items and selected dates.'],
  test_rate_limit:['Vytvorili ste viac skúšok. Skúste to o desať minút.','Several tests have been created. Try again in ten minutes.'],
  checkout_expired:['Platnosť tejto skúšobnej platby vypršala. Vytvorte nový košík.','This test checkout has expired. Create a new cart.'],
@@ -69,7 +69,10 @@ function statusName(value){return ({creating:tr('Pripravuje sa','Preparing'),awa
 function decorateCart(){
  const b=$('cartPageContent')?.querySelector('.checkout-btn');if(!b)return;
  const can=current()&&enabled&&ready;
- if(b.dataset.cfaSandbox===String(can))return;b.dataset.cfaSandbox=String(can);
+ const zero=!!currentUser?.id&&!!activeCart?.id&&Number(activeCart.total_amount)===0;
+ const key=String(can)+':'+String(zero)+':'+String(enabled);
+ if(b.dataset.cfaSandbox===key)return;b.dataset.cfaSandbox=key;
+ if(zero){b.disabled=false;b.textContent=enabled&&current()?tr('Skúšobne potvrdiť rezerváciu za £0','Confirm test booking for £0'):tr('Potvrdiť rezerváciu za £0','Confirm booking for £0');b.onclick=()=>window.CFACheckoutImprovements?.confirmZero(enabled&&current());return;}
  b.disabled=!can;b.textContent=can?tr('Skúšobne zaplatiť celú rezerváciu','Test full booking payment'):tr('Prejsť k platbe – čoskoro','Proceed to checkout – coming soon');
  b.onclick=can?begin:null;
 }
@@ -89,7 +92,8 @@ function render(){
  const label=node('label',null,'cfa-sandbox-mode'),check=node('input');check.type='checkbox';check.checked=enabled;check.onchange=()=>mode(check.checked);
  label.append(check,node('span',tr('Skúšobný režim vrátane truhličky','Test mode including treasure chest')));panel.append(label);
  const controls=node('div',null,'cfa-sandbox-controls');
- if(isOwner){const setup=btn(tr('Pripraviť celú skúšku','Prepare complete test'),setupAll);setup.disabled=running;controls.append(setup)}
+ if(isOwner){const setup=btn(tr('Pripraviť celú skúšku','Prepare complete test'),setupAll);setup.disabled=running;controls.append(setup);
+ controls.append(btn(tr('Vyčistiť skúšobnú kapacitu','Clear test capacity'),async()=>{if(!confirm(tr('Uvoľniť kapacitu všetkých dokončených skúšobných rezervácií? Skutočné objednávky zostanú zachované.','Release capacity held by all completed test bookings? Real orders will be preserved.')))return;const id=user,gen=generation;const {error}=await supabaseClient.rpc('cfa_reset_test_capacity');if(gen!==generation||id!==user)return;message=error?tr('Kapacitu sa nepodarilo uvoľniť.','Could not release test capacity.'):tr('Skúšobná kapacita bola uvoľnená.','Test capacity was released.');messageType=error?'error':'success';render();}));} 
  controls.append(btn(tr('Obnoviť stav','Refresh status'),refresh),btn(tr('Otvoriť podujatia a rezerváciu','Open events and booking'),()=>{mode(true);showEvents()}));panel.append(controls);
  if(message){const m=node('p',message,'cfa-test-notice cfa-test-'+messageType);m.setAttribute('role',messageType==='error'?'alert':'status');panel.append(m)}
  if(isOwner){
@@ -245,5 +249,5 @@ const observer=new MutationObserver(decorateCart);if($('cartPageContent'))observ
 const language=window.setLanguage;if(typeof language==='function')window.setLanguage=function(){const r=language.apply(this,arguments);document.querySelectorAll('[data-cfa-sandbox]').forEach(b=>delete b.dataset.cfaSandbox);render();decorateCart();tag();return r;};
 supabaseClient.auth.onAuthStateChange(()=>{generation++;user=null;enabled=false;panel.hidden=true;panel.replaceChildren();dialogMessage.textContent='';dialogActions.replaceChildren();pollRevision++;clearTimeout(timer);if(dialog.open)dialog.close();tag();decorateCart();setTimeout(refreshAuth,0)});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&current()&&!running){refresh();if(dialog.open&&activeId)openStatus(activeId)}});
-window.CFABookingSandbox={get testMode(){return enabled&&current()},refresh,refreshAuth,setMode:mode};refreshAuth();
+window.CFABookingSandbox={get testMode(){return enabled&&current()},openStatus,refresh,refreshAuth,setMode:mode};refreshAuth();
 })();

@@ -480,7 +480,177 @@ DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_049 NOTIFY pgrst reload schema'
 NOTIFY pgrst,'reload schema';
 DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_050 COMMIT'; END $cfa_stage$;
 
-COMMIT;`;
+COMMIT;
+BEGIN;
+SELECT pg_advisory_xact_lock(hashtextextended('cfa-zero-capacity-20261127',0));
+CREATE TABLE IF NOT EXISTS public.cfa_free_confirmations(
+ booking_id bigint PRIMARY KEY REFERENCES public.bookings(id) ON DELETE CASCADE,
+ user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+ environment text NOT NULL CHECK(environment IN('sandbox','live')),
+ test_checkout_id uuid UNIQUE REFERENCES public.cfa_test_checkouts(id),
+ created_at timestamptz NOT NULL DEFAULT now());
+ALTER TABLE public.cfa_free_confirmations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cfa_free_confirmations FROM PUBLIC,anon,authenticated;
+CREATE TABLE IF NOT EXISTS public.cfa_test_stock(
+ checkout_id uuid NOT NULL REFERENCES public.cfa_test_checkouts(id) ON DELETE CASCADE,
+ event_option_id bigint NOT NULL REFERENCES public.event_options(id),
+ quantity integer NOT NULL CHECK(quantity>0),released_at timestamptz,
+ PRIMARY KEY(checkout_id,event_option_id));
+ALTER TABLE public.cfa_test_stock ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cfa_test_stock FROM PUBLIC,anon,authenticated;
+CREATE OR REPLACE FUNCTION public.cfa_test_stock_deleted() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$BEGIN
+ IF OLD.released_at IS NULL THEN UPDATE public.event_options SET sold_quantity=GREATEST(0,COALESCE(sold_quantity,0)-OLD.quantity) WHERE id=OLD.event_option_id;END IF;RETURN OLD;
+END$$;
+DROP TRIGGER IF EXISTS cfa_test_stock_deleted ON public.cfa_test_stock;
+CREATE TRIGGER cfa_test_stock_deleted BEFORE DELETE ON public.cfa_test_stock FOR EACH ROW EXECUTE FUNCTION public.cfa_test_stock_deleted();
+CREATE OR REPLACE FUNCTION public.cfa_test_finish_matching_cart(p_checkout uuid) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE s public.cfa_test_checkouts;b public.bookings;BEGIN
+ SELECT * INTO s FROM public.cfa_test_checkouts WHERE id=p_checkout;
+ SELECT * INTO b FROM public.bookings WHERE id=s.booking_id AND user_id=s.user_id FOR UPDATE;
+ IF NOT FOUND OR b.status<>'cart' OR b.payment_status<>'unpaid' OR b.amount_paid<>0 OR b.total_amount*100<>s.expected_pence THEN RETURN;END IF;
+ IF (SELECT count(*) FROM public.booking_items WHERE booking_id=b.id)=jsonb_array_length(s.snapshot->'items') AND NOT EXISTS(
+  SELECT 1 FROM public.booking_items i WHERE i.booking_id=b.id AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(s.snapshot->'items') j WHERE (j->>'id')::bigint=i.id AND to_jsonb(i)<@j)) THEN
+  UPDATE public.bookings SET status='expired',cart_expired=true,hidden_by_user=true,hidden_by_user_at=now(),updated_at=now() WHERE id=b.id;
+ END IF;
+END$$;
+CREATE OR REPLACE FUNCTION public.cfa_test_apply_stock(p_checkout uuid,p_backfill boolean DEFAULT false) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE s public.cfa_test_checkouts;o record;added integer;BEGIN
+ SELECT * INTO s FROM public.cfa_test_checkouts WHERE id=p_checkout FOR UPDATE;
+ IF NOT FOUND OR s.status NOT IN('paid','partially_refunded') THEN RETURN;END IF;
+ PERFORM public.cfa_test_finish_matching_cart(s.id);
+ FOR o IN SELECT (i->>'event_option_id')::bigint id,sum((i->>'quantity')::integer)::integer quantity
+ FROM jsonb_array_elements(s.snapshot->'items') i WHERE i->>'event_option_id' IS NOT NULL GROUP BY 1 ORDER BY 1 LOOP
+  IF EXISTS(SELECT 1 FROM public.cfa_test_stock WHERE checkout_id=s.id AND event_option_id=o.id) THEN CONTINUE;END IF;
+  PERFORM 1 FROM public.event_options WHERE id=o.id FOR UPDATE;
+  IF NOT FOUND THEN IF p_backfill THEN CONTINUE;ELSE RAISE EXCEPTION 'cart_items_invalid';END IF;END IF;
+  INSERT INTO public.cfa_test_stock(checkout_id,event_option_id,quantity) VALUES(s.id,o.id,o.quantity) ON CONFLICT DO NOTHING;
+  GET DIAGNOSTICS added=ROW_COUNT;
+  IF added>0 THEN
+   IF NOT p_backfill AND EXISTS(SELECT 1 FROM public.event_options WHERE id=o.id AND stock_capacity IS NOT NULL AND COALESCE(sold_quantity,0)+COALESCE(reserved_quantity,0)+o.quantity>stock_capacity) THEN RAISE EXCEPTION 'cart_items_invalid';END IF;
+   UPDATE public.event_options SET sold_quantity=COALESCE(sold_quantity,0)+o.quantity WHERE id=o.id;
+  END IF;
+ END LOOP;
+END$$;
+CREATE OR REPLACE FUNCTION public.cfa_test_stock_changed() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE r record;BEGIN
+ IF NEW.status IN('paid','partially_refunded') THEN PERFORM public.cfa_test_apply_stock(NEW.id,false);
+ ELSIF NEW.status='refunded' THEN
+  FOR r IN SELECT * FROM public.cfa_test_stock WHERE checkout_id=NEW.id AND released_at IS NULL ORDER BY event_option_id FOR UPDATE LOOP
+   UPDATE public.event_options SET sold_quantity=GREATEST(0,COALESCE(sold_quantity,0)-r.quantity) WHERE id=r.event_option_id;
+   UPDATE public.cfa_test_stock SET released_at=now() WHERE checkout_id=r.checkout_id AND event_option_id=r.event_option_id;
+  END LOOP;
+ END IF;RETURN NEW;
+END$$;
+-- Alphabetical ordering puts this AFTER the existing cart-release trigger.
+DROP TRIGGER IF EXISTS cfa_test_stock_changed ON public.cfa_test_checkouts;
+CREATE TRIGGER cfa_test_stock_changed AFTER UPDATE OF status ON public.cfa_test_checkouts FOR EACH ROW EXECUTE FUNCTION public.cfa_test_stock_changed();
+CREATE OR REPLACE FUNCTION public.cfa_reset_test_capacity() RETURNS integer
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE r record;n integer:=0;BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ FOR r IN SELECT * FROM public.cfa_test_stock WHERE released_at IS NULL ORDER BY event_option_id,checkout_id FOR UPDATE LOOP
+  UPDATE public.event_options SET sold_quantity=GREATEST(0,COALESCE(sold_quantity,0)-r.quantity) WHERE id=r.event_option_id;
+  UPDATE public.cfa_test_stock SET released_at=now() WHERE checkout_id=r.checkout_id AND event_option_id=r.event_option_id;n:=n+1;
+ END LOOP;RETURN n;
+END$$;
+-- Backfill only snapshot-based test sales, once per checkout and option.
+DO $$DECLARE r record;BEGIN FOR r IN SELECT id FROM public.cfa_test_checkouts WHERE status IN('paid','partially_refunded') ORDER BY id LOOP PERFORM public.cfa_test_apply_stock(r.id,true);END LOOP;END$$;
+-- Keep every existing validation in the original preparation function.
+DO $$DECLARE f regprocedure;src text;old text;BEGIN
+ f:=COALESCE(to_regprocedure('public.cfa_prepare_test_checkout_before_rewards(bigint,text)'),to_regprocedure('public.cfa_prepare_test_checkout(bigint,text)'));
+ IF f IS NULL THEN RAISE EXCEPTION 'checkout_setup_required';END IF;
+ SELECT pg_get_functiondef(f) INTO src;
+ old:=src;src:=regexp_replace(src,'NOT BETWEEN[[:space:]]+1[[:space:]]+AND[[:space:]]+10000000','NOT BETWEEN 0 AND 10000000','gi');
+ IF src=old AND src!~*'NOT BETWEEN[[:space:]]+0[[:space:]]+AND[[:space:]]+10000000' THEN RAISE EXCEPTION 'checkout_validation_changed';END IF;
+ EXECUTE src;
+END$$;
+DO $$DECLARE c record;BEGIN
+ FOR c IN SELECT conname FROM pg_constraint WHERE conrelid='public.cfa_test_checkouts'::regclass AND contype='c' AND pg_get_constraintdef(oid)~'expected_pence' AND pg_get_constraintdef(oid)~'>= 1' LOOP
+ EXECUTE format('ALTER TABLE public.cfa_test_checkouts DROP CONSTRAINT %I',c.conname);END LOOP;
+END$$;
+ALTER TABLE public.cfa_test_checkouts DROP CONSTRAINT IF EXISTS cfa_test_nonnegative_total;
+ALTER TABLE public.cfa_test_checkouts ADD CONSTRAINT cfa_test_nonnegative_total CHECK(expected_pence BETWEEN 0 AND 10000000);
+CREATE OR REPLACE FUNCTION public.cfa_confirm_free_booking(p_booking bigint,p_language text DEFAULT 'sk',p_test boolean DEFAULT true) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE u uuid:=auth.uid();b public.bookings;e public.events;prior public.cfa_free_confirmations;s public.cfa_test_checkouts;prepared jsonb;code text;coupon bigint;sum_items numeric;BEGIN
+ IF u IS NULL OR p_test IS NULL OR p_language NOT IN('sk','en') OR p_language IS NULL THEN RAISE EXCEPTION 'invalid_request';END IF;
+ IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=u AND email_confirmed_at IS NOT NULL) THEN RAISE EXCEPTION 'verified_email_required';END IF;
+ SELECT * INTO prior FROM public.cfa_free_confirmations WHERE booking_id=p_booking AND user_id=u;
+ IF FOUND THEN
+  IF prior.environment<>(CASE WHEN p_test THEN 'sandbox' ELSE 'live' END) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='sandbox' AND NOT EXISTS(SELECT 1 FROM public.cfa_test_checkouts WHERE id=prior.test_checkout_id AND status='paid') THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='live' AND NOT EXISTS(SELECT 1 FROM public.bookings WHERE id=p_booking AND user_id=u AND status IN('confirmed','completed') AND payment_status='paid' AND cancelled_at IS NULL) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  RETURN jsonb_build_object('id',prior.test_checkout_id,'booking_id',p_booking,'status','paid','environment',prior.environment);
+ END IF;
+ SELECT discount_code_id INTO coupon FROM public.bookings WHERE id=p_booking AND user_id=u;
+ IF coupon IS NOT NULL THEN PERFORM 1 FROM public.discount_codes WHERE id=coupon FOR UPDATE;END IF;
+ SELECT * INTO b FROM public.bookings WHERE id=p_booking AND user_id=u FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+ SELECT * INTO prior FROM public.cfa_free_confirmations WHERE booking_id=p_booking AND user_id=u;
+ IF FOUND THEN
+  IF prior.environment<>(CASE WHEN p_test THEN 'sandbox' ELSE 'live' END) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='sandbox' AND NOT EXISTS(SELECT 1 FROM public.cfa_test_checkouts WHERE id=prior.test_checkout_id AND status='paid') THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='live' AND NOT EXISTS(SELECT 1 FROM public.bookings WHERE id=p_booking AND user_id=u AND status IN('confirmed','completed') AND payment_status='paid' AND cancelled_at IS NULL) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  RETURN jsonb_build_object('id',prior.test_checkout_id,'booking_id',p_booking,'status','paid','environment',prior.environment);
+ END IF;
+ IF b.discount_code_id IS DISTINCT FROM coupon OR b.status<>'cart' OR b.payment_status<>'unpaid' OR b.cart_expired OR b.cancelled_at IS NOT NULL OR b.amount_paid<>0 OR (b.cart_expires_at IS NOT NULL AND b.cart_expires_at<=now()) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+ IF coupon IS NOT NULL THEN SELECT discount_codes.code INTO code FROM public.discount_codes WHERE id=coupon;PERFORM public.apply_discount_code(b.id,code);SELECT * INTO b FROM public.bookings WHERE id=p_booking;END IF;
+ SELECT COALESCE(sum(COALESCE(original_line_total,line_total)),0) INTO sum_items FROM public.booking_items WHERE booking_id=b.id;
+ IF b.total_amount<>0 OR GREATEST(sum_items-b.discount_amount,0)<>0 OR NOT EXISTS(SELECT 1 FROM public.booking_items WHERE booking_id=b.id) THEN RAISE EXCEPTION 'cart_total_invalid';END IF;
+ IF p_test THEN
+  prepared:=public.cfa_prepare_test_checkout(b.id,p_language);
+  SELECT * INTO s FROM public.cfa_test_checkouts WHERE id=(prepared->>'id')::uuid FOR UPDATE;
+  IF s.user_id<>u OR s.expected_pence<>0 OR s.square_order_id IS NOT NULL OR s.status NOT IN('creating','awaiting_payment') THEN RAISE EXCEPTION 'cart_total_invalid';END IF;
+  INSERT INTO public.cfa_free_confirmations(booking_id,user_id,environment,test_checkout_id) VALUES(b.id,u,'sandbox',s.id);
+  UPDATE public.cfa_test_checkouts SET status='paid',paid_at=now() WHERE id=s.id;
+  INSERT INTO public.cfa_test_mail(checkout_id) VALUES(s.id) ON CONFLICT DO NOTHING;
+ ELSE
+  SELECT * INTO e FROM public.events WHERE id=b.event_id;
+  IF NOT FOUND OR NOT e.reservations_open OR e.status NOT IN('published','hidden') OR (e.status<>'published' AND NOT public.cfa_is_owner()) THEN RAISE EXCEPTION 'event_unavailable';END IF;
+  PERFORM public.cfa_validate_camping_cart(b.id);
+  IF EXISTS(SELECT 1 FROM public.booking_items i LEFT JOIN public.event_options o ON o.id=i.event_option_id WHERE i.booking_id=b.id AND (o.id IS NULL OR o.event_id<>b.event_id OR NOT o.enabled OR NOT public.cfa_booking_item_date_allowed(i))) THEN RAISE EXCEPTION 'cart_items_invalid';END IF;
+  INSERT INTO public.cfa_free_confirmations(booking_id,user_id,environment) VALUES(b.id,u,'live');
+  UPDATE public.bookings SET status='confirmed',payment_status='paid',amount_paid=0,balance_due=0,booking_language=p_language,cart_expires_at=NULL,updated_at=now() WHERE id=b.id;
+ END IF;
+ IF coupon IS NOT NULL THEN INSERT INTO public.discount_redemptions(discount_code_id,booking_id,user_id,discount_amount) SELECT coupon,b.id,u,b.discount_amount WHERE NOT EXISTS(SELECT 1 FROM public.discount_redemptions WHERE discount_code_id=coupon AND booking_id=b.id);END IF;
+ RETURN jsonb_build_object('id',CASE WHEN p_test THEN s.id ELSE NULL END,'booking_id',b.id,'status','paid','environment',CASE WHEN p_test THEN 'sandbox' ELSE 'live' END);
+END$$;
+-- Count the original chargeable tickets of confirmed zero-value orders too.
+DO $$DECLARE f regprocedure;src text;original text;BEGIN
+ FOR f IN SELECT p.oid::regprocedure FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN('cfa_reward_sources','cfa_test_ticket_points','cfa_loyalty_ticket_events') LOOP
+  SELECT pg_get_functiondef(f) INTO src;
+  IF src NOT LIKE '%cfa_free_confirmations%' THEN
+   original:=src;
+   src:=regexp_replace(src,'s[.]expected_pence[[:space:]]*>[[:space:]]*0','(s.expected_pence>0 OR EXISTS(SELECT 1 FROM public.cfa_free_confirmations f WHERE f.test_checkout_id=s.id AND f.environment=''sandbox''))','g');
+   src:=regexp_replace(src,'b[.]total_amount[[:space:]]*>[[:space:]]*0','(b.total_amount>0 OR EXISTS(SELECT 1 FROM public.cfa_free_confirmations f WHERE f.booking_id=b.id AND f.environment=''live''))','g');
+   IF src=original THEN RAISE EXCEPTION 'loyalty_validation_changed';END IF;
+   EXECUTE src;
+  END IF;
+ END LOOP;
+END$$;
+CREATE OR REPLACE FUNCTION public.cfa_discount_message(p_message bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$DECLARE m public.private_messages;d public.discount_codes;v_code text;BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;
+ SELECT * INTO m FROM public.private_messages WHERE id=p_message;
+ IF NOT FOUND OR NOT public.cfa_safety_is_admin(m.sender_id) OR (m.sender_id=auth.uid() OR m.receiver_id=auth.uid() OR COALESCE(public.was_private_conversation_member(m.conversation_id,auth.uid(),m.created_at),false)) IS NOT TRUE THEN RETURN NULL;END IF;
+ v_code:=substring(m.message_text FROM '(CFA-[A-Fa-f0-9]{32})');IF v_code IS NULL THEN RETURN NULL;END IF;
+ SELECT * INTO d FROM public.discount_codes WHERE upper(discount_codes.code)=upper(v_code);
+ IF NOT FOUND THEN RETURN NULL;END IF;
+ RETURN jsonb_build_object('code',d.code,'description',COALESCE(d.description,''),'value',d.discount_value,'type',d.discount_type);
+END$$;
+REVOKE ALL ON FUNCTION public.cfa_test_stock_deleted(),public.cfa_test_finish_matching_cart(uuid),public.cfa_test_apply_stock(uuid,boolean),public.cfa_test_stock_changed() FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.cfa_reset_test_capacity(),public.cfa_confirm_free_booking(bigint,text,boolean),public.cfa_discount_message(bigint) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.cfa_reset_test_capacity(),public.cfa_confirm_free_booking(bigint,text,boolean),public.cfa_discount_message(bigint) TO authenticated;
+DO $$BEGIN
+ IF EXISTS(SELECT 1 FROM pg_publication WHERE pubname='supabase_realtime' AND NOT puballtables) AND NOT EXISTS(SELECT 1 FROM pg_publication_tables WHERE pubname='supabase_realtime' AND schemaname='public' AND tablename='event_options') THEN
+  EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.event_options';
+ END IF;
+END$$;
+NOTIFY pgrst,'reload schema';
+COMMIT;
+SELECT 'OK - zlavy, nulove objednavky a skusobna kapacita pripravene' AS vysledok;
+`;
 export const INSTALL_SQL=String.raw`DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S56_001 BEGIN'; END $cfa_stage$;
 BEGIN;
 DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S56_002 SELECT pg_advisory_xact_lock hashtextextended cfa test install 0'; END $cfa_stage$;
@@ -1147,4 +1317,174 @@ DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_049 NOTIFY pgrst reload schema'
 NOTIFY pgrst,'reload schema';
 DO $cfa_stage$ BEGIN RAISE NOTICE 'CFA_STAGE:S57_050 COMMIT'; END $cfa_stage$;
 
-COMMIT;`;
+COMMIT;
+BEGIN;
+SELECT pg_advisory_xact_lock(hashtextextended('cfa-zero-capacity-20261127',0));
+CREATE TABLE IF NOT EXISTS public.cfa_free_confirmations(
+ booking_id bigint PRIMARY KEY REFERENCES public.bookings(id) ON DELETE CASCADE,
+ user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+ environment text NOT NULL CHECK(environment IN('sandbox','live')),
+ test_checkout_id uuid UNIQUE REFERENCES public.cfa_test_checkouts(id),
+ created_at timestamptz NOT NULL DEFAULT now());
+ALTER TABLE public.cfa_free_confirmations ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cfa_free_confirmations FROM PUBLIC,anon,authenticated;
+CREATE TABLE IF NOT EXISTS public.cfa_test_stock(
+ checkout_id uuid NOT NULL REFERENCES public.cfa_test_checkouts(id) ON DELETE CASCADE,
+ event_option_id bigint NOT NULL REFERENCES public.event_options(id),
+ quantity integer NOT NULL CHECK(quantity>0),released_at timestamptz,
+ PRIMARY KEY(checkout_id,event_option_id));
+ALTER TABLE public.cfa_test_stock ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.cfa_test_stock FROM PUBLIC,anon,authenticated;
+CREATE OR REPLACE FUNCTION public.cfa_test_stock_deleted() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$BEGIN
+ IF OLD.released_at IS NULL THEN UPDATE public.event_options SET sold_quantity=GREATEST(0,COALESCE(sold_quantity,0)-OLD.quantity) WHERE id=OLD.event_option_id;END IF;RETURN OLD;
+END$$;
+DROP TRIGGER IF EXISTS cfa_test_stock_deleted ON public.cfa_test_stock;
+CREATE TRIGGER cfa_test_stock_deleted BEFORE DELETE ON public.cfa_test_stock FOR EACH ROW EXECUTE FUNCTION public.cfa_test_stock_deleted();
+CREATE OR REPLACE FUNCTION public.cfa_test_finish_matching_cart(p_checkout uuid) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE s public.cfa_test_checkouts;b public.bookings;BEGIN
+ SELECT * INTO s FROM public.cfa_test_checkouts WHERE id=p_checkout;
+ SELECT * INTO b FROM public.bookings WHERE id=s.booking_id AND user_id=s.user_id FOR UPDATE;
+ IF NOT FOUND OR b.status<>'cart' OR b.payment_status<>'unpaid' OR b.amount_paid<>0 OR b.total_amount*100<>s.expected_pence THEN RETURN;END IF;
+ IF (SELECT count(*) FROM public.booking_items WHERE booking_id=b.id)=jsonb_array_length(s.snapshot->'items') AND NOT EXISTS(
+  SELECT 1 FROM public.booking_items i WHERE i.booking_id=b.id AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(s.snapshot->'items') j WHERE (j->>'id')::bigint=i.id AND to_jsonb(i)<@j)) THEN
+  UPDATE public.bookings SET status='expired',cart_expired=true,hidden_by_user=true,hidden_by_user_at=now(),updated_at=now() WHERE id=b.id;
+ END IF;
+END$$;
+CREATE OR REPLACE FUNCTION public.cfa_test_apply_stock(p_checkout uuid,p_backfill boolean DEFAULT false) RETURNS void
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE s public.cfa_test_checkouts;o record;added integer;BEGIN
+ SELECT * INTO s FROM public.cfa_test_checkouts WHERE id=p_checkout FOR UPDATE;
+ IF NOT FOUND OR s.status NOT IN('paid','partially_refunded') THEN RETURN;END IF;
+ PERFORM public.cfa_test_finish_matching_cart(s.id);
+ FOR o IN SELECT (i->>'event_option_id')::bigint id,sum((i->>'quantity')::integer)::integer quantity
+ FROM jsonb_array_elements(s.snapshot->'items') i WHERE i->>'event_option_id' IS NOT NULL GROUP BY 1 ORDER BY 1 LOOP
+  IF EXISTS(SELECT 1 FROM public.cfa_test_stock WHERE checkout_id=s.id AND event_option_id=o.id) THEN CONTINUE;END IF;
+  PERFORM 1 FROM public.event_options WHERE id=o.id FOR UPDATE;
+  IF NOT FOUND THEN IF p_backfill THEN CONTINUE;ELSE RAISE EXCEPTION 'cart_items_invalid';END IF;END IF;
+  INSERT INTO public.cfa_test_stock(checkout_id,event_option_id,quantity) VALUES(s.id,o.id,o.quantity) ON CONFLICT DO NOTHING;
+  GET DIAGNOSTICS added=ROW_COUNT;
+  IF added>0 THEN
+   IF NOT p_backfill AND EXISTS(SELECT 1 FROM public.event_options WHERE id=o.id AND stock_capacity IS NOT NULL AND COALESCE(sold_quantity,0)+COALESCE(reserved_quantity,0)+o.quantity>stock_capacity) THEN RAISE EXCEPTION 'cart_items_invalid';END IF;
+   UPDATE public.event_options SET sold_quantity=COALESCE(sold_quantity,0)+o.quantity WHERE id=o.id;
+  END IF;
+ END LOOP;
+END$$;
+CREATE OR REPLACE FUNCTION public.cfa_test_stock_changed() RETURNS trigger
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE r record;BEGIN
+ IF NEW.status IN('paid','partially_refunded') THEN PERFORM public.cfa_test_apply_stock(NEW.id,false);
+ ELSIF NEW.status='refunded' THEN
+  FOR r IN SELECT * FROM public.cfa_test_stock WHERE checkout_id=NEW.id AND released_at IS NULL ORDER BY event_option_id FOR UPDATE LOOP
+   UPDATE public.event_options SET sold_quantity=GREATEST(0,COALESCE(sold_quantity,0)-r.quantity) WHERE id=r.event_option_id;
+   UPDATE public.cfa_test_stock SET released_at=now() WHERE checkout_id=r.checkout_id AND event_option_id=r.event_option_id;
+  END LOOP;
+ END IF;RETURN NEW;
+END$$;
+-- Alphabetical ordering puts this AFTER the existing cart-release trigger.
+DROP TRIGGER IF EXISTS cfa_test_stock_changed ON public.cfa_test_checkouts;
+CREATE TRIGGER cfa_test_stock_changed AFTER UPDATE OF status ON public.cfa_test_checkouts FOR EACH ROW EXECUTE FUNCTION public.cfa_test_stock_changed();
+CREATE OR REPLACE FUNCTION public.cfa_reset_test_capacity() RETURNS integer
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$DECLARE r record;n integer:=0;BEGIN
+ IF public.cfa_is_owner() IS DISTINCT FROM true THEN RAISE EXCEPTION 'owner_required';END IF;
+ FOR r IN SELECT * FROM public.cfa_test_stock WHERE released_at IS NULL ORDER BY event_option_id,checkout_id FOR UPDATE LOOP
+  UPDATE public.event_options SET sold_quantity=GREATEST(0,COALESCE(sold_quantity,0)-r.quantity) WHERE id=r.event_option_id;
+  UPDATE public.cfa_test_stock SET released_at=now() WHERE checkout_id=r.checkout_id AND event_option_id=r.event_option_id;n:=n+1;
+ END LOOP;RETURN n;
+END$$;
+-- Backfill only snapshot-based test sales, once per checkout and option.
+DO $$DECLARE r record;BEGIN FOR r IN SELECT id FROM public.cfa_test_checkouts WHERE status IN('paid','partially_refunded') ORDER BY id LOOP PERFORM public.cfa_test_apply_stock(r.id,true);END LOOP;END$$;
+-- Keep every existing validation in the original preparation function.
+DO $$DECLARE f regprocedure;src text;old text;BEGIN
+ f:=COALESCE(to_regprocedure('public.cfa_prepare_test_checkout_before_rewards(bigint,text)'),to_regprocedure('public.cfa_prepare_test_checkout(bigint,text)'));
+ IF f IS NULL THEN RAISE EXCEPTION 'checkout_setup_required';END IF;
+ SELECT pg_get_functiondef(f) INTO src;
+ old:=src;src:=regexp_replace(src,'NOT BETWEEN[[:space:]]+1[[:space:]]+AND[[:space:]]+10000000','NOT BETWEEN 0 AND 10000000','gi');
+ IF src=old AND src!~*'NOT BETWEEN[[:space:]]+0[[:space:]]+AND[[:space:]]+10000000' THEN RAISE EXCEPTION 'checkout_validation_changed';END IF;
+ EXECUTE src;
+END$$;
+DO $$DECLARE c record;BEGIN
+ FOR c IN SELECT conname FROM pg_constraint WHERE conrelid='public.cfa_test_checkouts'::regclass AND contype='c' AND pg_get_constraintdef(oid)~'expected_pence' AND pg_get_constraintdef(oid)~'>= 1' LOOP
+ EXECUTE format('ALTER TABLE public.cfa_test_checkouts DROP CONSTRAINT %I',c.conname);END LOOP;
+END$$;
+ALTER TABLE public.cfa_test_checkouts DROP CONSTRAINT IF EXISTS cfa_test_nonnegative_total;
+ALTER TABLE public.cfa_test_checkouts ADD CONSTRAINT cfa_test_nonnegative_total CHECK(expected_pence BETWEEN 0 AND 10000000);
+CREATE OR REPLACE FUNCTION public.cfa_confirm_free_booking(p_booking bigint,p_language text DEFAULT 'sk',p_test boolean DEFAULT true) RETURNS jsonb
+LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
+DECLARE u uuid:=auth.uid();b public.bookings;e public.events;prior public.cfa_free_confirmations;s public.cfa_test_checkouts;prepared jsonb;code text;coupon bigint;sum_items numeric;BEGIN
+ IF u IS NULL OR p_test IS NULL OR p_language NOT IN('sk','en') OR p_language IS NULL THEN RAISE EXCEPTION 'invalid_request';END IF;
+ IF NOT EXISTS(SELECT 1 FROM auth.users WHERE id=u AND email_confirmed_at IS NOT NULL) THEN RAISE EXCEPTION 'verified_email_required';END IF;
+ SELECT * INTO prior FROM public.cfa_free_confirmations WHERE booking_id=p_booking AND user_id=u;
+ IF FOUND THEN
+  IF prior.environment<>(CASE WHEN p_test THEN 'sandbox' ELSE 'live' END) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='sandbox' AND NOT EXISTS(SELECT 1 FROM public.cfa_test_checkouts WHERE id=prior.test_checkout_id AND status='paid') THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='live' AND NOT EXISTS(SELECT 1 FROM public.bookings WHERE id=p_booking AND user_id=u AND status IN('confirmed','completed') AND payment_status='paid' AND cancelled_at IS NULL) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  RETURN jsonb_build_object('id',prior.test_checkout_id,'booking_id',p_booking,'status','paid','environment',prior.environment);
+ END IF;
+ SELECT discount_code_id INTO coupon FROM public.bookings WHERE id=p_booking AND user_id=u;
+ IF coupon IS NOT NULL THEN PERFORM 1 FROM public.discount_codes WHERE id=coupon FOR UPDATE;END IF;
+ SELECT * INTO b FROM public.bookings WHERE id=p_booking AND user_id=u FOR UPDATE;
+ IF NOT FOUND THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+ SELECT * INTO prior FROM public.cfa_free_confirmations WHERE booking_id=p_booking AND user_id=u;
+ IF FOUND THEN
+  IF prior.environment<>(CASE WHEN p_test THEN 'sandbox' ELSE 'live' END) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='sandbox' AND NOT EXISTS(SELECT 1 FROM public.cfa_test_checkouts WHERE id=prior.test_checkout_id AND status='paid') THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  IF prior.environment='live' AND NOT EXISTS(SELECT 1 FROM public.bookings WHERE id=p_booking AND user_id=u AND status IN('confirmed','completed') AND payment_status='paid' AND cancelled_at IS NULL) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+  RETURN jsonb_build_object('id',prior.test_checkout_id,'booking_id',p_booking,'status','paid','environment',prior.environment);
+ END IF;
+ IF b.discount_code_id IS DISTINCT FROM coupon OR b.status<>'cart' OR b.payment_status<>'unpaid' OR b.cart_expired OR b.cancelled_at IS NOT NULL OR b.amount_paid<>0 OR (b.cart_expires_at IS NOT NULL AND b.cart_expires_at<=now()) THEN RAISE EXCEPTION 'cart_unavailable';END IF;
+ IF coupon IS NOT NULL THEN SELECT discount_codes.code INTO code FROM public.discount_codes WHERE id=coupon;PERFORM public.apply_discount_code(b.id,code);SELECT * INTO b FROM public.bookings WHERE id=p_booking;END IF;
+ SELECT COALESCE(sum(COALESCE(original_line_total,line_total)),0) INTO sum_items FROM public.booking_items WHERE booking_id=b.id;
+ IF b.total_amount<>0 OR GREATEST(sum_items-b.discount_amount,0)<>0 OR NOT EXISTS(SELECT 1 FROM public.booking_items WHERE booking_id=b.id) THEN RAISE EXCEPTION 'cart_total_invalid';END IF;
+ IF p_test THEN
+  prepared:=public.cfa_prepare_test_checkout(b.id,p_language);
+  SELECT * INTO s FROM public.cfa_test_checkouts WHERE id=(prepared->>'id')::uuid FOR UPDATE;
+  IF s.user_id<>u OR s.expected_pence<>0 OR s.square_order_id IS NOT NULL OR s.status NOT IN('creating','awaiting_payment') THEN RAISE EXCEPTION 'cart_total_invalid';END IF;
+  INSERT INTO public.cfa_free_confirmations(booking_id,user_id,environment,test_checkout_id) VALUES(b.id,u,'sandbox',s.id);
+  UPDATE public.cfa_test_checkouts SET status='paid',paid_at=now() WHERE id=s.id;
+  INSERT INTO public.cfa_test_mail(checkout_id) VALUES(s.id) ON CONFLICT DO NOTHING;
+ ELSE
+  SELECT * INTO e FROM public.events WHERE id=b.event_id;
+  IF NOT FOUND OR NOT e.reservations_open OR e.status NOT IN('published','hidden') OR (e.status<>'published' AND NOT public.cfa_is_owner()) THEN RAISE EXCEPTION 'event_unavailable';END IF;
+  PERFORM public.cfa_validate_camping_cart(b.id);
+  IF EXISTS(SELECT 1 FROM public.booking_items i LEFT JOIN public.event_options o ON o.id=i.event_option_id WHERE i.booking_id=b.id AND (o.id IS NULL OR o.event_id<>b.event_id OR NOT o.enabled OR NOT public.cfa_booking_item_date_allowed(i))) THEN RAISE EXCEPTION 'cart_items_invalid';END IF;
+  INSERT INTO public.cfa_free_confirmations(booking_id,user_id,environment) VALUES(b.id,u,'live');
+  UPDATE public.bookings SET status='confirmed',payment_status='paid',amount_paid=0,balance_due=0,booking_language=p_language,cart_expires_at=NULL,updated_at=now() WHERE id=b.id;
+ END IF;
+ IF coupon IS NOT NULL THEN INSERT INTO public.discount_redemptions(discount_code_id,booking_id,user_id,discount_amount) SELECT coupon,b.id,u,b.discount_amount WHERE NOT EXISTS(SELECT 1 FROM public.discount_redemptions WHERE discount_code_id=coupon AND booking_id=b.id);END IF;
+ RETURN jsonb_build_object('id',CASE WHEN p_test THEN s.id ELSE NULL END,'booking_id',b.id,'status','paid','environment',CASE WHEN p_test THEN 'sandbox' ELSE 'live' END);
+END$$;
+-- Count the original chargeable tickets of confirmed zero-value orders too.
+DO $$DECLARE f regprocedure;src text;original text;BEGIN
+ FOR f IN SELECT p.oid::regprocedure FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN('cfa_reward_sources','cfa_test_ticket_points','cfa_loyalty_ticket_events') LOOP
+  SELECT pg_get_functiondef(f) INTO src;
+  IF src NOT LIKE '%cfa_free_confirmations%' THEN
+   original:=src;
+   src:=regexp_replace(src,'s[.]expected_pence[[:space:]]*>[[:space:]]*0','(s.expected_pence>0 OR EXISTS(SELECT 1 FROM public.cfa_free_confirmations f WHERE f.test_checkout_id=s.id AND f.environment=''sandbox''))','g');
+   src:=regexp_replace(src,'b[.]total_amount[[:space:]]*>[[:space:]]*0','(b.total_amount>0 OR EXISTS(SELECT 1 FROM public.cfa_free_confirmations f WHERE f.booking_id=b.id AND f.environment=''live''))','g');
+   IF src=original THEN RAISE EXCEPTION 'loyalty_validation_changed';END IF;
+   EXECUTE src;
+  END IF;
+ END LOOP;
+END$$;
+CREATE OR REPLACE FUNCTION public.cfa_discount_message(p_message bigint) RETURNS jsonb
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='' AS $$DECLARE m public.private_messages;d public.discount_codes;v_code text;BEGIN
+ IF auth.uid() IS NULL THEN RAISE EXCEPTION 'sign_in_required';END IF;
+ SELECT * INTO m FROM public.private_messages WHERE id=p_message;
+ IF NOT FOUND OR NOT public.cfa_safety_is_admin(m.sender_id) OR (m.sender_id=auth.uid() OR m.receiver_id=auth.uid() OR COALESCE(public.was_private_conversation_member(m.conversation_id,auth.uid(),m.created_at),false)) IS NOT TRUE THEN RETURN NULL;END IF;
+ v_code:=substring(m.message_text FROM '(CFA-[A-Fa-f0-9]{32})');IF v_code IS NULL THEN RETURN NULL;END IF;
+ SELECT * INTO d FROM public.discount_codes WHERE upper(discount_codes.code)=upper(v_code);
+ IF NOT FOUND THEN RETURN NULL;END IF;
+ RETURN jsonb_build_object('code',d.code,'description',COALESCE(d.description,''),'value',d.discount_value,'type',d.discount_type);
+END$$;
+REVOKE ALL ON FUNCTION public.cfa_test_stock_deleted(),public.cfa_test_finish_matching_cart(uuid),public.cfa_test_apply_stock(uuid,boolean),public.cfa_test_stock_changed() FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.cfa_reset_test_capacity(),public.cfa_confirm_free_booking(bigint,text,boolean),public.cfa_discount_message(bigint) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.cfa_reset_test_capacity(),public.cfa_confirm_free_booking(bigint,text,boolean),public.cfa_discount_message(bigint) TO authenticated;
+DO $$BEGIN
+ IF EXISTS(SELECT 1 FROM pg_publication WHERE pubname='supabase_realtime' AND NOT puballtables) AND NOT EXISTS(SELECT 1 FROM pg_publication_tables WHERE pubname='supabase_realtime' AND schemaname='public' AND tablename='event_options') THEN
+  EXECUTE 'ALTER PUBLICATION supabase_realtime ADD TABLE public.event_options';
+ END IF;
+END$$;
+NOTIFY pgrst,'reload schema';
+COMMIT;
+SELECT 'OK - zlavy, nulove objednavky a skusobna kapacita pripravene' AS vysledok;
+`;

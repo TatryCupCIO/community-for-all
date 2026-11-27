@@ -9188,7 +9188,7 @@ if (typeof window.AndroidFirebase?.postMessage === 'function') {
       ['valid_until',tr('Platí do','Valid until'),'datetime-local',true],
       ['max_uses',tr('Celkový počet použití (prázdne = bez limitu)','Total uses (blank = unlimited)'),'integer',false,null,1],
       ['max_uses_per_user',tr('Počet použití na jeden účet','Uses per account'),'integer',true,null,1],
-      ['description',tr('Tvoja poznámka','Your note'),'text']
+      ['description',tr('Popis zľavy pre zákazníka','Discount description for the customer'),'text']
     ];
     const localDate=d=>{const x=new Date(d.getTime()-d.getTimezoneOffset()*60000);return x.toISOString().slice(0,16);};
     const now=new Date();
@@ -9368,7 +9368,7 @@ function cfaValidateChildAgeFields(row) {
 @media(max-width:520px){.cfa-disclosure-summary{gap:8px}.cfa-event-section>.cfa-disclosure-summary h3{font-size:16px}.cfa-event-section{margin:12px 0}}
 </style>
 <script src="event-photos.js?v=20261122-albums-13"></script>
-<script src="reservation-ui.js?v=20261121-gallery-9"></script>
+<script src="reservation-ui.js?v=20261127-checkout-1"></script>
 
 <script src="community-design.js?v=20261126-polish-1"></script>
 <script src="community-content.js?v=20261126-polish-1"></script>
@@ -9383,9 +9383,10 @@ function cfaValidateChildAgeFields(row) {
 <script src="legal-registration.js?v=20261122-legal-2"></script>
 <script src="quick-chat.js?v=20261127-compact-chat"></script>
 <script src="square-check.js?v=20261126-check-1"></script>
-<script src="cfa-booking-sandbox.js?v=20261126-rewards-debug-5"></script>
+<script src="cfa-booking-sandbox.js?v=20261127-checkout-1"></script>
 <script src="cfa-safety-policy.js?v=20261127-safety-1"></script>
-<script src="cfa-safety.js?v=20261127-block-badge-1"></script>
+<script src="cfa-safety.js?v=20261127-checkout-1"></script>
 <script src="cfa-chat-groups.js?v=20261127-groups-2"></script>
+<script src="cfa-checkout-improvements.js?v=20261127-checkout-1"></script>
 </body>
   </html>

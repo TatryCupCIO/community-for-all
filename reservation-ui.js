@@ -346,6 +346,9 @@
     const hide = (selector, key) => row.querySelectorAll(selector).forEach(n => { if (!setting(option, key)) n.hidden = true; });
     hide('.option-description', 'show_description'); hide('.option-price', 'show_price');
     hide('.extension-availability', 'show_availability'); hide('.guest-title', 'show_guest_title');
+    const name=row.querySelector('.option-name');let availability=row.querySelector('.extension-availability');if(!availability){const info=availabilityInfo(option);availability=node('div','● '+info.text,'extension-availability');availability.style.color=info.color;availability.hidden=!setting(option,'show_availability');}
+    if(name){let heading=row.querySelector('.cfa-option-heading');if(!heading){heading=node('div',null,'cfa-option-heading');name.before(heading);heading.append(name);}if(availability)heading.append(availability);}
+
     hide('.paid-child-title', 'show_bed_child_title'); hide('.capacity-note', 'show_capacity_note');
     if (option.option_code === 'day_parking') hide('.option-special', 'show_parking_note');
     if (option.option_code === 'electric_hookup') hide('.option-special', 'show_electric_note');
@@ -487,7 +490,7 @@
     const thead = node('thead'); thead.appendChild(header); table.appendChild(thead);
     const body = node('tbody');
     for (const o of options) {
-      const row = node('tr'); const left = o.stock_capacity == null ? null : Math.max(0, Number(o.stock_capacity) - Number(o.reserved_quantity || 0) - Number(o.sold_quantity || 0));
+      const row = node('tr');row.dataset.cfaOptionId=String(o.id); const left = o.stock_capacity == null ? null : Math.max(0, Number(o.stock_capacity) - Number(o.reserved_quantity || 0) - Number(o.sold_quantity || 0));
       const ratio = o.stock_capacity ? 100 * left / Number(o.stock_capacity) : 0;
       row.dataset.level = left == null || ratio > Number(o.availability_green_threshold ?? 50) ? 'green' : ratio > Number(o.availability_orange_threshold ?? 25) ? 'orange' : 'red';
       for (const value of [localName(o) + (o.enabled ? '' : t(' (vypnuté)', ' (disabled)')), o.stock_capacity ?? '∞', o.reserved_quantity || 0, o.sold_quantity || 0, left ?? '∞']) row.appendChild(node('td', String(value)));
@@ -495,9 +498,18 @@
     }
     table.appendChild(body); scroll.appendChild(table); wrap.appendChild(scroll); return wrap;
   }
+  let stockChannel=null;
+  function updateStock(updated){
+    for(const list of [typeof allEventOptions!=='undefined'?allEventOptions:[],typeof currentEventOptions!=='undefined'?currentEventOptions:[]])for(const o of list||[])if(Number(o.id)===Number(updated.id))for(const key of ['stock_capacity','reserved_quantity','sold_quantity','availability_status','availability_mode','manual_availability_status','availability_green_threshold','availability_orange_threshold'])if(key in updated)o[key]=updated[key];
+    const row=[...document.querySelectorAll('#eventDetailContent .option-row')].find(r=>Number(r.dataset.cfaOptionId)===Number(updated.id));
+    if(row){row.dataset.cfaAvailability=updated.availability_status||'available';const label=row.querySelector('.extension-availability');if(label){const info=availabilityInfo(updated);label.textContent='● '+info.text;label.style.color=info.color;}}
+    const line=[...document.querySelectorAll('.cfa-capacity-overview tr[data-cfa-option-id]')].find(r=>Number(r.dataset.cfaOptionId)===Number(updated.id));
+    if(line){const cells=line.querySelectorAll('td'),left=updated.stock_capacity==null?null:Math.max(0,Number(updated.stock_capacity)-Number(updated.reserved_quantity||0)-Number(updated.sold_quantity||0));for(const [i,value]of [updated.stock_capacity??'∞',updated.reserved_quantity||0,updated.sold_quantity||0,left??'∞'].entries())if(cells[i+1])cells[i+1].textContent=String(value);const ratio=updated.stock_capacity?100*left/Number(updated.stock_capacity):0;line.dataset.level=left==null||ratio>Number(updated.availability_green_threshold??50)?'green':ratio>Number(updated.availability_orange_threshold??25)?'orange':'red';}
+  }
   const previousDetail = showEventDetail;
   showEventDetail = async function(id) {
     const generation = ++renderGeneration; activeEdit = pendingEdit; pendingEdit = null;
+    if(stockChannel){supabaseClient.removeChannel?.(stockChannel);stockChannel=null;}
     await previousDetail(id);
     if (generation !== renderGeneration || Number(currentEvent?.id) !== Number(id)) return;
     renderEventInformation(currentEvent, allEventOptions || []);
@@ -520,6 +532,7 @@
       const target = [...rows].find(row => Number(row.dataset.cfaOptionId) === Number(activeEdit.event_option_id));
       target?.scrollIntoView?.({block: 'start'});
     }
+    if(supabaseClient.channel){const watcher=currentUser?.id;stockChannel=supabaseClient.channel('cfa-option-stock-'+id).on('postgres_changes',{event:'UPDATE',schema:'public',table:'event_options',filter:'event_id=eq.'+id},payload=>{if(generation===renderGeneration&&currentUser?.id===watcher)updateStock(payload.new);}).subscribe();}
     if (currentUser) {
       const userId = currentUser.id;
       try {
@@ -531,6 +544,14 @@
       } catch (error) { console.warn('Capacity overview:', error); }
     }
   };
+  const presentationStyle=node('style');presentationStyle.textContent=`
+#eventDetailContent .cfa-option-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid #b6d9cf;padding:6px 0 10px;margin-bottom:10px}
+#eventDetailContent .cfa-option-heading .option-name{font-size:calc(18px * var(--cfa-nav-scale,1))!important;font-weight:850!important;line-height:1.35;color:#104c4a!important;flex:1 1 55%;min-width:0;overflow-wrap:anywhere}
+#eventDetailContent .cfa-option-heading>.extension-availability{margin:0!important;font-size:calc(14px * var(--cfa-nav-scale,1))!important;font-weight:850!important;line-height:1.35;padding:6px 10px;border:1px solid currentColor;border-radius:20px;background:#fff;flex:0 1 auto;white-space:normal}
+#eventDetailContent .option-row[data-cfa-availability=available] .extension-availability{color:#167343!important}
+#eventDetailContent .option-row[data-cfa-availability=limited] .extension-availability{color:#9b5200!important;background:#fff2d9}
+#eventDetailContent .option-row[data-cfa-availability=almost_sold_out] .extension-availability,#eventDetailContent .option-row[data-cfa-availability=sold_out] .extension-availability{color:#b3273c!important;background:#fff0f0}
+`;document.head.append(presentationStyle);
   const previousGuestHtml = guestCartHtml;
   guestCartHtml = function(item) {
     if (!item.camping_group_id) return previousGuestHtml(item);
@@ -581,5 +602,5 @@
       row.appendChild(edit);
     });
   };
-  window.CFAReservationUI = {capacityOverview, applyOptionSettings};
+  window.CFAReservationUI = {capacityOverview, applyOptionSettings, updateStock};
 })();

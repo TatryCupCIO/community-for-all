@@ -55,6 +55,7 @@ function decorateMessage(node,target){
  if(!state?.can_manage&&target.author!==uid()&&state?.protected_admins?.includes(target.author))node.querySelectorAll('.private-delete-btn,.chat-delete-btn').forEach(b=>b.remove());
  if(target.system)node.dataset.cfaSystem='true';
  if(!target.system&&unavailable(target.author)){node.remove();return false;}
+ window.CFACheckoutImprovements?.decorateMessage(node,target);
  if(node.dataset.cfaActionsReady)return true;node.dataset.cfaActionsReady='true';node.classList.add('cfa-message-actions');
  const open=()=>actions(target,node).catch(err=>alert(explain(err)));
  if(!target.system){const more=button('⋯',open,'cfa-message-more');more.setAttribute('aria-label',tr('Možnosti správy','Message options'));more.title=more.getAttribute('aria-label');more.dataset.labelSk='Možnosti správy';more.dataset.labelEn='Message options';more.setAttribute('aria-haspopup','dialog');node.append(more,directActions(target,node));bindHold(node,open);}
