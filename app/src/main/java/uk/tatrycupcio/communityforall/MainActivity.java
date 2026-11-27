@@ -13,6 +13,10 @@ import android.os.Bundle;
 import android.os.Build;
 import android.Manifest;
 import android.content.Intent;
+import android.content.ClipData;
+import android.provider.MediaStore;
+import androidx.core.content.FileProvider;
+import java.io.File;
 import android.content.ActivityNotFoundException;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -39,6 +43,7 @@ public class MainActivity extends Activity {
 
     private WebView webView;
     private ValueCallback<Uri[]> fileCallback;
+    private Uri pendingCameraUri;
     private String pendingNativeNotification;
     private boolean notificationPageReady = false;
 
@@ -193,27 +198,42 @@ public class MainActivity extends Activity {
                     ValueCallback<Uri[]> callback,
                     FileChooserParams params) {
 
-                if (fileCallback != null) {
-                    fileCallback.onReceiveValue(null);
-                }
-
-                fileCallback = callback;
-
-                try {
-                    Intent intent = params.createIntent();
-
-                    startActivityForResult(
-                            intent,
-                            FILE_REQUEST
-                    );
-
+                if (!isTrustedUrl(Uri.parse(view.getUrl() == null ? "" : view.getUrl()))) {
+                    callback.onReceiveValue(null);
                     return true;
-
+                }
+                if (fileCallback != null) fileCallback.onReceiveValue(null);
+                fileCallback = callback;
+                pendingCameraUri = null;
+                try {
+                    Intent intent;
+                    if (params.isCaptureEnabled()) {
+                        File directory = new File(getCacheDir(), "camera");
+                        if (!directory.exists() && !directory.mkdirs()) throw new java.io.IOException("Camera directory");
+                        File[] older = directory.listFiles();
+                        if (older != null) for (File old : older) {
+                            if (old.lastModified() < System.currentTimeMillis() - 2L * 24 * 60 * 60 * 1000) old.delete();
+                        }
+                        File photo = File.createTempFile("cfa-photo-", ".jpg", directory);
+                        pendingCameraUri = FileProvider.getUriForFile(
+                                MainActivity.this, getPackageName() + ".fileprovider", photo);
+                        intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, pendingCameraUri);
+                        intent.setClipData(ClipData.newRawUri("CFA photo", pendingCameraUri));
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+                    } else {
+                        intent = params.createIntent();
+                    }
+                    startActivityForResult(intent, FILE_REQUEST);
                 } catch (Exception e) {
+                    pendingCameraUri = null;
                     fileCallback = null;
                     callback.onReceiveValue(null);
-                    return false;
+                    new android.app.AlertDialog.Builder(MainActivity.this)
+                            .setMessage("Fotoaparat alebo vyber suboru sa nepodarilo otvorit. / Could not open the camera or file picker.")
+                            .setPositiveButton(android.R.string.ok, null).show();
                 }
+                return true;
             }
         });
 
@@ -375,16 +395,14 @@ public class MainActivity extends Activity {
             Uri[] results = null;
 
             if (resultCode == RESULT_OK) {
-                results =
-                        WebChromeClient.FileChooserParams
-                                .parseResult(
-                                        resultCode,
-                                        data
-                                );
+                results = pendingCameraUri != null
+                        ? new Uri[]{pendingCameraUri}
+                        : WebChromeClient.FileChooserParams.parseResult(resultCode, data);
             }
 
             fileCallback.onReceiveValue(results);
             fileCallback = null;
+            pendingCameraUri = null;
         }
     }
 }
